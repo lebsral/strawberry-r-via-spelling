@@ -19,19 +19,52 @@ This project explores whether training a language model (LLM) on spelling tasks 
 ## Getting Started
 
 ### 1. Environment Setup
-- **Use [uv](https://github.com/astral-sh/uv) for Python environment management.**
-- Install uv:
+
+**Use [uv](https://github.com/astral-sh/uv) for Python environment and package management.**
+
+#### a. Install uv (if not already installed)
+```sh
+curl -fsSL https://astral.sh/uv/install.sh | bash
+```
+
+#### b. Create a virtual environment
+```sh
+uv venv .venv
+```
+
+#### c. Activate the virtual environment
+- On macOS/Linux:
   ```sh
-  curl -fsSL https://astral.sh/uv/install.sh | bash
+  source .venv/bin/activate
   ```
-- Install all dependencies (do NOT edit requirements.txt directly):
+- On Windows:
   ```sh
-  uv pip install torch transformers datasets wandb unsloth dspy lightning matplotlib seaborn pandas jupyter notebook ipywidgets
+  .venv\Scripts\activate
   ```
-- After installation, generate requirements.txt for documentation:
-  ```sh
-  uv pip freeze > requirements.txt
-  ```
+
+#### d. Install core development dependencies
+For a new repo, start with the most common tools:
+```sh
+uv pip install black ruff mypy ipython requests
+```
+Add any project-specific packages as you go (e.g., `torch`, `transformers`, `pandas`, etc.).
+
+#### e. Freeze installed packages for reproducibility
+```sh
+uv pip freeze > requirements.txt
+```
+Commit `requirements.txt` to version control.
+
+#### f. Document the uv version
+```sh
+uv --version
+```
+Add the output to your `README.md` or a setup section for future reference.
+
+---
+
+**Tip:**  
+Whenever you add new packages, always run `uv pip freeze > requirements.txt` again to keep your requirements up to date.
 
 ### 2. Environment Variables
 - Copy `.env.example` to `.env`:
