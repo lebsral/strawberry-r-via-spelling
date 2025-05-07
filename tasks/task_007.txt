@@ -3,18 +3,20 @@
 # Status: pending
 # Dependencies: 6
 # Priority: high
-# Description: Set up Unsloth for optimized LoRA fine-tuning of the GPT-2 model with memory efficiency optimizations.
+# Description: Set up Unsloth for optimized LoRA fine-tuning of the GPT-2 model with memory efficiency optimizations in a cloud GPU environment (Google Colab or Lightning.ai).
 # Details:
-1. Install and configure Unsloth for optimized fine-tuning
-2. Set up Unsloth-specific environment requirements
+**NOTE: This task requires a cloud GPU environment. Do not attempt on local Mac.**
+
+1. Install and configure Unsloth for optimized fine-tuning in Google Colab or Lightning.ai
+2. Set up Unsloth-specific environment requirements in the cloud environment
 3. Configure memory-efficient QLoRA training
-4. Set up Flash Attention 2 if available on hardware
+4. Set up Flash Attention 2 if available on cloud GPU hardware
 5. Implement proper tokenization for instruction fine-tuning
 6. Configure GPU memory optimizations
 
 Implementation:
 ```python
-# Install Unsloth
+# Install Unsloth in Google Colab or Lightning.ai environment
 !pip install unsloth
 
 from unsloth import FastLanguageModel
@@ -155,18 +157,19 @@ def train_with_unsloth(config_path):
 ```
 
 # Test Strategy:
-1. Verify Unsloth installs and imports correctly
+1. Verify Unsloth installs and imports correctly in Google Colab or Lightning.ai
 2. Confirm memory usage is optimized compared to standard fine-tuning
-3. Test that 4-bit quantization is working correctly
+3. Test that 4-bit quantization is working correctly on cloud GPU
 4. Measure training speed improvement over baseline implementation
 5. Verify all Unsloth-specific optimizations are configured
-6. Test with a small dataset to ensure the training loop works
+6. Test with a small dataset to ensure the training loop works in cloud environment
 7. Monitor GPU memory usage during training
+8. Verify that the implementation does not contain any local-only dependencies
 
 # Subtasks:
 ## 1. Environment Setup with Optimizations [pending]
 ### Dependencies: None
-### Description: Configure the development environment with Unsloth and necessary dependencies for optimized LLM fine-tuning
+### Description: Configure the cloud GPU environment with Unsloth and necessary dependencies for optimized LLM fine-tuning
 ### Details:
 Install Unsloth library and compatible dependencies (bitsandbytes, transformers, PEFT). Configure GPU memory settings for optimal performance. Set up quantization libraries. Verify hardware compatibility (CUDA, ROCm, or Metal backend). Test environment with basic model loading to ensure all components work together.
 <info added on 2025-05-07T14:48:05.432Z>
@@ -175,21 +178,29 @@ Install Unsloth library and compatible dependencies (bitsandbytes, transformers,
 This task can be worked on independently and in parallel with others. The environment setup has no dependencies and is parallelizable (parallelizable: true), allowing team members to begin this work immediately while other tasks are being planned or executed.
 </info added on 2025-05-07T14:48:05.432Z>
 
+**NOTE: This task requires a cloud GPU environment (Google Colab or Lightning.ai). Do not attempt on local Mac.**
+
 ## 2. Model Loading with Unsloth-specific Configurations [pending]
 ### Dependencies: 7.1
-### Description: Implement efficient model loading using Unsloth's FastLanguageModel with proper quantization and LoRA setup
+### Description: Implement efficient model loading using Unsloth's FastLanguageModel with proper quantization and LoRA setup in cloud GPU environment
 ### Details:
-Use FastLanguageModel.from_pretrained() to load base models with quantization. Configure LoRA adapters with get_peft_model() using appropriate rank and target modules. Implement proper quantization settings (4-bit, 8-bit) based on available VRAM. Set up gradient checkpointing with 'unsloth' option. Validate model loading with memory profiling.
+Use FastLanguageModel.from_pretrained() to load base models with quantization in Google Colab or Lightning.ai. Configure LoRA adapters with get_peft_model() using appropriate rank and target modules. Implement proper quantization settings (4-bit, 8-bit) based on available cloud GPU VRAM. Set up gradient checkpointing with 'unsloth' option. Validate model loading with memory profiling.
+
+**NOTE: This task requires a cloud GPU environment (Google Colab or Lightning.ai). Do not attempt on local Mac.**
 
 ## 3. Dataset Preparation for Unsloth [pending]
 ### Dependencies: 7.1
-### Description: Prepare and optimize training datasets for efficient processing with Unsloth
+### Description: Prepare and optimize training datasets for efficient processing with Unsloth in cloud environment
 ### Details:
-Format dataset according to Unsloth requirements. Implement efficient tokenization with proper sequence length handling. Set up data processing pipeline with appropriate num_proc parameter. Configure dataset caching mechanisms to reduce memory overhead. Validate dataset loading with performance metrics.
+Format dataset according to Unsloth requirements in Google Colab or Lightning.ai. Implement efficient tokenization with proper sequence length handling. Set up data processing pipeline with appropriate num_proc parameter. Configure dataset caching mechanisms to reduce memory overhead. Validate dataset loading with performance metrics.
+
+**NOTE: This task requires a cloud GPU environment (Google Colab or Lightning.ai). Do not attempt on local Mac.**
 
 ## 4. Trainer Setup with Memory Optimizations [pending]
 ### Dependencies: 7.2, 7.3
-### Description: Configure SFTTrainer with Unsloth-optimized parameters for efficient fine-tuning
+### Description: Configure SFTTrainer with Unsloth-optimized parameters for efficient fine-tuning in cloud GPU environment
 ### Details:
-Set up SFTTrainer with optimized batch size and gradient accumulation. Configure learning rate and scheduler based on training duration. Implement proper precision settings (bf16/fp16) based on hardware support. Set up memory-efficient optimizers (adamw_8bit). Configure logging and checkpointing. Validate trainer setup with memory usage monitoring during initial training steps.
+Set up SFTTrainer with optimized batch size and gradient accumulation in Google Colab or Lightning.ai. Configure learning rate and scheduler based on training duration. Implement proper precision settings (bf16/fp16) based on cloud GPU hardware support. Set up memory-efficient optimizers (adamw_8bit). Configure logging and checkpointing. Validate trainer setup with memory usage monitoring during initial training steps.
+
+**NOTE: This task requires a cloud GPU environment (Google Colab or Lightning.ai). Do not attempt on local Mac.**
 

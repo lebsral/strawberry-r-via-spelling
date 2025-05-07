@@ -11,6 +11,8 @@
 4. Ensure dataset is properly published
 5. Create final report with results and findings
 
+NOTE: If publishing Unsloth or GPU-fine-tuned models, use a cloud GPU environment (Google Colab or https://lightning.ai/lars/home). Local publishing is only for CPU-compatible models.
+
 Implementation:
 ```python
 from huggingface_hub import HfApi
@@ -314,6 +316,7 @@ def create_final_report(evaluation_results, config, repo_id):
 5. Check that final report includes all required information
 6. Test model loading from Hugging Face
 7. Verify all success criteria from the PRD are met and documented
+8. For Unsloth or GPU-fine-tuned models, verify the publishing process works in a cloud GPU environment
 
 # Subtasks:
 ## 1. Model Card Creation [pending]
@@ -334,9 +337,17 @@ Create a detailed README.md for the project repository (separate from the model 
 ### Details:
 Use the huggingface_hub library to upload the model, tokenizer, and model card. Configure model tags, set appropriate visibility settings, and verify the model card renders correctly. Test the uploaded model with sample inference code to ensure it works as expected. Validate that all metadata is correctly displayed on the model page and that links to datasets are functional.
 
+NOTE: If publishing Unsloth or GPU-fine-tuned models, use a cloud GPU environment (Google Colab or https://lightning.ai/lars/home). Local publishing is only for CPU-compatible models.
+
 ## 4. Final Report Generation [pending]
 ### Dependencies: 10.1, 10.2, 10.3
 ### Description: Create a comprehensive report summarizing the model development, performance, and publication process
 ### Details:
 Generate a final report documenting the entire model development lifecycle. Include: executive summary, methodology, training process details, evaluation metrics with visualizations, comparison to baseline models, limitations discovered during testing, deployment considerations, and future improvement recommendations. Format as a professional document with proper citations and appendices for detailed results.
+
+## 5. Cloud Environment Setup for Model Publishing [pending]
+### Dependencies: None
+### Description: Configure cloud GPU environment for publishing Unsloth or GPU-fine-tuned models
+### Details:
+Set up a cloud GPU environment (Google Colab or https://lightning.ai/lars/home) for publishing models that require GPU resources. Create a notebook or script that handles authentication with Hugging Face, loads the model from local storage or cloud storage, and publishes it to the Hugging Face Hub. Include clear instructions for users on how to use this environment for model publishing. Test the workflow to ensure it works seamlessly with Unsloth-optimized models.
 

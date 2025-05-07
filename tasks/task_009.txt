@@ -16,6 +16,8 @@
 4. Create visualizations of the results
 5. Compare performance between base and fine-tuned models
 
+NOTE: If evaluating Unsloth or GPU-fine-tuned models, use a cloud GPU environment (Google Colab or https://lightning.ai/lars/home). Local evaluation is only for CPU-compatible models.
+
 Implementation:
 ```python
 import torch
@@ -427,6 +429,7 @@ def evaluate_models(base_model_name, finetuned_model_path):
 5. Confirm performance comparison between base and fine-tuned models
 6. Test with different model checkpoints to ensure consistent evaluation
 7. Verify final evaluation results are saved locally
+8. For Unsloth-fine-tuned models, ensure evaluation is performed in a cloud GPU environment
 
 # Subtasks:
 ## 1. Multi-metric evaluation framework implementation [pending]
@@ -435,11 +438,15 @@ def evaluate_models(base_model_name, finetuned_model_path):
 ### Details:
 Define evaluation goals and success metrics for the model assessment. Select appropriate metrics covering accuracy, precision, recall, F1-score, latency, and domain-specific measures. Create standardized test datasets with diverse examples. Implement automated evaluation pipelines that can process model outputs against ground truth. Establish baseline performance thresholds for each metric.
 
+NOTE: If evaluating Unsloth or GPU-fine-tuned models, use a cloud GPU environment (Google Colab or https://lightning.ai/lars/home). Local evaluation is only for CPU-compatible models.
+
 ## 2. Base vs. fine-tuned model comparison [pending]
 ### Dependencies: 9.1
 ### Description: Conduct systematic comparison between base models and their fine-tuned versions across all defined metrics
 ### Details:
 Design controlled experiments to compare base and fine-tuned models. Ensure identical test conditions and datasets for fair comparison. Measure performance improvements across all metrics defined in subtask 1. Analyze trade-offs between different aspects of performance (e.g., accuracy vs. latency). Document specific improvements attributable to fine-tuning techniques. Identify areas where fine-tuning provided the most significant gains.
+
+NOTE: If evaluating Unsloth or GPU-fine-tuned models, use a cloud GPU environment (Google Colab or https://lightning.ai/lars/home). Local evaluation is only for CPU-compatible models.
 
 ## 3. Detailed error analysis system [pending]
 ### Dependencies: 9.1, 9.2
@@ -447,15 +454,27 @@ Design controlled experiments to compare base and fine-tuned models. Ensure iden
 ### Details:
 Develop error taxonomy specific to the model's domain and tasks. Implement automated error classification system. Perform qualitative analysis of error patterns and edge cases. Create error frequency distribution reports. Identify correlations between specific input characteristics and error types. Develop recommendations for targeted model improvements based on error patterns.
 
+NOTE: If evaluating Unsloth or GPU-fine-tuned models, use a cloud GPU environment (Google Colab or https://lightning.ai/lars/home). Local evaluation is only for CPU-compatible models.
+
 ## 4. Performance visualization dashboard [pending]
 ### Dependencies: 9.1, 9.2, 9.3
 ### Description: Design and implement an interactive dashboard to visualize model performance metrics and comparisons
 ### Details:
 Select appropriate visualization types for different metrics and comparisons. Implement interactive features allowing drill-down into specific performance aspects. Create side-by-side visualizations of base vs. fine-tuned model performance. Design time-series views to track performance changes across model iterations. Ensure visualizations are accessible and interpretable for both technical and non-technical stakeholders.
 
+NOTE: If evaluating Unsloth or GPU-fine-tuned models, use a cloud GPU environment (Google Colab or https://lightning.ai/lars/home). Local evaluation is only for CPU-compatible models.
+
 ## 5. Evaluation report generation [pending]
 ### Dependencies: 9.1, 9.2, 9.3, 9.4
 ### Description: Create comprehensive evaluation reports documenting findings, methodologies, and recommendations
 ### Details:
 Develop standardized report templates covering all evaluation aspects. Document evaluation methodology, metrics, and test datasets. Summarize key performance findings and improvements. Include detailed error analysis with examples. Provide actionable recommendations for further model improvements. Create executive summary for non-technical stakeholders. Ensure reports include all relevant visualizations from the dashboard.
+
+NOTE: If evaluating Unsloth or GPU-fine-tuned models, use a cloud GPU environment (Google Colab or https://lightning.ai/lars/home). Local evaluation is only for CPU-compatible models.
+
+## 6. Cloud GPU environment setup for Unsloth model evaluation [pending]
+### Dependencies: 9.1
+### Description: Configure and set up cloud GPU environments for evaluating Unsloth-fine-tuned models
+### Details:
+Create setup scripts for Google Colab and Lightning.ai environments. Configure necessary dependencies and libraries for Unsloth model evaluation. Implement efficient data loading mechanisms for cloud environments. Ensure proper GPU utilization during evaluation. Create documentation for setting up and using cloud environments for evaluation. Test the setup with sample Unsloth models to verify functionality.
 

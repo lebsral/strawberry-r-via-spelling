@@ -8,13 +8,15 @@
 1. Install uv package manager: `curl -fsSL https://astral.sh/uv/install.sh | bash`
 2. Create project directory structure following the repository structure in the PRD
 3. Install dependencies directly using uv commands instead of editing requirements.txt:
-   - `uv pip install torch transformers datasets wandb unsloth dspy lightning matplotlib seaborn pandas jupyter notebook ipywidgets`
+   - `uv pip install torch transformers datasets wandb dspy lightning matplotlib seaborn pandas jupyter notebook ipywidgets`
 4. After installation, generate requirements.txt for documentation: `uv pip freeze > requirements.txt`
 5. Set up Git repository with proper .gitignore
 6. Configure Weights & Biases account: `wandb login`
 7. Set up Hugging Face account and API access: `huggingface-cli login`
 8. Create initial Jupyter notebook for experimentation
 9. Verify all imports work correctly
+
+Note: For Unsloth or GPU-based fine-tuning, use Google Colab or https://lightning.ai/lars/home.
 
 # Test Strategy:
 1. Verify all libraries install without errors using uv
@@ -25,7 +27,7 @@
 6. Verify environment reproducibility by creating a new environment using the generated requirements.txt
 
 # Subtasks:
-## 1. Installation Phase [pending]
+## 1. Installation Phase [done]
 ### Dependencies: None
 ### Description: Set up the development environment by installing all necessary software, tools, and dependencies using uv package manager
 ### Details:
@@ -35,6 +37,33 @@ Install uv package manager first, then use it to install all required libraries 
 
 This task can be worked on independently and in parallel with others. The Installation Phase has no dependencies and is parallelizable (parallelizable: true).
 </info added on 2025-05-07T14:46:36.027Z>
+<info added on 2025-05-07T15:14:41.583Z>
+The Installation Phase has been completed successfully. The following steps were taken to set up the development environment:
+
+1. Created a new Python virtual environment using uv:
+   ```sh
+   uv venv .venv
+   ```
+2. Activated the environment:
+   ```sh
+   source .venv/bin/activate
+   ```
+3. Installed core development dependencies:
+   ```sh
+   uv pip install black ruff mypy ipython requests
+   ```
+   (Additional project-specific packages can be added as needed)
+4. Generated requirements.txt for reproducibility:
+   ```sh
+   uv pip freeze > requirements.txt
+   ```
+5. Documented uv version:
+   ```sh
+   uv --version
+   ```
+
+All installation paths and versions have been documented as required. The development environment is now fully set up and ready for use. Setup instructions have been added to the README for reference. The next phase (Configuration Phase) can now begin.
+</info added on 2025-05-07T15:14:41.583Z>
 
 ## 2. Configuration Phase [pending]
 ### Dependencies: 1.1
@@ -53,11 +82,15 @@ Create a proper environment configuration by duplicating the .env.example file t
 6. Update the project documentation to include information about required environment variables
 </info added on 2025-05-07T14:26:08.046Z>
 
+Note: For Unsloth or GPU-based fine-tuning, use Google Colab or https://lightning.ai/lars/home. The local environment should only include packages compatible with Mac (Apple Silicon) and not require GPU or xformers.
+
 ## 3. Verification Phase [pending]
 ### Dependencies: 1.2
 ### Description: Test the complete development environment to ensure all components work together properly
 ### Details:
 Run test scripts to verify installations, validate configurations, test connections to external services, perform a sample build process, and document any issues encountered along with their resolutions. Test environment reproducibility by creating a new environment using the generated requirements.txt and uv.
+
+Note: Verify that only Mac (Apple Silicon) compatible packages are installed. GPU-dependent packages like Unsloth and xformers should not be included in the local environment. For GPU-accelerated workflows, document the process of using Google Colab or https://lightning.ai/lars/home instead.
 
 ## 4. Create and Maintain README.md for Developer Onboarding [pending]
 ### Dependencies: None
@@ -70,6 +103,8 @@ Run test scripts to verify installations, validate configurations, test connecti
 5. List common troubleshooting tips and FAQs.
 6. Include contribution guidelines and code style references.
 7. Update the README.md as the project evolves to ensure accuracy and completeness.
+8. Add a dedicated section explaining that the local environment is designed for Mac (Apple Silicon) compatibility and does not include GPU-dependent packages like Unsloth and xformers.
+9. Document how to use Google Colab or https://lightning.ai/lars/home for GPU-accelerated workflows and Unsloth-based fine-tuning.
 <info added on 2025-05-07T14:46:49.605Z>
 1. Write a clear project overview and purpose.
 2. Document the setup process, including using uv for environment management, installing dependencies, and configuring the .env file.
@@ -81,4 +116,17 @@ Run test scripts to verify installations, validate configurations, test connecti
 
 Note: This task can be worked on independently and in parallel with others. It has no dependencies and is parallelizable: true.
 </info added on 2025-05-07T14:46:49.605Z>
+
+## 5. Document Cloud-based GPU Environment Setup [pending]
+### Dependencies: 1.1
+### Description: Create documentation for setting up GPU-accelerated environments on Google Colab and Lightning.ai for Unsloth-based fine-tuning
+### Details:
+1. Create a dedicated Jupyter notebook with setup instructions for Google Colab that includes:
+   - Installing Unsloth and other GPU-dependent packages
+   - Setting up authentication for W&B and Hugging Face
+   - Example code for fine-tuning with Unsloth
+2. Document the process for using Lightning.ai/lars for GPU-accelerated workflows
+3. Include instructions for transferring local work to cloud environments
+4. Document how to sync results and models back to the local environment
+5. Add troubleshooting tips specific to cloud GPU environments
 
