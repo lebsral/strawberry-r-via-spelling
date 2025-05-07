@@ -65,7 +65,7 @@ The Installation Phase has been completed successfully. The following steps were
 All installation paths and versions have been documented as required. The development environment is now fully set up and ready for use. Setup instructions have been added to the README for reference. The next phase (Configuration Phase) can now begin.
 </info added on 2025-05-07T15:14:41.583Z>
 
-## 2. Configuration Phase [pending]
+## 2. Configuration Phase [done]
 ### Dependencies: 1.1
 ### Description: Configure all installed components to work together properly and set up authentication for external services
 ### Details:
@@ -84,7 +84,7 @@ Create a proper environment configuration by duplicating the .env.example file t
 
 Note: For Unsloth or GPU-based fine-tuning, use Google Colab or https://lightning.ai/lars/home. The local environment should only include packages compatible with Mac (Apple Silicon) and not require GPU or xformers.
 
-## 3. Verification Phase [pending]
+## 3. Verification Phase [done]
 ### Dependencies: 1.2
 ### Description: Test the complete development environment to ensure all components work together properly
 ### Details:

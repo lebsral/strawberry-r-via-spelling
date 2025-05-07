@@ -14,11 +14,11 @@ This project explores whether training a language model (LLM) on spelling tasks 
 - `tasks/` — Taskmaster-generated task files and subtasks.
 - `.env.example` — Template for required environment variables.
 - `.env` — Your local environment configuration (not committed).
-- `READMD.md` — This documentation.
+- `README.md` — This documentation.
 
 ## Getting Started
 
-### 1. Environment Setup
+### 1. Environment Setup (Mac/Apple Silicon)
 
 **Use [uv](https://github.com/astral-sh/uv) for Python environment and package management.**
 
@@ -45,9 +45,9 @@ uv venv .venv
 #### d. Install core development dependencies
 For a new repo, start with the most common tools:
 ```sh
-uv pip install black ruff mypy ipython requests
+uv pip install black ruff mypy ipython requests torch transformers datasets wandb dspy lightning matplotlib seaborn pandas jupyter notebook ipywidgets
 ```
-Add any project-specific packages as you go (e.g., `torch`, `transformers`, `pandas`, etc.).
+**Do NOT install Unsloth or xformers locally.**
 
 #### e. Freeze installed packages for reproducibility
 ```sh
@@ -104,26 +104,60 @@ Whenever you add new packages, always run `uv pip freeze > requirements.txt` aga
 - Scripts and notebooks for dataset creation and analysis are in `scripts/`.
 
 ### 6. Model Training & Evaluation
-- Fine-tuning is performed using Unsloth and LoRA for memory efficiency.
+- **Local Mac:** Only run code that does not require GPU, Unsloth, or xformers.
+- **For Unsloth-based fine-tuning or any GPU-dependent workflow:**
+  - Use [Google Colab](https://colab.research.google.com/) or [Lightning.ai](https://lightning.ai/lars/home).
+  - See the section below for cloud workflow instructions.
 - Experiments are tracked with W&B.
 - Evaluation focuses on position and count question metrics, using the hold-out set for true generalization measurement.
 
-###  Contributing
-- Follow the Taskmaster workflow for all new features or changes.
-- Add new tasks or subtasks as needed using Taskmaster commands.
-- Update this README as the project evolves.
+---
+
+## ⚠️ Mac vs. Cloud GPU Workflow
+
+### Local Mac (Apple Silicon) Environment
+- Only install and use packages that are compatible with Mac and do not require a GPU (no Unsloth, no xformers).
+- Do all data preparation, code development, and CPU-based evaluation locally.
+- If you see errors about `xformers` or `unsloth` during install, **ignore them locally** and move to the cloud workflow for those steps.
+
+### Cloud GPU (Colab/Lightning) Environment for Unsloth
+- For any fine-tuning or training that requires Unsloth, LoRA, or GPU acceleration:
+  1. Open [Google Colab](https://colab.research.google.com/) or [Lightning.ai](https://lightning.ai/lars/home).
+  2. Upload your code and data, or clone your repo.
+  3. In a Colab cell, run:
+     ```python
+     !pip install unsloth torch transformers datasets wandb dspy lightning matplotlib seaborn pandas jupyter notebook ipywidgets
+     ```
+  4. Proceed with Unsloth-based fine-tuning and training as described in your project tasks.
+  5. Download results/models back to your local machine as needed.
+
+---
 
 ## Troubleshooting & FAQ
 - If dependencies fail to install, ensure you are using uv and not pip directly.
 - If you encounter missing environment variables, check `.env.example` for required keys.
 - For Taskmaster issues, see the [Taskmaster documentation](https://github.com/roochat/task-master-ai) or run `task-master --help`.
+- If you see errors about `xformers` or `unsloth` on Mac, ignore them and use the cloud workflow for those steps.
+- If `pip` or `python` commands fail, check that you are using the correct virtual environment:
+  ```sh
+  which python
+  which pip
+  ```
+  Both should point to your `.venv` directory.
 
 ## Directory Reference
 - `scripts/` — Scripts, PRD, complexity reports
 - `tasks/` — Task files and subtasks
 - `.env.example` — Environment variable template
 - `.env` — Local environment (not committed)
-- `READMD.md` — Project documentation
+- `README.md` — Project documentation
+
+## Contribution Guidelines
+- Follow the Taskmaster workflow for all new features or changes.
+- Add new tasks or subtasks as needed using Taskmaster commands.
+- Update this README as the project evolves.
+- Use clear commit messages and document any changes to onboarding or environment setup.
+- Reference code style and best practices as needed.
 
 ## Contact
 For questions or contributions, open an issue or contact the project maintainer.

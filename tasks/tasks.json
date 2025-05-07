@@ -26,7 +26,7 @@
             1
           ],
           "details": "Set environment variables, configure IDE settings, establish database connections, set up version control repositories, configure build tools, and establish authentication for any external services or APIs required for development. Generate requirements.txt using 'uv pip freeze > requirements.txt' for documentation purposes.\n<info added on 2025-05-07T14:26:08.046Z>\nSet environment variables, configure IDE settings, establish database connections, set up version control repositories, configure build tools, and establish authentication for any external services or APIs required for development. Generate requirements.txt using 'uv pip freeze > requirements.txt' for documentation purposes.\n\nCreate a proper environment configuration by duplicating the .env.example file to .env:\n1. Copy the .env.example file to .env using the command: `cp .env.example .env` (Unix/Mac) or `copy .env.example .env` (Windows)\n2. Open the newly created .env file and fill in all required values\n3. Ensure all environment variables are properly set according to your local development environment\n4. Document any custom environment variables added to the project in the .env.example file with appropriate comments\n5. Verify that sensitive information (API keys, passwords, etc.) is not committed to version control\n6. Update the project documentation to include information about required environment variables\n</info added on 2025-05-07T14:26:08.046Z>\n\nNote: For Unsloth or GPU-based fine-tuning, use Google Colab or https://lightning.ai/lars/home. The local environment should only include packages compatible with Mac (Apple Silicon) and not require GPU or xformers.",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 3,
@@ -36,7 +36,7 @@
             2
           ],
           "details": "Run test scripts to verify installations, validate configurations, test connections to external services, perform a sample build process, and document any issues encountered along with their resolutions. Test environment reproducibility by creating a new environment using the generated requirements.txt and uv.\n\nNote: Verify that only Mac (Apple Silicon) compatible packages are installed. GPU-dependent packages like Unsloth and xformers should not be included in the local environment. For GPU-accelerated workflows, document the process of using Google Colab or https://lightning.ai/lars/home instead.",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 4,
