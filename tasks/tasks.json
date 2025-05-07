@@ -4,7 +4,7 @@
       "id": 1,
       "title": "Development Environment Setup",
       "description": "Set up the Python development environment with all required dependencies using uv for package management.",
-      "status": "pending",
+      "status": "done",
       "dependencies": [],
       "priority": "high",
       "details": "1. Install uv package manager: `curl -fsSL https://astral.sh/uv/install.sh | bash`\n2. Create project directory structure following the repository structure in the PRD\n3. Install dependencies directly using uv commands instead of editing requirements.txt:\n   - `uv pip install torch transformers datasets wandb dspy lightning matplotlib seaborn pandas jupyter notebook ipywidgets`\n4. After installation, generate requirements.txt for documentation: `uv pip freeze > requirements.txt`\n5. Set up Git repository with proper .gitignore\n6. Configure Weights & Biases account: `wandb login`\n7. Set up Hugging Face account and API access: `huggingface-cli login`\n8. Create initial Jupyter notebook for experimentation\n9. Verify all imports work correctly\n\nNote: For Unsloth or GPU-based fine-tuning, use Google Colab or https://lightning.ai/lars/home.",
@@ -43,7 +43,7 @@
           "title": "Create and Maintain README.md for Developer Onboarding",
           "description": "Develop and maintain a comprehensive README.md file to help new developers set up the environment, understand the project structure, and follow best practices.",
           "details": "1. Write a clear project overview and purpose.\n2. Document the setup process, including using uv for environment management, installing dependencies, and configuring the .env file.\n3. Explain the directory structure and the role of key files (e.g., requirements.txt, .env, .env.example, notebooks, scripts).\n4. Provide instructions for running Jupyter notebooks and scripts.\n5. List common troubleshooting tips and FAQs.\n6. Include contribution guidelines and code style references.\n7. Update the README.md as the project evolves to ensure accuracy and completeness.\n8. Add a dedicated section explaining that the local environment is designed for Mac (Apple Silicon) compatibility and does not include GPU-dependent packages like Unsloth and xformers.\n9. Document how to use Google Colab or https://lightning.ai/lars/home for GPU-accelerated workflows and Unsloth-based fine-tuning.\n<info added on 2025-05-07T14:46:49.605Z>\n1. Write a clear project overview and purpose.\n2. Document the setup process, including using uv for environment management, installing dependencies, and configuring the .env file.\n3. Explain the directory structure and the role of key files (e.g., requirements.txt, .env, .env.example, notebooks, scripts).\n4. Provide instructions for running Jupyter notebooks and scripts.\n5. List common troubleshooting tips and FAQs.\n6. Include contribution guidelines and code style references.\n7. Update the README.md as the project evolves to ensure accuracy and completeness.\n\nNote: This task can be worked on independently and in parallel with others. It has no dependencies and is parallelizable: true.\n</info added on 2025-05-07T14:46:49.605Z>",
-          "status": "pending",
+          "status": "done",
           "dependencies": [],
           "parentTaskId": 1
         },
@@ -55,7 +55,7 @@
             1
           ],
           "details": "1. Create a dedicated Jupyter notebook with setup instructions for Google Colab that includes:\n   - Installing Unsloth and other GPU-dependent packages\n   - Setting up authentication for W&B and Hugging Face\n   - Example code for fine-tuning with Unsloth\n2. Document the process for using Lightning.ai/lars for GPU-accelerated workflows\n3. Include instructions for transferring local work to cloud environments\n4. Document how to sync results and models back to the local environment\n5. Add troubleshooting tips specific to cloud GPU environments",
-          "status": "pending",
+          "status": "done",
           "parentTaskId": 1
         }
       ]

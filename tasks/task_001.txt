@@ -1,6 +1,6 @@
 # Task ID: 1
 # Title: Development Environment Setup
-# Status: pending
+# Status: done
 # Dependencies: None
 # Priority: high
 # Description: Set up the Python development environment with all required dependencies using uv for package management.
@@ -92,7 +92,7 @@ Run test scripts to verify installations, validate configurations, test connecti
 
 Note: Verify that only Mac (Apple Silicon) compatible packages are installed. GPU-dependent packages like Unsloth and xformers should not be included in the local environment. For GPU-accelerated workflows, document the process of using Google Colab or https://lightning.ai/lars/home instead.
 
-## 4. Create and Maintain README.md for Developer Onboarding [pending]
+## 4. Create and Maintain README.md for Developer Onboarding [done]
 ### Dependencies: None
 ### Description: Develop and maintain a comprehensive README.md file to help new developers set up the environment, understand the project structure, and follow best practices.
 ### Details:
@@ -117,7 +117,7 @@ Note: Verify that only Mac (Apple Silicon) compatible packages are installed. GP
 Note: This task can be worked on independently and in parallel with others. It has no dependencies and is parallelizable: true.
 </info added on 2025-05-07T14:46:49.605Z>
 
-## 5. Document Cloud-based GPU Environment Setup [pending]
+## 5. Document Cloud-based GPU Environment Setup [done]
 ### Dependencies: 1.1
 ### Description: Create documentation for setting up GPU-accelerated environments on Google Colab and Lightning.ai for Unsloth-based fine-tuning
 ### Details:
