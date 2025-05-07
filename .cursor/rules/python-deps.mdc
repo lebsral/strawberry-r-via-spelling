@@ -1,0 +1,49 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+- **Always Use `uv` for Python Package Management**
+  - Use `uv` instead of `pip` for all Python package operations
+  - `uv` is significantly faster and more reliable than pip
+  - Ensures consistent dependency resolution
+
+- **Installation Commands**
+  ```bash
+  # ✅ DO: Use uv for installations
+  uv pip install package_name
+  uv pip install -r requirements.txt
+
+  # ❌ DON'T: Use pip directly
+  pip install package_name  # Too slow
+  pip install -r requirements.txt  # Less reliable
+  ```
+
+- **Virtual Environment Management**
+  ```bash
+  # ✅ DO: Use uv for venv creation
+  uv venv
+
+  # ❌ DON'T: Use other tools
+  python -m venv .venv  # Less efficient
+  virtualenv .venv  # Not as fast
+  ```
+
+- **Requirements File Updates**
+  ```bash
+  # ✅ DO: Use uv to compile requirements
+  uv pip compile requirements.txt
+
+  # ❌ DON'T: Use pip freeze
+  pip freeze > requirements.txt  # Less deterministic
+  ```
+
+- **Key Benefits**
+  - Up to 10x faster than pip
+  - More reliable dependency resolution
+  - Better caching and parallel downloads
+  - Improved security with modern package verification
+
+- **Installation**
+  - Install uv globally: `brew install uv`
+  - Verify installation: `uv --version`
