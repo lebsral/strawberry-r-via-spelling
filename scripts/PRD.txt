@@ -1,0 +1,1358 @@
+# Product Requirements Document (PRD): LLM Strawberry Problem Solution via Fine-tuning of Spelling
+
+## Project Overview
+
+**Project Name:** LLM Strawberry Problem Solution via Fine-tuning of Spelling
+**Version:** 0.2
+
+### Objective
+
+To fine-tune a GPT-2 language model to improve its understanding of letter count and character position via spelling mechanics through synthetic data training, with the goal of enhancing its ability to answer questions about letter counts and positions in words without explicitly training on those tasks.
+
+### Success Criteria
+
+1. The fine-tuned model demonstrates significant improvement over the base model in answering letter count questions (e.g., "How many 'r's are in 'strawberry'?")
+2. The fine-tuned model demonstrates significant improvement in identifying letter positions (e.g., "What is the 3rd letter in 'strawberry'?"), using only primary metrics.
+3. All deliverables are properly documented and uploaded to Hugging Face
+4. Training metrics and experiments are tracked in Weights & Biases
+
+## Version Control and Commit Strategy
+
+### Git Commit Strategy
+
+This project should follow a systematic commit strategy to ensure traceability and reproducibility. Commits should be small, focused, and frequent.
+
+**When to Commit:**
+- After completing environment setup
+- After creating data extraction and preprocessing scripts
+- After generating datasets (train, validation, test)
+- After implementing initial model testing scripts
+- After each hyperparameter tuning experiment
+- After implementing or updating evaluation metrics
+- After creating visualization scripts
+
+**Example Commit Messages:**
+- `setup: Configure uv environment with dependencies`
+- `data: Extract GPT-2 tokens for spelling task`
+- `data: Create train/val/test split for spelling dataset`
+- `feat: Implement primary metrics for evaluation`
+- `exp: Test LoRA adaptation with r=8, alpha=16`
+- `exp: Increase batch size to 16 and learning rate to 5e-4`
+- `fix: Correct prompt formatting in evaluation script`
+- `docs: Add experiment results and model performance`
+- `viz: Add plot comparing baseline vs fine-tuned models`
+
+## Detailed Requirements
+
+### Phase 1: Environment Setup and Preparation
+
+#### 1.1 Development Environment Setup
+
+**Tasks:**
+- Set up a Python development environment (Python 3.11+ recommended; verify compatibility with torch, transformers, datasets, wandb, unsloth, dspy, lightning, matplotlib, seaborn, pandas, jupyter, notebook, ipywidgets)
+- Install uv for package management:
+  ```
+  curl -fsSL https://astral.sh/uv/install.sh | bash
+  ```
+- Set up a project directory and create a `requirements.txt` file
+- Install required dependencies with uv:
+  ```
+  uv pip install -r requirements.txt
+  ```
+- Add these dependencies to requirements.txt:
+  ```
+  torch
+  transformers
+  datasets
+  wandb
+  unsloth
+  dspy
+  lightning
+  matplotlib
+  seaborn
+  pandas
+  jupyter
+  notebook
+  ipywidgets
+  ```
+- Set up Git repository for version control
+- Configure Weights & Biases account
+- Set up Hugging Face account and API access
+- Create Jupyter notebook for experimentation
+
+**Checkpoint Verification:**
+- [ ] All libraries install without errors using uv
+- [ ] Successfully authenticate with W&B (`wandb login`)
+- [ ] Successfully authenticate with Hugging Face (`huggingface-cli login`)
+- [ ] Test import of all required libraries in a Jupyter notebook
+- [ ] First commit with environment setup completed
+
+#### 1.2 Local Testing Environment Setup
+
+**Note:** Ollama and LM Studio are already installed. Testing with these tools will be performed later in the process.
+
+### Phase 2: Data Preparation
+
+#### 2.1 Token Extraction
+
+**Tasks:**
+- Load the GPT-2 tokenizer from Hugging Face
+- Extract all tokens from the vocabulary
+- Filter tokens to include only multi-character, letter-based tokens
+- Save the filtered token list to a JSON file with the following structure:
+  ```json
+  {
+    "tokens": [
+      {"token": "token_text", "token_id": 123, "char_length": 5},
+      ...
+    ]
+  }
+  ```
+- Create a Jupyter notebook to verify that all selected tokens are multi-character and consist only of alphabetic characters (no special or single-character tokens).
+- Analyze token frequency and length distribution as described in "Build a Large Language Model (From Scratch)"
+
+**Code Sample:**
+```python
+from transformers import GPT2Tokenizer
+import json
+import re
+
+def extract_tokens():
+    # Load tokenizer
+    tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
+
+    # Extract and filter tokens
+    filtered_tokens = []
+    for token_id, token_text in tokenizer.get_vocab().items():
+        # Remove special tokens and decode byte tokens
+        decoded_token = tokenizer.convert_tokens_to_string([token_text])
+
+        # Filter for multi-character letter-based tokens
+        if len(decoded_token) > 1 and re.match(r'^[a-zA-Z]+$', decoded_token):
+            filtered_tokens.append({
+                "token": decoded_token,
+                "token_id": token_id,
+                "char_length": len(decoded_token)
+            })
+
+    # Save to file
+    with open("gpt2_letter_tokens.json", "w") as f:
+        json.dump({"tokens": filtered_tokens}, f, indent=2)
+
+    return filtered_tokens
+
+tokens = extract_tokens()
+print(f"Extracted {len(tokens)} multi-character letter-based tokens")
+```
+
+**Advanced Tokenization Analysis:**
+- Implement visualization to understand the token distribution
+- Create frequency analysis charts for different token lengths
+- Analyze subword tokenization patterns specific to spelling tasks
+- Examine token overlapping patterns for multi-token words
++ **Advanced Tokenization Analysis:**
++ Only verify that all selected tokens are multi-character and consist only of alphabetic characters (no special or single-character tokens).
+
+**Checkpoint Verification:**
+- [ ] JSON file is successfully created
+- [ ] File contains at least 5,000 tokens
+- [ ] Random sample of tokens confirms they are multi-character and letter-based
+- [ ] No special tokens (like <|endoftext|>) are included
+- [ ] Commit with token extraction script and results
+- [ ] Token analysis notebook and visualizations completed
+
+#### 2.2 Dataset Creation and Splitting
+
+### Data Preparation (Canonical Logic)
+
+- **Training Set:**
+  - Contains every multi-character, letter-only token (length > 1) from the tokenizer vocabulary.
+
+- **Validation/Test Sets:**
+  - Constructed from an English dictionary word list (not the tokenizer vocabulary).
+  - Recommended source: [words_alpha.txt from dwyl/english-words](https://github.com/dwyl/english-words/blob/master/words_alpha.txt)
+  - Each word must:
+    - Be split into multiple tokens by the tokenizer.
+    - Have at least one token in the split that is multi-character and letter-only.
+  - No word in validation/test sets may appear in the training set.
+
+- **Implementation Notes:**
+  - Download the word list from [words_alpha.txt](https://github.com/dwyl/english-words/blob/master/words_alpha.txt).
+  - When building validation/test sets, iterate through the English dictionary, tokenize each word, and apply the above filters.
+  - When building the training set, iterate through the tokenizer vocabulary and select all multi-character, letter-only tokens.
+
+- **References:**
+  - [dwyl/english-words GitHub repository](https://github.com/dwyl/english-words)
+
+**Tasks:**
+- Create a script to generate spelling examples, letter count and position questions
+- For letter counts, create questions like "How many X's are in Y?"
+- For letter positions, create questions like "What is the Nth letter in Y?"
+- **Important:** All words used for letter count and position questions (the new metric) must be in the validation and test sets only. None of these words should appear in the training data. All validation and test words must be multi-token, with at least one token longer than one character.
+- Generate sufficient examples for robust splits:
+  * 70% training data (no overlap with validation/test words for the new metric)
+  * 15% validation data (all new metric words)
+  * 15% test data (all new metric words)
+- Format as a Hugging Face dataset with appropriate splits
+- Create a notebook to visualize dataset statistics
+- Implement sliding window sampling for efficient data usage as described in "Build a Large Language Model (From Scratch)"
+
+**Data Sampling Strategy:**
+- Implement sliding window approach for efficient token overlapping
+- Create balanced question types distribution in all splits
+- Ensure representation of various word lengths and complexities
+- Apply stratified sampling to maintain consistent difficulty across splits
+- **Validation and test sets must only contain new metric words as described above.**
+
+**Code Sample:**
+```python
+import json
+import random
+import string
+from datasets import Dataset
+from sklearn.model_selection import train_test_split
+
+def create_datasets(tokens_file="gpt2_letter_tokens.json", examples_per_token=15):
+    # Load tokens
+    with open(tokens_file, "r") as f:
+        tokens_data = json.load(f)
+
+    tokens = [t["token"] for t in tokens_data["tokens"]]
+
+    # Generate questions data
+    questions = []
+
+    # Letter count questions
+    for i, token in enumerate(random.sample(tokens, 1000)):
+        letter = random.choice(string.ascii_lowercase)
+        count = token.lower().count(letter)
+
+        questions.append({
+            "id": f"count_{i}",
+            "question": f"How many {letter}'s are in the word '{token}'?",
+            "answer": str(count),
+            "question_type": "letter_count",
+            "word": token
+        })
+
+    # Letter position questions
+    for i, token in enumerate(random.sample(tokens, 1000)):
+        if len(token) > 1:
+            position = random.randint(1, len(token))
+            letter = token[position-1]
+
+            questions.append({
+                "id": f"position_{i}",
+                "question": f"What is the {position}{'st' if position == 1 else 'nd' if position == 2 else 'rd' if position == 3 else 'th'} letter in the word '{token}'?",
+                "answer": letter,
+                "question_type": "letter_position",
+                "word": token
+            })
+
+    # Split data into train, validation, test
+    train_questions, temp_questions = train_test_split(questions, test_size=0.3, random_state=42)
+    val_questions, test_questions = train_test_split(temp_questions, test_size=0.5, random_state=42)
+
+    print(f"Train: {len(train_questions)}, Validation: {len(val_questions)}, Test: {len(test_questions)}")
+
+    # Create datasets
+    datasets = {}
+
+    for split_name, split_data in [
+        ("train", train_questions),
+        ("validation", val_questions),
+        ("test", test_questions)
+    ]:
+        datasets[split_name] = Dataset.from_dict({
+            "id": [q["id"] for q in split_data],
+            "question": [q["question"] for q in split_data],
+            "answer": [q["answer"] for q in split_data],
+            "question_type": [q["question_type"] for q in split_data],
+            "word": [q["word"] for q in split_data]
+        })
+
+    # Save locally for reference
+    for split_name, split_data in [
+        ("train", train_questions),
+        ("validation", val_questions),
+        ("test", test_questions)
+    ]:
+        with open(f"{split_name}_dataset.json", "w") as f:
+            json.dump({"questions": split_data}, f, indent=2)
+
+    # Create combined dataset with splits
+    combined_dataset = Dataset.from_dict({
+        "id": [q["id"] for q in questions],
+        "question": [q["question"] for q in questions],
+        "answer": [q["answer"] for q in questions],
+        "question_type": [q["question_type"] for q in questions],
+        "word": [q["word"] for q in questions]
+    })
+
+    # Add split information
+    split_ids = {q["id"]: "train" for q in train_questions}
+    split_ids.update({q["id"]: "validation" for q in val_questions})
+    split_ids.update({q["id"]: "test" for q in test_questions})
+
+    combined_dataset = combined_dataset.add_column("split", [split_ids[q_id] for q_id in combined_dataset["id"]])
+
+    # Push to Hugging Face
+    combined_dataset.push_to_hub("YOUR-USERNAME/llm-spelling-dataset")
+
+    return datasets
+
+datasets = create_datasets()
+```
+
+**Data Loading Optimization:**
+- Implement efficient DataLoader with pin_memory=True for GPU training
+- Create dynamic batch collation function for varied text lengths
+- Add caching mechanisms for faster dataset access
+- Implement sliding window sampling with context overlap based on "Build a Large Language Model" technique:
+
+```python
+def create_sliding_window_dataset(text, context_length=128, stride=64):
+    """
+    Create a dataset with overlapping windows of tokens for efficient training.
+
+    Args:
+        text: The tokenized text as a list of token IDs
+        context_length: The size of each training example
+        stride: The number of tokens to slide the window by
+
+    Returns:
+        A list of token sequences for model training
+    """
+    examples = []
+    for i in range(0, len(text) - context_length, stride):
+        x = text[i:i + context_length]
+        examples.append(x)
+    return examples
+```
+
+**Checkpoint Verification:**
+- [ ] Dataset successfully generates 2,000+ questions
+- [ ] Questions are grammatically correct
+- [ ] Train/validation/test splits have correct proportions
+- [ ] Answers correctly match the questions (verify 20 random samples)
+- [ ] Dataset is successfully pushed to Hugging Face
+- [ ] Local JSON files are created for each split
+- [ ] Notebook exploring dataset statistics is created
+- [ ] Commit dataset creation and splitting code
+- [ ] Data loading optimization is implemented and benchmarked
+
+#### 2.3 Training Data Formatting
+
+**Tasks:**
+- Create a script to format the training data for fine-tuning
+- Use various template formats for spelling examples
+- Create a Jupyter notebook to visualize example prompts and responses
+- Implement efficient DataLoader with proper batching
+
+**Advanced Data Formatting Techniques:**
+- Create specialized formatter for efficient token representation
+- Implement byte pair encoding (BPE) for efficient token handling
+- Create embedding visualization for tokens to understand the model's token space
+- Implement position encoding for optimal sequence representation
+
+**Efficient Data Collation:**
+- Create a custom collation function to handle varied text lengths:
+
+```python
+def custom_collate_fn(batch):
+    """
+    Efficiently collate samples into batches with proper padding.
+
+    Args:
+        batch: List of samples to be collated
+
+    Returns:
+        Batched tensors with attention masks
+    """
+    input_ids = [item["input_ids"] for item in batch]
+    attention_mask = [item["attention_mask"] for item in batch]
+
+    # Pad sequences to the maximum length in the batch
+    max_length = max(len(ids) for ids in input_ids)
+
+    # Pad input_ids and attention_mask
+    input_ids = [ids + [tokenizer.pad_token_id] * (max_length - len(ids)) for ids in input_ids]
+    attention_mask = [mask + [0] * (max_length - len(mask)) for mask in attention_mask]
+
+    # Convert to tensors
+    input_ids = torch.tensor(input_ids)
+    attention_mask = torch.tensor(attention_mask)
+
+    return {
+        "input_ids": input_ids,
+        "attention_mask": attention_mask
+    }
+```
+
+**Checkpoint Verification:**
+- [ ] Script runs without errors
+- [ ] Dataset contains varied template formats
+- [ ] Example notebook shows proper formatting
+- [ ] Commit training data formatting code
+- [ ] Data loading benchmarks show optimal performance
+
+### Training Example Template Variations (for Data Formatting)
+
+To maximize LLM generalization and token-awareness, the training data should include a wide variety of prompt/response templates. Punctuation and formatting (commas, spaces, dashes, triple dots, etc.) are crucial for teaching the model to generate and interpret token sequences. Use both word-first and spelling-first formats, and include examples that do not use the word "spell". Group templates by style for clarity.
+
+#### ✅ Simple Variations (Spelling First)
+- s t r a w — that spells "straw."
+- The letters s, t, r, a, w spell the word "straw."
+- s-t-r-a-w makes the word "straw."
+- Put together, s t r a w spells straw.
+- When you combine s, t, r, a, and w, you get straw.
+
+#### ✨ Narrative or Playful Versions (Spelling First)
+- Say it with me: s...t...r...a...w — straw!
+- Five little letters — s, t, r, a, w — team up to make "straw."
+- You line up s, t, r, a, and w, and what do you get? Straw!
+- It starts with an "s" and ends with a "w" — that's "straw."
+- One letter at a time: s, t, r, a, w. Together? Straw.
+
+#### 🧠 Educational/Formal Tone (Spelling First)
+- The sequence s, t, r, a, w constructs the word "straw."
+- Individually: s, t, r, a, w. Collectively: the word 'straw'.
+- These letters — s t r a w — phonetically form 'straw'.
+- Spelling out s-t-r-a-w results in the word "straw."
+
+#### 🎤 Spoken Word / Emphatic Style (Spelling First)
+- S — T — R — A — W. That's straw, baby.
+- What do you get when you spell s, t, r, a, w? You get straw.
+- Say it loud, spell it proud: s t r a w — straw!
+
+#### ✅ Simple Variations (Word First)
+- Straw is spelled s t r a w.
+- The word "straw" is spelled s, t, r, a, w.
+- To spell "straw," you write s-t-r-a-w.
+- Straw — that's spelled s, t, r, a, w.
+- You spell straw like this: s t r a w.
+
+#### ✨ Narrative or Playful Versions (Word First)
+- Straw starts with an "s" and ends with a "w" — s-t-r-a-w!
+- You want to spell "straw"? Just say s, t, r, a, w.
+- The word is straw, and here's how it's spelled: s-t-r-a-w.
+- Straw — five letters: s, t, r, a, and w.
+- Here's how you spell "straw": s...t...r...a...w.
+
+#### 🧠 Educational/Formal Tone (Word First)
+- "Straw" is composed of the letters s, t, r, a, and w.
+- The correct spelling of 'straw' is s-t-r-a-w.
+- To spell the word "straw," use the letters s, t, r, a, w.
+- Spelling the word "straw" involves the sequence s, t, r, a, w.
+
+#### 🎤 Spoken Word / Emphatic Style (Word First)
+- Straw — let me break it down: S. T. R. A. W.
+- You heard the word: straw. And here's the spelling — s t r a w.
+- Straw! Spelled just like it sounds — s, t, r, a, w.
+
+#### 🧠 LLM-Friendly / Structured Training Format (No "spell")
+- The word "straw" consists of the tokens: s, t, r, a, w.
+- "Straw" is made up of s, t, r, a, w.
+- s, t, r, a, w — that's the composition of "straw."
+- "Straw" breaks down into s, t, r, a, w.
+- s-t-r-a-w: these are the letters in "straw."
+- "Straw" = s, t, r, a, w.
+- s, t, r, a, w — together, they form "straw."
+- "Straw" comes from s, t, r, a, w.
+- s...t...r...a...w — that's how "straw" is formed.
+- "Straw" is constructed from s, t, r, a, w.
+
+#### Additional Variations for Token Separation
+- Randomly include examples with **no separator** between tokens:
+  - s t r a w — that spells "straw."
+  - straw is spelled straw.
+  - The word "straw" is made up of straw.
+- Randomly include examples with **arrows** between tokens:
+  - s -> t -> r -> a -> w — that's "straw."
+  - The word "straw" is: s -> t -> r -> a -> w.
+  - s->t->r->a->w makes the word "straw."
+
+**Formatting Notes (updated):**
+- Ensure that some examples use no separator between tokens (e.g., 'straw') and some use arrows (e.g., 's -> t -> r -> a -> w').
+- These formats should be included randomly in the training data, in addition to commas, spaces, dashes, and triple dots.
+- Continue to mix the order (word first, spelling second and vice versa) and style (simple, narrative, formal, emphatic) in the training data.
+- Vary punctuation and formatting to maximize generalization.
+
+**Checkpoint Verification:**
+- [ ] Training data includes all template variations above
+- [ ] Examples use a mix of punctuation and formatting
+- [ ] No template is over-represented
+- [ ] Commit with updated data formatting script and example notebook
+
+### Phase 3: Hyperparameter Experimentation Infrastructure
+
+#### 3.1 Hyperparameter Tuning Setup
+
+**Tasks:**
+- Create a configuration system for hyperparameter experiments
+- Set up a Jupyter notebook for experiment tracking
+- Create a script that can run training with different hyperparameters
+- Set up W&B for experiment tracking
+- Define a clear set of metrics for comparing experiments
+
+**Sample Hyperparameters to Vary:**
+- LoRA rank (r): [4, 8, 16, 32]
+- LoRA alpha: [8, 16, 32, 64]
+- Learning rate: [1e-4, 2e-4, 5e-4, 1e-3]
+- Batch size: [4, 8, 16, 32]
+- Gradient accumulation steps: [1, 2, 4, 8]
+- Training steps: [500, 1000, 2000, 5000]
+
+**Code Sample for Experiment Configuration:**
+```python
+import yaml
+import os
+from datetime import datetime
+
+def create_experiment_config(
+    exp_name,
+    lora_r=16,
+    lora_alpha=32,
+    lora_dropout=0.05,
+    learning_rate=2e-4,
+    batch_size=8,
+    grad_accum_steps=4,
+    max_steps=1000,
+    warmup_steps=100,
+    target_modules=["q_proj", "k_proj", "v_proj", "o_proj"],
+):
+    """Create and save an experiment configuration."""
+    config = {
+        "experiment_name": exp_name,
+        "timestamp": datetime.now().strftime("%Y%m%d_%H%M%S"),
+        "lora_config": {
+            "r": lora_r,
+            "alpha": lora_alpha,
+            "dropout": lora_dropout,
+            "target_modules": target_modules,
+        },
+        "training_config": {
+            "learning_rate": learning_rate,
+            "per_device_train_batch_size": batch_size,
+            "gradient_accumulation_steps": grad_accum_steps,
+            "max_steps": max_steps,
+            "warmup_steps": warmup_steps,
+        },
+    }
+
+    # Create experiments directory if it doesn't exist
+    os.makedirs("experiments", exist_ok=True)
+
+    # Save config to file
+    config_path = f"experiments/{exp_name}_{config['timestamp']}.yaml"
+    with open(config_path, "w") as f:
+        yaml.dump(config, f)
+
+    print(f"Created experiment config: {config_path}")
+    return config_path
+```
+
+**Checkpoint Verification:**
+- [ ] Configuration system works as expected
+- [ ] W&B experiment tracking is set up
+- [ ] Notebook for running experiments is created
+- [ ] Commit hyperparameter tuning infrastructure
+
+### Phase 4: Initial Testing and Baseline
+
+#### 4.1 Baseline Model Evaluation
+
+**Tasks:**
+- Set up DsPy for multi-shot prompting
+- the goal of this is to get the output format correct.  a single integer for character count or a single letter for the character position questions.
+- Create a Jupyter notebook to evaluate the base GPT-2 model
+- Test on both primary metrics (letter count, letter position)
+- Document the baseline performance for comparison
+- Commit baseline evaluation code and results
+
+#### 4.2 Model Fine-tuning Infrastructure
+
+**Tasks:**
+- Set up Unsloth or PEFT for LoRA fine-tuning
+- Create a reusable training script that accepts hyperparameter configs
+- Create a checkpoint saving and loading system
+- Implement early stopping based on validation metrics
+- Commit model training infrastructure
+
+### Phase 5: Iterative Experimentation (Parallelizable)
+
+#### 5.1 Experiment Execution Plan
+
+**Note:** This phase is designed for parallel execution. Multiple team members can independently run experiments with different hyperparameters or configurations. Each member should record their results in a central location (e.g., shared Weights & Biases project, collaborative spreadsheet, or experiment tracking system).
+
+**Iterative Process:**
+1. Start with default hyperparameters (first configuration)
+2. Train model and evaluate on validation set
+3. Log results to W&B and the central experiment tracker
+4. Analyze performance and identify areas for improvement
+5. Adjust hyperparameters based on findings
+6. Repeat steps 2-5 until satisfactory performance is achieved
+7. Select the best model based on validation metrics
+8. Evaluate the best model on the test set
+9. Document findings and best configurations
+
+**Experiment Tracking:**
+- All team members must log their experiment configurations, results, and observations in the central tracker.
+- Use a shared W&B project, spreadsheet, or experiment management tool for collaborative tracking.
+- Regularly review and discuss results as a team to coordinate next steps.
+
+#### 5.2 Performance Analysis Tools
+
+**Note:** Performance analysis and visualization can also be performed in parallel by different team members. Each member can focus on different aspects (e.g., error analysis, model diff, visualization dashboards) and contribute their findings to the central repository.
+
+**Tasks:**
+- Create visualization tools to compare experiments
+- Implement error analysis functions to understand model weaknesses
+- Create a "model diff" tool to see what changed between experiments
+- Commit performance analysis code
+
+**Collaboration:**
+- Assign analysis tasks to different team members for efficiency
+- Aggregate all analysis outputs in the central results repository
+- Hold regular syncs to share insights and coordinate further experiments
+
+### Phase 6: Unsloth Integration and Optimization
+
+#### 6.1 Unsloth Configuration
+
+**Tasks:**
+- Install and configure Unsloth for optimized fine-tuning
+- Set up the specific Unsloth requirements:
+  ```python
+  # Install the latest release
+  pip install unsloth
+
+  # For development version (may have more features)
+  pip install git+https://github.com/unslothai/unsloth.git
+  ```
+- Configure the Unsloth-specific environment:
+  * Verify CUDA toolkit compatibility (11.8+ recommended)
+  * Check GPU memory requirements (8GB+ recommended)
+  * Configure mixed precision settings (bf16 preferred if supported, otherwise fp16)
+
+**Unsloth-Specific Optimizations:**
+- Enable memory-efficient QLoRA training
+- **Note:** Consider whether 4-bit quantization is appropriate for fine-tuning. Higher precision (fp16 or bf16) may be preferable during fine-tuning for better model quality. Use 4-bit quantization only if memory constraints require it.
+- Configure Flash Attention 2 if available on hardware
+- Set up proper tokenization for instruction fine-tuning:
+  ```python
+  # Example Unsloth tokenization setup for instruction fine-tuning
+  def formatting_prompts_func(examples):
+      instructions = examples["instruction"]
+      responses = examples["response"]
+
+      # Special Unsloth prompt format - differs from standard formatting
+      prompts = [
+          f"<human>: {instruction}\n<assistant>: "
+          for instruction in instructions
+      ]
+
+      # Format responses with EOS token
+      formatted_responses = [
+          f"{response}{tokenizer.eos_token}"
+          for response in responses
+      ]
+
+      return {
+          "prompt": prompts,
+          "completion": formatted_responses,
+      }
+  ```
+
+**Code Sample for Unsloth Model Loading:**
+```python
+from unsloth import FastLanguageModel
+import torch
+
+# Load model with Unsloth optimizations
+model, tokenizer = FastLanguageModel.from_pretrained(
+    model_name="gpt2",
+    max_seq_length=512,
+    dtype=torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float16,
+    load_in_4bit=True,  # Use 4-bit quantization to reduce memory usage
+    token=None,  # Add your HF token for private models
+)
+
+# Add LoRA adapters with Unsloth-specific optimizations
+model = FastLanguageModel.get_peft_model(
+    model,
+    r=16,  # Adapter rank
+    target_modules=["q_proj", "k_proj", "v_proj", "o_proj"],
+    lora_alpha=32,
+    lora_dropout=0.05,
+    bias="none",  # Unsloth-specific - sets which modules receive adapters
+    use_gradient_checkpointing=True,  # Unsloth-specific - saves memory
+    random_state=42,  # For reproducibility
+    use_rslora=False,  # Set to True for rank-stabilized LoRA (optional)
+    loftq_config=None,  # Optional LoftQ configuration
+)
+
+# Set up the Unsloth trainer (handles tokenization differently from standard Trainer)
+trainer = FastLanguageModel.get_trainer(
+    model=model,
+    tokenizer=tokenizer,
+    train_dataset=dataset["train"],
+    args=FastLanguageModel.get_train_args(
+        output_dir="./spelling-lora-adapter",
+        per_device_train_batch_size=8,
+        gradient_accumulation_steps=4,
+        warmup_steps=100,
+        max_steps=1000,
+        learning_rate=2e-4,
+        fp16=not torch.cuda.is_bf16_supported(),
+        bf16=torch.cuda.is_bf16_supported(),
+        logging_steps=10,
+        report_to="wandb",
+        save_strategy="steps",
+        save_steps=200,
+        optim="adamw_torch", # Unsloth recommends adamw_torch over paged_adamw_8bit
+        max_grad_norm=0.3,   # Gradient clipping - Unsloth recommended value
+    ),
+    data_collator=FastLanguageModel.get_data_collator(tokenizer=tokenizer),
+)
+```
+
+**Memory Optimization Techniques with Unsloth:**
+- Gradient checkpointing - reducing memory footprint during training
+- 4-bit quantization - drastic memory reduction compared to standard 16-bit training (see note above)
+- Optimal batch size selection based on GPU memory
+- Efficient tokenization and data collation
+- Flash Attention 2 implementation when available
+- Training speed improvements of 2-3x compared to standard PEFT/QLoRA
+
+**Advanced LoRA Configuration Techniques:**
+- Create a systematic approach to test different LoRA ranks (r) and alpha scaling factors
+- Implement LoRA target module selection strategy to optimize performance
+- Experiment with the following LoRA hyperparameters based on "Build a Large Language Model (From Scratch)" best practices:
+  * Rank values (r): [4, 8, 16, 32] - determine the compression ratio
+  * Alpha values: [8, 16, 32, 64] - control the impact of LoRA weights
+  * Target modules: Various combinations of attention layers and feed-forward networks
+  * Learning rates: Usually lower (1e-5 to 5e-4) than full fine-tuning
+
+**LoRA Performance Analysis and Comparison:**
+- Create visualization tools to compare LoRA vs full fine-tuning
+- Measure training time, memory usage, and model performance metrics
+- Document the performance-efficiency tradeoffs at different rank values
+- Implement a strategy to merge the best-performing LoRA weights back into the base model
+
+**GPU Optimization Considerations:**
+- Add support for multi-GPU training using DistributedDataParallel
+- Implement GPU memory optimization techniques:
+  ```python
+  # Example: GPU memory optimization settings
+  def optimize_gpu_memory():
+      # Implement environment-specific optimizations
+      if torch.cuda.is_available():
+          # Set GPU memory allocation strategy
+          torch.cuda.set_per_process_memory_fraction(0.9)  # Reserve 10% for system
+          # Enable memory caching for faster allocation
+          torch.backends.cudnn.benchmark = True
+          # Use TF32 precision on Ampere GPUs or later for faster computation
+          torch.backends.cuda.matmul.allow_tf32 = True
+  ```
+- Add CUDA device selection via environment variables:
+  ```bash
+  # Example command to select specific GPUs
+  CUDA_VISIBLE_DEVICES=0,1 python train_model.py
+  ```
+
+**Checkpoint Verification:**
+- [ ] Unsloth installs and imports correctly
+- [ ] Memory usage is optimized compared to standard fine-tuning
+- [ ] 4-bit quantization is working correctly
+- [ ] Training speed is improved over baseline implementation
+- [ ] All Unsloth-specific optimizations are configured
+- [ ] Commit Unsloth configuration and optimization code
+- [ ] Multiple LoRA ranks and alpha values tested and documented
+- [ ] GPU memory usage optimized for the available hardware
+
+#### 6.2 Final Model Evaluation
+
+**Tasks:**
+- Evaluate the best model on the test set
+- Perform detailed error analysis
+- Create comprehensive visualizations of the results
+- Implement specific spelling evaluation metrics from "Build a Large Language Model (From Scratch)":
+  * Character-level accuracy for spelling tasks
+  * Exact match accuracy for word spelling
+  * Positional letter accuracy
+- Create visualization tools that show:
+  * Performance comparison between base and fine-tuned models
+  * Error patterns and common mistake analysis
+  * Performance across different word lengths and complexities
+- Commit final evaluation code and results
+
+#### 6.3 Model Publishing
+
+**Tasks:**
+- Prepare model card documentation
+- Create detailed README for the project
+- Upload all necessary files to Hugging Face
+- Commit final model and documentation
+
+## Final Deliverables
+
+Upon project completion, the following deliverables should be available:
+
+1. GitHub repository containing:
+   - All code scripts and notebooks
+   - Documentation
+   - README
+   - Experiment configurations
+   - Evaluation reports
+
+2. Hugging Face resources:
+   - Fine-tuned model published at "YOUR-USERNAME/gpt2-spelling-lora"
+   - Dataset published at "YOUR-USERNAME/llm-spelling-dataset"
+
+3. Weights & Biases project with:
+   - Training logs for all experiments
+   - Evaluation metrics for all models
+   - Performance visualizations
+   - Hyperparameter importance analysis
+
+## Project Timeline and Milestones
+
+1. **Week 1: Environment Setup and Data Preparation**
+   - Set up development environment with uv
+   - Extract tokens
+   - Create and split datasets
+   - Create baseline evaluation notebook
+   - Checkpoint: All data prepared and baseline established
+
+2. **Week 2: Infrastructure and Initial Experiments**
+   - Set up experiment tracking infrastructure
+   - Run first 3-5 experiments with different hyperparameters
+   - Analyze results and adjust approach
+   - Checkpoint: Working infrastructure and initial experiments completed
+
+3. **Week 3: Experimentation and Optimization**
+   - Run 5-10 more experiments with refined hyperparameters
+   - Perform detailed analysis of model behavior
+   - Identify best configuration
+   - Checkpoint: Best model configuration identified
+
+4. **Week 4: Final Evaluation and Deployment**
+   - Evaluate best model on test set
+   - Create comprehensive documentation
+   - Publish model and datasets to Hugging Face
+   - Create final report
+   - Checkpoint: All deliverables published and verified
+
+## Comprehensive Evaluation Framework
+
+### Model Evaluation Methodology
+
+**Evaluation Goals:**
+1. Assess the model's spelling capabilities across different metrics
+2. Compare performance between base and fine-tuned models
+3. Identify specific areas of improvement and remaining challenges
+4. Quantify the effectiveness of various hyperparameter configurations
+
+#### Text Generation Evaluation Metrics
+
+**Primary Metrics:**
+- **Letter Count Accuracy**: Percentage of correct answers to "How many X's are in Y?" questions
+  ```python
+  def calc_letter_count_accuracy(model, test_dataset):
+      correct = 0
+      total = 0
+      for item in test_dataset:
+          if item["question_type"] != "letter_count":
+              continue
+          prediction = generate_answer(model, item["question"])
+          correct += int(prediction.strip() == item["answer"])
+          total += 1
+      return correct / total if total > 0 else 0
+  ```
+
+- **Letter Position Accuracy**: Percentage of correct answers to "What is the Nth letter in Y?" questions
+  ```python
+  def calc_letter_position_accuracy(model, test_dataset):
+      correct = 0
+      total = 0
+      for item in test_dataset:
+          if item["question_type"] != "letter_position":
+              continue
+          prediction = generate_answer(model, item["question"])
+          correct += int(prediction.strip().lower() == item["answer"].lower())
+          total += 1
+      return correct / total if total > 0 else 0
+  ```
+
+**Advanced Metrics:**
+- **Character-Level Accuracy**: For partial credit when some characters are correct
+  ```python
+  def calc_character_level_accuracy(model, test_dataset):
+      total_char_accuracy = 0
+      total_samples = 0
+
+      for item in test_dataset:
+          if item["question_type"] != "letter_position" and item["question_type"] != "letter_count":
+              continue
+
+          prediction = generate_answer(model, item["question"])
+          pred_chars = prediction.strip().lower().replace(" ", "")
+          true_chars = item["word"].lower()
+
+          # Calculate character-by-character accuracy
+          correct_chars = 0
+          for i, char in enumerate(true_chars):
+              if i < len(pred_chars) and pred_chars[i] == char:
+                  correct_chars += 1
+
+          char_accuracy = correct_chars / len(true_chars) if len(true_chars) > 0 else 0
+          total_char_accuracy += char_accuracy
+          total_samples += 1
+
+      return total_char_accuracy / total_samples if total_samples > 0 else 0
+  ```
+
+- **Levenshtein Distance**: Measure edit distance between predicted and actual spellings
+  ```python
+  def calc_levenshtein_metrics(model, test_dataset):
+      import Levenshtein
+
+      total_distances = 0
+      total_samples = 0
+
+      for item in test_dataset:
+          if item["question_type"] != "letter_position" and item["question_type"] != "letter_count":
+              continue
+
+          prediction = generate_answer(model, item["question"])
+          pred_text = prediction.strip().lower()
+          true_text = item["answer"].lower()
+
+          # Calculate Levenshtein distance
+          distance = Levenshtein.distance(pred_text, true_text)
+          normalized_distance = distance / max(len(pred_text), len(true_text))
+
+          total_distances += normalized_distance
+          total_samples += 1
+
+      return total_distances / total_samples if total_samples > 0 else 0
+  ```
+
+- **Token-Level Perplexity**: Language modeling quality metric
+  ```python
+  def calc_perplexity(model, tokenizer, dataset):
+      model.eval()
+      nlls = []
+
+      with torch.no_grad():
+          for item in dataset:
+              text = item["question"] + " " + item["answer"]
+              encodings = tokenizer(text, return_tensors="pt")
+              input_ids = encodings.input_ids.to(model.device)
+              target_ids = input_ids.clone()
+
+              outputs = model(input_ids, labels=target_ids)
+              neg_log_likelihood = outputs.loss
+              nlls.append(neg_log_likelihood)
+
+      return torch.exp(torch.stack(nlls).mean())
+  ```
+
+#### Benchmarking Methodology
+
+**Experimental Setup:**
+- Define standard evaluation protocol across all model configurations
+- Conduct evaluations on the standardized test set
+- Ensure reproducibility by fixing random seeds
+- Perform multiple runs to account for variance
+
+**Hyperparameter Impact Analysis:**
+- Create a systematic evaluation grid for key hyperparameters:
+  * LoRA ranks: [4, 8, 16, 32]
+  * Learning rates: [1e-5, 2e-5, 5e-5, 1e-4]
+  * Batch sizes: [4, 8, 16, 32]
+  * Training epochs: [1, 3, 5, 10]
+
+**Ablation Studies:**
+- Test performance with and without specific components:
+  * Effectiveness of different LoRA target modules
+  * Impact of quantization precision
+  * Effect of different sampling techniques
+
+**Performance Visualization:**
+- Create comprehensive visualization dashboard for model comparison:
+  ```python
+  def create_performance_dashboard(evaluation_results):
+      """
+      Create a comprehensive visualization dashboard for model evaluation.
+
+      Args:
+          evaluation_results: Dictionary containing evaluation metrics for
+                              different model configurations
+      Returns:
+          None (Displays visualizations)
+      """
+      # Set up figure
+      fig = plt.figure(figsize=(18, 12))
+
+      # 1. Accuracy comparison across metrics
+      ax1 = fig.add_subplot(2, 3, 1)
+      models = list(evaluation_results.keys())
+      metrics = ['letter_count_accuracy', 'letter_position_accuracy']
+
+      bar_width = 0.25
+      x = np.arange(len(metrics))
+
+      for i, model in enumerate(models):
+          ax1.bar(x + i*bar_width,
+                  [evaluation_results[model][m] for m in metrics],
+                  width=bar_width,
+                  label=model)
+
+      ax1.set_xlabel('Metrics')
+      ax1.set_ylabel('Accuracy')
+      ax1.set_title('Accuracy Comparison')
+      ax1.set_xticks(x + bar_width)
+      ax1.set_xticklabels(metrics)
+      ax1.legend()
+
+      # 2. Training curves
+      ax2 = fig.add_subplot(2, 3, 2)
+      for model in models:
+          ax2.plot(evaluation_results[model]['training_loss'], label=f"{model} (train)")
+          ax2.plot(evaluation_results[model]['validation_loss'],
+                  label=f"{model} (val)",
+                  linestyle='--')
+
+      ax2.set_xlabel('Steps')
+      ax2.set_ylabel('Loss')
+      ax2.set_title('Training and Validation Loss')
+      ax2.legend()
+
+      # 3. Hyperparameter heatmap
+      if 'hyperparameter_grid' in evaluation_results:
+          ax3 = fig.add_subplot(2, 3, 3)
+          heatmap_data = evaluation_results['hyperparameter_grid']
+          sns.heatmap(heatmap_data, annot=True, cmap='viridis', ax=ax3)
+          ax3.set_title('Hyperparameter Impact')
+
+      # 4. Error analysis
+      ax4 = fig.add_subplot(2, 3, 4)
+      for i, model in enumerate(models):
+          error_types = evaluation_results[model]['error_analysis']
+          ax4.bar(np.arange(len(error_types.keys())) + i*bar_width,
+                  list(error_types.values()),
+                  width=bar_width,
+                  label=model)
+
+      ax4.set_xlabel('Error Types')
+      ax4.set_title('Error Analysis')
+      ax4.set_xticks(np.arange(len(error_types.keys())) + bar_width)
+      ax4.set_xticklabels(error_types.keys())
+      ax4.legend()
+
+      # 5. Word length performance
+      ax5 = fig.add_subplot(2, 3, 5)
+      for model in models:
+          word_lengths = evaluation_results[model]['word_length_performance']
+          ax5.plot(list(word_lengths.keys()), list(word_lengths.values()),
+                  marker='o', label=model)
+
+      ax5.set_xlabel('Word Length')
+      ax5.set_ylabel('Accuracy')
+      ax5.set_title('Performance by Word Length')
+      ax5.legend()
+
+      plt.tight_layout()
+      plt.savefig('evaluation_dashboard.png', dpi=300)
+      plt.show()
+  ```
+
+**Detailed Error Analysis:**
+- Create an error categorization system to understand model weaknesses:
+  * Character substitution errors
+  * Character omission errors
+  * Character insertion errors
+  * Character transposition errors
+  * Complete failure cases
+
+**Human Evaluation Benchmarks:**
+- Create guidelines for human evaluation of model outputs:
+  * Fluency of generated responses
+  * Coherence and relevance to prompts
+  * Comparative analysis against base model
+  * Blind A/B testing protocol
+
+#### Evaluation Implementation
+
+**Standard Evaluation Function:**
+```python
+def evaluate_model_comprehensive(model, tokenizer, test_dataset, name="model"):
+    """
+    Perform comprehensive evaluation of a model on the test dataset.
+
+    Args:
+        model: The model to evaluate
+        tokenizer: The tokenizer to use
+        test_dataset: The test dataset
+        name: Name identifier for the model
+
+    Returns:
+        Dictionary containing evaluation results
+    """
+    model.eval()
+    results = {
+        "name": name,
+        "timestamp": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "metrics": {},
+        "error_analysis": {},
+        "examples": []
+    }
+
+    # Calculate primary metrics
+    results["metrics"]["letter_count_accuracy"] = calc_letter_count_accuracy(model, test_dataset)
+    results["metrics"]["letter_position_accuracy"] = calc_letter_position_accuracy(model, test_dataset)
+
+    # Calculate advanced metrics
+    results["metrics"]["character_level_accuracy"] = calc_character_level_accuracy(model, test_dataset)
+    results["metrics"]["levenshtein_distance"] = calc_levenshtein_metrics(model, test_dataset)
+    results["metrics"]["perplexity"] = calc_perplexity(model, tokenizer, test_dataset)
+
+    # Perform error analysis
+    results["error_analysis"] = perform_error_analysis(model, test_dataset)
+
+    # Word length performance analysis
+    results["word_length_performance"] = analyze_performance_by_word_length(model, test_dataset)
+
+    # Save example predictions
+    results["examples"] = extract_example_predictions(model, test_dataset, num_examples=20)
+
+    # Log results to W&B
+    if wandb.run is not None:
+        wandb.log({"evaluation": results})
+
+    # Save results to file
+    with open(f"evaluation_{name}.json", "w") as f:
+        json.dump(results, f, indent=2)
+
+    return results
+```
+
+**Integration with Experiment Tracking:**
+- Connect evaluation pipeline with W&B experiment tracking
+- Create automated evaluation reports for each experiment
+- Implement continuous evaluation during training
+- Generate comparison dashboards for hyperparameter studies
+
+#### Evaluation Schedule
+
+**Recommended Evaluation Points:**
+1. **Baseline Evaluation**: Assess the base model performance
+2. **Early Checkpoint Evaluation**: Evaluate after initial fine-tuning (epoch 1)
+3. **Intermediate Checkpoints**: Evaluate at regular intervals during training
+4. **Final Model Evaluation**: Comprehensive evaluation of the best model
+5. **Comparative Analysis**: Compare various model configurations
+
+**Reproducibility Guidelines:**
+- Fix random seeds for all evaluations
+- Document hardware and software environment
+- Version control all evaluation scripts
+- Archive raw evaluation results for future reference
+
+**Evaluation Documentation:**
+- Create detailed evaluation reports for each model version
+- Document evaluation methodology and metrics
+- Include visualization dashboards in reports
+- Provide actionable insights for model improvements
+
+This comprehensive evaluation framework ensures robust assessment of the model's capabilities, allowing for systematic improvement through the iterative development process.
+
+## Conclusion
+
+This PRD provides a comprehensive guide for implementing the LLM Spelling Enhancement project with particular focus on systematic experimentation, proper data splitting, and hyperparameter tuning. By following these detailed instructions and verifying each checkpoint, a developer should be able to successfully complete the project with optimal results.
+
+The iterative approach to hyperparameter tuning will ensure that the final model achieves the best possible performance on the spelling tasks, while the comprehensive documentation and version control strategy will make the project reproducible and maintainable.
+
+## Project Management and Version Control
+
+### Task Master AI Integration
+
+This project will utilize Task Master AI for efficient project management and tracking. The tool will help maintain a structured approach to development and ensure consistent progress tracking.
+
+#### Setup Instructions
+
+1. Initialize a Task Master AI project in the project root:
+   ```bash
+   cd /path/to/raspberry
+   taskmaster init
+   ```
+
+2. Use Task Master AI to parse this PRD document to create initial tasks:
+   ```bash
+   taskmaster parse-prd --input prd.txt --output tasks/tasks.json
+   ```
+
+3. Generate individual task files from the tasks.json file:
+   ```bash
+   taskmaster generate
+   ```
+
+#### Task Management Workflow
+
+1. **Check Task Status**: Review current task status to identify next actions
+   ```bash
+   taskmaster get-tasks
+   ```
+
+2. **Find Next Task**: Get the next pending task based on dependencies
+   ```bash
+   taskmaster next-task
+   ```
+
+3. **Update Task Status**: Mark tasks as in-progress or completed
+   ```bash
+   taskmaster set-task-status --id [TASK_ID] --status [STATUS]
+   ```
+
+4. **Add Subtasks**: Break down complex tasks into manageable subtasks
+   ```bash
+   taskmaster add-subtask --id [TASK_ID]
+   ```
+
+5. **Task Expansion**: Expand tasks for detailed implementation
+   ```bash
+   taskmaster expand-task --id [TASK_ID]
+   ```
+
+### Version Control Guidelines
+
+#### Repository Structure
+
+The project repository should be organized as follows:
+```
+raspberry/
+├── .vscode/              # VS Code configuration
+├── data/                 # Data files and datasets
+│   ├── raw/              # Original, immutable data
+│   ├── processed/        # Processed data files
+│   └── splits/           # Train/val/test splits
+├── notebooks/            # Jupyter notebooks for experimentation
+├── src/                  # Source code
+│   ├── data/             # Data processing scripts
+│   ├── models/           # Model definition code
+│   ├── training/         # Training scripts
+│   └── evaluation/       # Evaluation code
+├── scripts/              # Utility scripts
+├── configs/              # Configuration files
+├── tests/                # Test files (if needed)
+├── results/              # Experimental results and visualizations
+├── checkpoints/          # Model checkpoints
+├── tasks/                # Task Master task files
+├── .gitignore            # Git ignore file
+├── README.md             # Project documentation
+├── prd.txt               # Product Requirements Document
+├── requirements.txt      # Python dependencies for pip
+└── requirements.in       # Source requirements for uv
+```
+
+#### Commit Message Guidelines
+
+All commit messages should follow a consistent format to maintain clarity and traceability. The format should include:
+
+1. A concise subject line (max 50 characters)
+2. A blank line followed by a detailed description (if needed)
+3. References to related task IDs or issues
+
+**Commit Message Template:**
+```
+[area]: Short description of change
+
+More detailed explanation if necessary. Keep lines wrapped at 72 characters.
+Include motivation for change and contrast with previous behavior.
+
+Task: #task-id
+```
+
+**Areas:**
+- `data`: Data preparation and processing
+- `model`: Model architecture and implementation
+- `train`: Training loop and related code
+- `eval`: Evaluation code
+- `infra`: Infrastructure and setup
+- `docs`: Documentation updates
+- `fix`: Bug fixes
+- `refactor`: Code refactoring without functionality change
+- `perf`: Performance improvements
+
+#### Example Commit Messages
+
+```
+[data]: Add sliding window dataset generation function
+
+Implement a sliding window approach to generate training examples with
+overlapping contexts. This improves training efficiency and helps the model
+learn better contextual representations.
+
+Task: #3
+```
+
+```
+[model]: Implement LoRA adapter modules
+
+Add low-rank adaptation modules to the model for parameter-efficient fine-
+tuning. This reduces the number of trainable parameters by 98% while
+maintaining performance.
+
+Task: #7
+```
+
+```
+[train]: Add gradient accumulation support
+
+Implement gradient accumulation to support larger effective batch sizes
+without increasing memory requirements. This allows training with limited
+GPU memory while maintaining convergence properties of larger batches.
+
+Task: #12
+```
+
+```
+[eval]: Add character-level spelling accuracy metric
+
+Create a new evaluation metric to measure character-level accuracy for
+spelling tasks. This provides a more granular view of model performance
+than exact match metrics.
+
+Task: #18
+```
+
+```
+[fix]: Resolve tokenizer padding inconsistency
+
+Fix an issue where padding tokens were being included in loss calculation,
+leading to artificially lower perplexity scores. Now properly masking padded
+positions during training and evaluation.
+
+Task: #22
+```
+
+#### Pull Request Guidelines
+
+When creating pull requests, follow these guidelines:
+1. Reference the relevant task(s) in the PR description
+2. Provide a clear summary of changes
+3. Include any relevant benchmark results or evaluation metrics
+4. Keep PRs focused on a single logical change when possible
+5. Use draft PRs for work-in-progress changes
+
+#### Branch Strategy
+
+Follow a feature-based branching strategy:
+- `main`: Stable, production-ready code
+- `feature/<feature-name>`: New features or enhancements
+- `fix/<bug-description>`: Bug fixes
+- `experiment/<experiment-name>`: Experimental changes
+
+Always create branches from `main` and keep them up-to-date with the latest changes from `main` through regular rebasing.
+```
