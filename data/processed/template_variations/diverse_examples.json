@@ -1,0 +1,144 @@
+{
+  "examples": [
+    {
+      "input": "These little letters \u2014 a - p - p - l - e \u2014 team up to make 'apple.'",
+      "output": "apple",
+      "template_category": "spelling_first",
+      "template_style": null,
+      "separator_style": "dash"
+    },
+    {
+      "input": "Here's a fun way to spell 'banana': b , a , n , a , n , a!",
+      "output": "banana",
+      "template_category": "word_first",
+      "template_style": null,
+      "separator_style": "comma"
+    },
+    {
+      "input": "Here's a fun way to spell 'cherry': c   h   e   r   r   y!",
+      "output": "cherry",
+      "template_category": "word_first",
+      "template_style": null,
+      "separator_style": "space"
+    },
+    {
+      "input": "The letters d -> o -> l -> p -> h -> i -> n spell the word 'dolphin.'",
+      "output": "dolphin",
+      "template_category": "spelling_first",
+      "template_style": null,
+      "separator_style": "arrow"
+    },
+    {
+      "input": "To write 'elephant', we use this sequence: e - l - e - p - h - a - n - t",
+      "output": "elephant",
+      "template_category": "word_first",
+      "template_style": null,
+      "separator_style": "dash"
+    },
+    {
+      "input": "flower - spelled f ... l ... o ... w ... e ... r, got it?",
+      "output": "flower",
+      "template_category": "word_first",
+      "template_style": null,
+      "separator_style": "dots"
+    },
+    {
+      "input": "Remember this: g -> i -> r -> a -> f -> f -> e spells giraffe!",
+      "output": "giraffe",
+      "template_category": "spelling_first",
+      "template_style": null,
+      "separator_style": "arrow"
+    },
+    {
+      "input": "target: honey\nsequence: h -> o -> n -> e -> y",
+      "output": "honey",
+      "template_category": "structured",
+      "template_style": null,
+      "separator_style": "arrow"
+    },
+    {
+      "input": "input: island\nspelling: i , s , l , a , n , d",
+      "output": "island",
+      "template_category": "structured",
+      "template_style": null,
+      "separator_style": "comma"
+    },
+    {
+      "input": "jungle - spelled j , u , n , g , l , e, got it?",
+      "output": "jungle",
+      "template_category": "word_first",
+      "template_style": null,
+      "separator_style": "comma"
+    },
+    {
+      "input": "Remember koala? k - o - a - l - a!",
+      "output": "koala",
+      "template_category": "word_first",
+      "template_style": null,
+      "separator_style": "dash"
+    },
+    {
+      "input": "The word 'lemon' is spelled l - e - m - o - n.",
+      "output": "lemon",
+      "template_category": "word_first",
+      "template_style": null,
+      "separator_style": "dash"
+    },
+    {
+      "input": "One letter at a time: mango. Together? mango.",
+      "output": "mango",
+      "template_category": "spelling_first",
+      "template_style": null,
+      "separator_style": "none"
+    },
+    {
+      "input": "{\"word\": \"narwhal\", \"letters\": \"narwhal\"}",
+      "output": "narwhal",
+      "template_category": "structured",
+      "template_style": null,
+      "separator_style": "none"
+    },
+    {
+      "input": "Say it with me: o -> c -> t -> o -> p -> u -> s \u2014 octopus!",
+      "output": "octopus",
+      "template_category": "spelling_first",
+      "template_style": null,
+      "separator_style": "arrow"
+    },
+    {
+      "input": "Learn to write 'penguin' correctly: p   e   n   g   u   i   n",
+      "output": "penguin",
+      "template_category": "word_first",
+      "template_style": null,
+      "separator_style": "space"
+    },
+    {
+      "input": "To write 'quail' correctly, we use: q -> u -> a -> i -> l",
+      "output": "quail",
+      "template_category": "spelling_first",
+      "template_style": null,
+      "separator_style": "arrow"
+    },
+    {
+      "input": "Put together, r ... a ... b ... b ... i ... t spells rabbit.",
+      "output": "rabbit",
+      "template_category": "spelling_first",
+      "template_style": null,
+      "separator_style": "dots"
+    },
+    {
+      "input": "The correct spelling of 'sunset' uses these letters: s , u , n , s , e , t",
+      "output": "sunset",
+      "template_category": "spelling_first",
+      "template_style": null,
+      "separator_style": "comma"
+    },
+    {
+      "input": "Put together, t   u   r   t   l   e spells turtle.",
+      "output": "turtle",
+      "template_category": "spelling_first",
+      "template_style": null,
+      "separator_style": "space"
+    }
+  ]
+}

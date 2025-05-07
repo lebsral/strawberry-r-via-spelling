@@ -1,0 +1,78 @@
+{
+  "spelling_first": {
+    "simple": [
+      "{letters} — that spells '{word}.'",
+      "The letters {letters} spell the word '{word}.'",
+      "{letters} makes the word '{word}.'",
+      "Put together, {letters} spells {word}.",
+      "When you combine {letters}, you get {word}."
+    ],
+    "playful": [
+      "Say it with me: {letters} — {word}!",
+      "These little letters — {letters} — team up to make '{word}.'",
+      "You line up {letters}, and what do you get? {word}!",
+      "It starts with {letters} — that's '{word}.'",
+      "One letter at a time: {letters}. Together? {word}."
+    ],
+    "educational": [
+      "Let's learn how to spell '{word}': {letters}",
+      "In proper spelling, '{word}' is written as {letters}",
+      "The correct spelling of '{word}' uses these letters: {letters}",
+      "To write '{word}' correctly, we use: {letters}",
+      "Here's a spelling lesson: {letters} spells '{word}'"
+    ],
+    "emphatic": [
+      "Listen carefully: {letters}! That's how you spell {word}!",
+      "Remember this: {letters} spells {word}!",
+      "Here's how it goes: {letters} {word}!",
+      "Let me spell it out for you: {letters} - {word}!",
+      "Pay attention: {letters} spells {word}!"
+    ]
+  },
+  "word_first": {
+    "simple": [
+      "The word '{word}' is spelled {letters}.",
+      "'{word}' - spelled {letters}.",
+      "How to spell '{word}': {letters}.",
+      "'{word}' uses these letters: {letters}.",
+      "To spell '{word}', write: {letters}."
+    ],
+    "playful": [
+      "Want to spell '{word}'? Just remember: {letters}!",
+      "Here's a fun way to spell '{word}': {letters}!",
+      "'{word}' is easy to spell - just go {letters}!",
+      "Ready to spell '{word}'? Follow along: {letters}!",
+      "Let's spell '{word}' together: {letters}!"
+    ],
+    "educational": [
+      "The word '{word}' is composed of these letters: {letters}",
+      "To write '{word}', we use this sequence: {letters}",
+      "'{word}' is constructed from: {letters}",
+      "The proper spelling of '{word}' is: {letters}",
+      "Learn to write '{word}' correctly: {letters}"
+    ],
+    "emphatic": [
+      "{word}! Let me spell that: {letters}!",
+      "{word} - spelled {letters}, got it?",
+      "Here's {word}: {letters}...",
+      "{word} - that's {letters}!",
+      "Remember {word}? {letters}!"
+    ]
+  },
+  "structured": {
+    "token_based": [
+      "word: {word}\nletters: {letters}",
+      "input: {word}\nspelling: {letters}",
+      "target: {word}\nsequence: {letters}",
+      "text: {word}\ncharacters: {letters}",
+      "prompt: {word}\nresponse: {letters}"
+    ],
+    "json_like": [
+      "{\"word\": \"{word}\", \"letters\": \"{letters}\"}",
+      "{\"target\": \"{word}\", \"spelling\": \"{letters}\"}",
+      "{\"input\": \"{word}\", \"sequence\": \"{letters}\"}",
+      "{\"text\": \"{word}\", \"chars\": \"{letters}\"}",
+      "{\"prompt\": \"{word}\", \"tokens\": \"{letters}\"}"
+    ]
+  }
+}

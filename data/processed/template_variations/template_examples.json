@@ -1,0 +1,60 @@
+{
+  "examples": [
+    {
+      "input": "word: straw\nletters: s -> t -> r -> a -> w",
+      "output": "straw",
+      "template_category": "structured",
+      "template_style": null,
+      "separator_style": "arrow"
+    },
+    {
+      "input": "straw makes the word 'straw.'",
+      "output": "straw",
+      "template_category": "spelling_first",
+      "template_style": null,
+      "separator_style": "none"
+    },
+    {
+      "input": "When you combine h   e   l   l   o, you get hello.",
+      "output": "hello",
+      "template_category": "spelling_first",
+      "template_style": null,
+      "separator_style": "space"
+    },
+    {
+      "input": "Let me spell it out for you: hello - hello!",
+      "output": "hello",
+      "template_category": "spelling_first",
+      "template_style": null,
+      "separator_style": "none"
+    },
+    {
+      "input": "word: python\nletters: p ... y ... t ... h ... o ... n",
+      "output": "python",
+      "template_category": "structured",
+      "template_style": null,
+      "separator_style": "dots"
+    },
+    {
+      "input": "The word 'python' is composed of these letters: p , y , t , h , o , n",
+      "output": "python",
+      "template_category": "word_first",
+      "template_style": null,
+      "separator_style": "comma"
+    },
+    {
+      "input": "world \u2014 that spells 'world.'",
+      "output": "world",
+      "template_category": "spelling_first",
+      "template_style": null,
+      "separator_style": "none"
+    },
+    {
+      "input": "To write 'world' correctly, we use: w -> o -> r -> l -> d",
+      "output": "world",
+      "template_category": "spelling_first",
+      "template_style": null,
+      "separator_style": "arrow"
+    }
+  ]
+}

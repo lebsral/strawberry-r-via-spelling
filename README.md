@@ -10,11 +10,24 @@ This project explores whether training a language model (LLM) on spelling tasks 
 - Evaluate if spelling training improves model performance on position and count metrics using a true hold-out set.
 
 ## Project Structure
-- `scripts/` — Utility scripts, PRD, and complexity reports.
-- `tasks/` — Taskmaster-generated task files and subtasks.
-- `.env.example` — Template for required environment variables.
-- `.env` — Your local environment configuration (not committed).
-- `README.md` — This documentation.
+- `configs/` — Configuration files including templates
+- `data/` — Training data and generated examples
+  - `processed/` — Generated examples and variations
+  - `raw/` — Original word lists and data
+  - `splits/` — Train/val/test splits
+- `docs/` — Project documentation
+  - `templates.md` — Template system documentation
+  - `data_format.md` — Data format specifications
+- `scripts/` — Utility scripts, PRD, and complexity reports
+- `src/` — Source code
+  - `data/` — Data processing and example generation
+  - `evaluation/` — Model evaluation code
+  - `models/` — Model definitions
+  - `training/` — Training utilities
+- `tasks/` — Taskmaster-generated task files and subtasks
+- `.env.example` — Template for required environment variables
+- `.env` — Your local environment configuration (not committed)
+- `README.md` — This documentation
 
 ## Getting Started
 
@@ -98,10 +111,41 @@ Whenever you add new packages, always run `uv pip freeze > requirements.txt` aga
 - Follow the details and test strategies in each task file in `tasks/`.
 
 ### 5. Dataset Creation
-- Training set: Derived from the tokenizer vocabulary (universal set).
-- Validation/Test sets: Derived from external word lists (hold-out sets), ensuring no overlap with training.
-- The split is **source-based**, not percentage-based.
-- Scripts and notebooks for dataset creation and analysis are in `scripts/`.
+The project uses a template-based system to generate diverse training examples:
+
+#### Template System
+- Located in `configs/templates/categories.json`
+- Multiple template categories (spelling_first, word_first)
+- Various styles (simple, playful, educational)
+- Configurable token separation (space, comma, dash, etc.)
+
+#### Example Generation
+```python
+from src.data.example_generator import ExampleGenerator, TemplateConfig
+from pathlib import Path
+
+# Configure paths
+config = TemplateConfig(
+    templates_dir=Path("configs/templates"),
+    output_dir=Path("data/processed/template_variations")
+)
+
+# Initialize generator
+generator = ExampleGenerator(config)
+
+# Generate examples
+examples = generator.generate_examples(
+    words=["apple", "banana"],
+    num_variations=3,
+    balance_categories=True
+)
+```
+
+#### Data Organization
+- Training set: Generated from templates with vocabulary words
+- Validation/Test sets: Generated from external word lists
+- Examples saved in JSON format with metadata
+- See `docs/data_format.md` for detailed specifications
 
 ### 6. Model Training & Evaluation
 - **Local Mac:** Only run code that does not require GPU, Unsloth, or xformers.
@@ -146,6 +190,12 @@ Whenever you add new packages, always run `uv pip freeze > requirements.txt` aga
   Both should point to your `.venv` directory.
 
 ## Directory Reference
+- `configs/templates/` — Template configuration files
+- `data/processed/template_variations/` — Generated examples
+- `docs/templates.md` — Template system documentation
+- `docs/data_format.md` — Data format specifications
+- `src/data/example_generator.py` — Example generation code
+- `src/data/token_separator.py` — Token separation utilities
 - `scripts/` — Scripts, PRD, complexity reports
 - `tasks/` — Task files and subtasks
 - `.env.example` — Environment variable template
