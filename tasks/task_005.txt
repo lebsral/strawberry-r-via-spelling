@@ -1,0 +1,141 @@
+# Task ID: 5
+# Title: Baseline Model Evaluation
+# Status: pending
+# Dependencies: 3
+# Priority: medium
+# Description: Evaluate the base GPT-2 model on letter count and position tasks to establish a performance baseline.
+# Details:
+1. Set up DsPy for multi-shot prompting
+2. Create a Jupyter notebook to evaluate the base GPT-2 model
+3. Test on both primary metrics (letter count, letter position)
+4. Ensure output format is correct (single integer for character count or single letter for character position)
+5. Document the baseline performance for comparison
+
+Implementation:
+```python
+import torch
+from transformers import GPT2LMHeadModel, GPT2Tokenizer
+import dspy
+import wandb
+
+# Initialize W&B
+wandb.init(project="llm-spelling-finetuning", name="baseline-evaluation")
+
+# Load base model and tokenizer
+model_name = "gpt2"
+model = GPT2LMHeadModel.from_pretrained(model_name)
+model.eval()
+tokenizer = GPT2Tokenizer.from_pretrained(model_name)
+tokenizer.pad_token = tokenizer.eos_token
+
+# Load test dataset
+from datasets import load_dataset
+test_dataset = load_dataset("YOUR-USERNAME/llm-spelling-dataset", split="test")
+
+# Define generation function
+def generate_answer(model, tokenizer, question, max_length=10):
+    inputs = tokenizer(question, return_tensors="pt")
+    with torch.no_grad():
+        outputs = model.generate(
+            inputs.input_ids,
+            max_length=len(inputs.input_ids[0]) + max_length,
+            pad_token_id=tokenizer.eos_token_id,
+            do_sample=False
+        )
+    response = tokenizer.decode(outputs[0][len(inputs.input_ids[0]):], skip_special_tokens=True)
+    # Extract just the first token/character for letter position or first number for letter count
+    if "How many" in question:
+        # Extract first number
+        import re
+        numbers = re.findall(r'\d+', response)
+        return numbers[0] if numbers else response.strip()
+    else:
+        # Extract first character
+        return response.strip()[0] if response.strip() else ""
+
+# Evaluate on letter count questions
+def evaluate_letter_count(model, tokenizer, dataset):
+    correct = 0
+    total = 0
+    results = []
+    
+    for item in dataset:
+        if item["question_type"] != "letter_count":
+            continue
+            
+        prediction = generate_answer(model, tokenizer, item["question"])
+        is_correct = prediction == item["answer"]
+        
+        results.append({
+            "question": item["question"],
+            "expected": item["answer"],
+            "prediction": prediction,
+            "correct": is_correct
+        })
+        
+        correct += int(is_correct)
+        total += 1
+    
+    accuracy = correct / total if total > 0 else 0
+    print(f"Letter Count Accuracy: {accuracy:.4f} ({correct}/{total})")
+    
+    return accuracy, results
+
+# Evaluate on letter position questions
+def evaluate_letter_position(model, tokenizer, dataset):
+    correct = 0
+    total = 0
+    results = []
+    
+    for item in dataset:
+        if item["question_type"] != "letter_position":
+            continue
+            
+        prediction = generate_answer(model, tokenizer, item["question"])
+        is_correct = prediction.lower() == item["answer"].lower()
+        
+        results.append({
+            "question": item["question"],
+            "expected": item["answer"],
+            "prediction": prediction,
+            "correct": is_correct
+        })
+        
+        correct += int(is_correct)
+        total += 1
+    
+    accuracy = correct / total if total > 0 else 0
+    print(f"Letter Position Accuracy: {accuracy:.4f} ({correct}/{total})")
+    
+    return accuracy, results
+
+# Run evaluation
+count_accuracy, count_results = evaluate_letter_count(model, tokenizer, test_dataset)
+position_accuracy, position_results = evaluate_letter_position(model, tokenizer, test_dataset)
+
+# Log results to W&B
+wandb.log({
+    "letter_count_accuracy": count_accuracy,
+    "letter_position_accuracy": position_accuracy,
+    "count_examples": wandb.Table(dataframe=pd.DataFrame(count_results[:20])),
+    "position_examples": wandb.Table(dataframe=pd.DataFrame(position_results[:20]))
+})
+
+# Save results locally
+import json
+with open("baseline_evaluation.json", "w") as f:
+    json.dump({
+        "letter_count_accuracy": count_accuracy,
+        "letter_position_accuracy": position_accuracy,
+        "count_results": count_results,
+        "position_results": position_results
+    }, f, indent=2)
+```
+
+# Test Strategy:
+1. Verify the evaluation script runs without errors
+2. Confirm output format is correct (single integer for count, single letter for position)
+3. Check that results are properly logged to W&B
+4. Verify baseline performance metrics are saved locally
+5. Create visualizations comparing performance on different question types
+6. Analyze error patterns in baseline model predictions

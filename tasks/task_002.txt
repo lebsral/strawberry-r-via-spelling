@@ -1,0 +1,55 @@
+# Task ID: 2
+# Title: Token Extraction from GPT-2 Vocabulary
+# Status: pending
+# Dependencies: 1
+# Priority: high
+# Description: Extract all multi-character, letter-based tokens from the GPT-2 tokenizer vocabulary and save them to a JSON file.
+# Details:
+1. Load the GPT-2 tokenizer from Hugging Face
+2. Extract all tokens from the vocabulary
+3. Filter tokens to include only multi-character, letter-based tokens
+4. Save the filtered token list to a JSON file with the structure specified in the PRD
+5. Create a Jupyter notebook to verify token selection
+6. Analyze token frequency and length distribution
+
+Implementation:
+```python
+from transformers import GPT2Tokenizer
+import json
+import re
+
+def extract_tokens():
+    # Load tokenizer
+    tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
+
+    # Extract and filter tokens
+    filtered_tokens = []
+    for token_id, token_text in tokenizer.get_vocab().items():
+        # Remove special tokens and decode byte tokens
+        decoded_token = tokenizer.convert_tokens_to_string([token_text])
+
+        # Filter for multi-character letter-based tokens
+        if len(decoded_token) > 1 and re.match(r'^[a-zA-Z]+$', decoded_token):
+            filtered_tokens.append({
+                "token": decoded_token,
+                "token_id": token_id,
+                "char_length": len(decoded_token)
+            })
+
+    # Save to file
+    with open("gpt2_letter_tokens.json", "w") as f:
+        json.dump({"tokens": filtered_tokens}, f, indent=2)
+
+    return filtered_tokens
+
+tokens = extract_tokens()
+print(f"Extracted {len(tokens)} multi-character letter-based tokens")
+```
+
+# Test Strategy:
+1. Verify JSON file is successfully created
+2. Confirm file contains at least 5,000 tokens
+3. Randomly sample tokens to confirm they are multi-character and letter-based
+4. Verify no special tokens (like <|endoftext|>) are included
+5. Create visualizations of token length distribution
+6. Commit token extraction script and results

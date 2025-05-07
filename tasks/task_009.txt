@@ -1,0 +1,429 @@
+# Task ID: 9
+# Title: Comprehensive Model Evaluation
+# Status: pending
+# Dependencies: 8
+# Priority: medium
+# Description: Evaluate the fine-tuned models on the test set using multiple metrics and perform detailed error analysis.
+# Details:
+1. Evaluate the best model on the test set
+2. Implement comprehensive evaluation metrics:
+   - Letter Count Accuracy
+   - Letter Position Accuracy
+   - Character-Level Accuracy
+   - Levenshtein Distance
+   - Token-Level Perplexity
+3. Perform detailed error analysis
+4. Create visualizations of the results
+5. Compare performance between base and fine-tuned models
+
+Implementation:
+```python
+import torch
+import json
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import numpy as np
+import Levenshtein
+from transformers import GPT2LMHeadModel, GPT2Tokenizer
+from datasets import load_dataset
+import wandb
+
+# Load models for comparison
+def load_models(base_model_name, finetuned_model_path):
+    # Load base model
+    base_model = GPT2LMHeadModel.from_pretrained(base_model_name)
+    base_tokenizer = GPT2Tokenizer.from_pretrained(base_model_name)
+    base_tokenizer.pad_token = base_tokenizer.eos_token
+    
+    # Load fine-tuned model
+    finetuned_model = GPT2LMHeadModel.from_pretrained(finetuned_model_path)
+    finetuned_tokenizer = GPT2Tokenizer.from_pretrained(base_model_name)  # Use same tokenizer
+    finetuned_tokenizer.pad_token = finetuned_tokenizer.eos_token
+    
+    return {
+        "base": (base_model, base_tokenizer),
+        "finetuned": (finetuned_model, finetuned_tokenizer)
+    }
+
+# Generate answer from model
+def generate_answer(model, tokenizer, question, max_length=10):
+    inputs = tokenizer(question, return_tensors="pt")
+    with torch.no_grad():
+        outputs = model.generate(
+            inputs.input_ids,
+            max_length=len(inputs.input_ids[0]) + max_length,
+            pad_token_id=tokenizer.eos_token_id,
+            do_sample=False
+        )
+    response = tokenizer.decode(outputs[0][len(inputs.input_ids[0]):], skip_special_tokens=True)
+    
+    # Extract just the first token/character for letter position or first number for letter count
+    if "How many" in question:
+        # Extract first number
+        import re
+        numbers = re.findall(r'\d+', response)
+        return numbers[0] if numbers else response.strip()
+    else:
+        # Extract first character
+        return response.strip()[0] if response.strip() else ""
+
+# Calculate letter count accuracy
+def calc_letter_count_accuracy(model, tokenizer, test_dataset):
+    correct = 0
+    total = 0
+    results = []
+    
+    for item in test_dataset:
+        if item["question_type"] != "letter_count":
+            continue
+            
+        prediction = generate_answer(model, tokenizer, item["question"])
+        is_correct = prediction == item["answer"]
+        
+        results.append({
+            "question": item["question"],
+            "expected": item["answer"],
+            "prediction": prediction,
+            "correct": is_correct,
+            "word": item["word"]
+        })
+        
+        correct += int(is_correct)
+        total += 1
+    
+    accuracy = correct / total if total > 0 else 0
+    print(f"Letter Count Accuracy: {accuracy:.4f} ({correct}/{total})")
+    
+    return accuracy, results
+
+# Calculate letter position accuracy
+def calc_letter_position_accuracy(model, tokenizer, test_dataset):
+    correct = 0
+    total = 0
+    results = []
+    
+    for item in test_dataset:
+        if item["question_type"] != "letter_position":
+            continue
+            
+        prediction = generate_answer(model, tokenizer, item["question"])
+        is_correct = prediction.lower() == item["answer"].lower()
+        
+        results.append({
+            "question": item["question"],
+            "expected": item["answer"],
+            "prediction": prediction,
+            "correct": is_correct,
+            "word": item["word"]
+        })
+        
+        correct += int(is_correct)
+        total += 1
+    
+    accuracy = correct / total if total > 0 else 0
+    print(f"Letter Position Accuracy: {accuracy:.4f} ({correct}/{total})")
+    
+    return accuracy, results
+
+# Calculate character-level accuracy
+def calc_character_level_accuracy(model, tokenizer, test_dataset):
+    total_char_accuracy = 0
+    total_samples = 0
+    results = []
+
+    for item in test_dataset:
+        if item["question_type"] not in ["letter_position", "letter_count"]:
+            continue
+
+        prediction = generate_answer(model, tokenizer, item["question"])
+        pred_chars = prediction.strip().lower().replace(" ", "")
+        true_chars = item["answer"].lower()
+
+        # Calculate character-by-character accuracy
+        correct_chars = 0
+        for i, char in enumerate(true_chars):
+            if i < len(pred_chars) and pred_chars[i] == char:
+                correct_chars += 1
+
+        char_accuracy = correct_chars / len(true_chars) if len(true_chars) > 0 else 0
+        
+        results.append({
+            "question": item["question"],
+            "expected": item["answer"],
+            "prediction": prediction,
+            "char_accuracy": char_accuracy,
+            "word": item["word"]
+        })
+        
+        total_char_accuracy += char_accuracy
+        total_samples += 1
+
+    avg_char_accuracy = total_char_accuracy / total_samples if total_samples > 0 else 0
+    print(f"Character-Level Accuracy: {avg_char_accuracy:.4f}")
+    
+    return avg_char_accuracy, results
+
+# Calculate Levenshtein distance
+def calc_levenshtein_metrics(model, tokenizer, test_dataset):
+    total_distances = 0
+    total_samples = 0
+    results = []
+
+    for item in test_dataset:
+        if item["question_type"] not in ["letter_position", "letter_count"]:
+            continue
+
+        prediction = generate_answer(model, tokenizer, item["question"])
+        pred_text = prediction.strip().lower()
+        true_text = item["answer"].lower()
+
+        # Calculate Levenshtein distance
+        distance = Levenshtein.distance(pred_text, true_text)
+        normalized_distance = distance / max(len(pred_text), len(true_text)) if max(len(pred_text), len(true_text)) > 0 else 0
+
+        results.append({
+            "question": item["question"],
+            "expected": true_text,
+            "prediction": pred_text,
+            "levenshtein_distance": distance,
+            "normalized_distance": normalized_distance,
+            "word": item["word"]
+        })
+        
+        total_distances += normalized_distance
+        total_samples += 1
+
+    avg_distance = total_distances / total_samples if total_samples > 0 else 0
+    print(f"Average Normalized Levenshtein Distance: {avg_distance:.4f}")
+    
+    return avg_distance, results
+
+# Perform error analysis
+def perform_error_analysis(results_dict):
+    error_analysis = {}
+    
+    # Analyze letter count errors
+    count_errors = [r for r in results_dict["letter_count"] if not r["correct"]]
+    
+    # Categorize errors
+    error_types = {
+        "off_by_one": 0,
+        "completely_wrong": 0,
+        "no_number": 0,
+        "other": 0
+    }
+    
+    for error in count_errors:
+        try:
+            pred = int(error["prediction"])
+            true = int(error["expected"])
+            
+            if abs(pred - true) == 1:
+                error_types["off_by_one"] += 1
+            else:
+                error_types["completely_wrong"] += 1
+        except ValueError:
+            if not error["prediction"].strip():
+                error_types["no_number"] += 1
+            else:
+                error_types["other"] += 1
+    
+    error_analysis["letter_count_errors"] = error_types
+    
+    # Analyze letter position errors
+    position_errors = [r for r in results_dict["letter_position"] if not r["correct"]]
+    
+    # Categorize position errors
+    position_error_types = {
+        "adjacent_letter": 0,
+        "wrong_case": 0,
+        "no_response": 0,
+        "other": 0
+    }
+    
+    for error in position_errors:
+        if not error["prediction"].strip():
+            position_error_types["no_response"] += 1
+        elif error["prediction"].lower() == error["expected"].lower():
+            position_error_types["wrong_case"] += 1
+        elif error["word"] and error["prediction"] in error["word"]:
+            position_error_types["adjacent_letter"] += 1
+        else:
+            position_error_types["other"] += 1
+    
+    error_analysis["letter_position_errors"] = position_error_types
+    
+    # Analyze by word length
+    word_length_performance = {}
+    
+    for result in results_dict["letter_count"] + results_dict["letter_position"]:
+        word = result["word"]
+        length = len(word)
+        
+        if length not in word_length_performance:
+            word_length_performance[length] = {"correct": 0, "total": 0}
+        
+        word_length_performance[length]["total"] += 1
+        if result["correct"]:
+            word_length_performance[length]["correct"] += 1
+    
+    # Calculate accuracy by word length
+    for length, stats in word_length_performance.items():
+        stats["accuracy"] = stats["correct"] / stats["total"] if stats["total"] > 0 else 0
+    
+    error_analysis["word_length_performance"] = word_length_performance
+    
+    return error_analysis
+
+# Create performance dashboard
+def create_performance_dashboard(base_results, finetuned_results, error_analysis):
+    # Set up figure
+    fig = plt.figure(figsize=(18, 12))
+    
+    # 1. Accuracy comparison across metrics
+    ax1 = fig.add_subplot(2, 3, 1)
+    metrics = ['letter_count_accuracy', 'letter_position_accuracy', 'character_level_accuracy']
+    base_values = [base_results[m] for m in metrics]
+    finetuned_values = [finetuned_results[m] for m in metrics]
+    
+    x = np.arange(len(metrics))
+    width = 0.35
+    
+    ax1.bar(x - width/2, base_values, width, label='Base Model')
+    ax1.bar(x + width/2, finetuned_values, width, label='Fine-tuned Model')
+    
+    ax1.set_ylabel('Accuracy')
+    ax1.set_title('Accuracy Comparison')
+    ax1.set_xticks(x)
+    ax1.set_xticklabels([m.replace('_', ' ').title() for m in metrics])
+    ax1.legend()
+    
+    # 2. Error analysis for letter count
+    ax2 = fig.add_subplot(2, 3, 2)
+    error_types = error_analysis["letter_count_errors"]
+    ax2.bar(error_types.keys(), error_types.values())
+    ax2.set_title('Letter Count Error Types')
+    ax2.set_ylabel('Count')
+    plt.setp(ax2.get_xticklabels(), rotation=45, ha="right")
+    
+    # 3. Error analysis for letter position
+    ax3 = fig.add_subplot(2, 3, 3)
+    position_error_types = error_analysis["letter_position_errors"]
+    ax3.bar(position_error_types.keys(), position_error_types.values())
+    ax3.set_title('Letter Position Error Types')
+    ax3.set_ylabel('Count')
+    plt.setp(ax3.get_xticklabels(), rotation=45, ha="right")
+    
+    # 4. Performance by word length
+    ax4 = fig.add_subplot(2, 3, 4)
+    word_length_perf = error_analysis["word_length_performance"]
+    lengths = sorted(word_length_perf.keys())
+    accuracies = [word_length_perf[l]["accuracy"] for l in lengths]
+    
+    ax4.plot(lengths, accuracies, marker='o')
+    ax4.set_title('Performance by Word Length')
+    ax4.set_xlabel('Word Length')
+    ax4.set_ylabel('Accuracy')
+    
+    # 5. Levenshtein distance comparison
+    ax5 = fig.add_subplot(2, 3, 5)
+    ax5.bar(['Base Model', 'Fine-tuned Model'], 
+            [base_results['levenshtein_distance'], finetuned_results['levenshtein_distance']])
+    ax5.set_title('Normalized Levenshtein Distance')
+    ax5.set_ylabel('Distance (lower is better)')
+    
+    plt.tight_layout()
+    plt.savefig('evaluation_dashboard.png', dpi=300)
+    
+    return fig
+
+# Main evaluation function
+def evaluate_models(base_model_name, finetuned_model_path):
+    # Initialize W&B
+    wandb.init(project="llm-spelling-finetuning", name="final_evaluation")
+    
+    # Load test dataset
+    test_dataset = load_dataset("YOUR-USERNAME/llm-spelling-dataset", split="test")
+    
+    # Load models
+    models = load_models(base_model_name, finetuned_model_path)
+    
+    # Evaluate base model
+    base_model, base_tokenizer = models["base"]
+    base_results = {}
+    
+    print("Evaluating base model...")
+    base_results["letter_count_accuracy"], base_count_results = calc_letter_count_accuracy(base_model, base_tokenizer, test_dataset)
+    base_results["letter_position_accuracy"], base_position_results = calc_letter_position_accuracy(base_model, base_tokenizer, test_dataset)
+    base_results["character_level_accuracy"], base_char_results = calc_character_level_accuracy(base_model, base_tokenizer, test_dataset)
+    base_results["levenshtein_distance"], base_levenshtein_results = calc_levenshtein_metrics(base_model, base_tokenizer, test_dataset)
+    
+    base_detailed_results = {
+        "letter_count": base_count_results,
+        "letter_position": base_position_results,
+        "character_level": base_char_results,
+        "levenshtein": base_levenshtein_results
+    }
+    
+    # Evaluate fine-tuned model
+    finetuned_model, finetuned_tokenizer = models["finetuned"]
+    finetuned_results = {}
+    
+    print("\nEvaluating fine-tuned model...")
+    finetuned_results["letter_count_accuracy"], finetuned_count_results = calc_letter_count_accuracy(finetuned_model, finetuned_tokenizer, test_dataset)
+    finetuned_results["letter_position_accuracy"], finetuned_position_results = calc_letter_position_accuracy(finetuned_model, finetuned_tokenizer, test_dataset)
+    finetuned_results["character_level_accuracy"], finetuned_char_results = calc_character_level_accuracy(finetuned_model, finetuned_tokenizer, test_dataset)
+    finetuned_results["levenshtein_distance"], finetuned_levenshtein_results = calc_levenshtein_metrics(finetuned_model, finetuned_tokenizer, test_dataset)
+    
+    finetuned_detailed_results = {
+        "letter_count": finetuned_count_results,
+        "letter_position": finetuned_position_results,
+        "character_level": finetuned_char_results,
+        "levenshtein": finetuned_levenshtein_results
+    }
+    
+    # Perform error analysis
+    error_analysis = perform_error_analysis(finetuned_detailed_results)
+    
+    # Create performance dashboard
+    dashboard = create_performance_dashboard(base_results, finetuned_results, error_analysis)
+    
+    # Log results to W&B
+    wandb.log({
+        "base_model": base_results,
+        "finetuned_model": finetuned_results,
+        "error_analysis": error_analysis,
+        "evaluation_dashboard": wandb.Image(dashboard)
+    })
+    
+    # Save results locally
+    evaluation_results = {
+        "base_model": {
+            "metrics": base_results,
+            "detailed_results": base_detailed_results
+        },
+        "finetuned_model": {
+            "metrics": finetuned_results,
+            "detailed_results": finetuned_detailed_results,
+            "error_analysis": error_analysis
+        }
+    }
+    
+    with open("final_evaluation_results.json", "w") as f:
+        json.dump(evaluation_results, f, indent=2)
+    
+    # Close W&B
+    wandb.finish()
+    
+    return evaluation_results
+```
+
+# Test Strategy:
+1. Verify all evaluation metrics are calculated correctly
+2. Confirm error analysis provides meaningful insights
+3. Check that visualizations are clear and informative
+4. Verify results are properly logged to W&B
+5. Confirm performance comparison between base and fine-tuned models
+6. Test with different model checkpoints to ensure consistent evaluation
+7. Verify final evaluation results are saved locally

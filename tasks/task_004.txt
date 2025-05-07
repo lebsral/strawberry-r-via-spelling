@@ -1,0 +1,115 @@
+# Task ID: 4
+# Title: Training Data Formatting with Template Variations
+# Status: pending
+# Dependencies: 3
+# Priority: medium
+# Description: Format the training data using various template formats for spelling examples to maximize LLM generalization and token-awareness.
+# Details:
+1. Create a script to format the training data for fine-tuning
+2. Implement the template variations specified in the PRD, including:
+   - Simple variations (spelling first)
+   - Narrative/playful versions (spelling first)
+   - Educational/formal tone (spelling first)
+   - Spoken word/emphatic style (spelling first)
+   - Simple variations (word first)
+   - Narrative/playful versions (word first)
+   - Educational/formal tone (word first)
+   - Spoken word/emphatic style (word first)
+   - LLM-friendly structured training format (no "spell")
+3. Include additional variations for token separation:
+   - No separator between tokens
+   - Arrows between tokens
+   - Various punctuation and formatting
+4. Create a Jupyter notebook to visualize example prompts and responses
+5. Implement efficient DataLoader with proper batching
+
+Implementation:
+```python
+def format_training_examples(dataset):
+    formatted_examples = []
+    
+    # Template categories
+    templates = {
+        "spelling_first_simple": [
+            "s t r a w — that spells '{word}.'\n",
+            "The letters s, t, r, a, w spell the word '{word}.'\n",
+            "s-t-r-a-w makes the word '{word}.'\n",
+            "Put together, s t r a w spells {word}.\n",
+            "When you combine s, t, r, a, and w, you get {word}.\n"
+        ],
+        "spelling_first_playful": [
+            "Say it with me: s...t...r...a...w — {word}!\n",
+            "Five little letters — s, t, r, a, w — team up to make '{word}.'\n",
+            "You line up s, t, r, a, and w, and what do you get? {word}!\n",
+            "It starts with an 's' and ends with a 'w' — that's '{word}.'\n",
+            "One letter at a time: s, t, r, a, w. Together? {word}.\n"
+        ],
+        # Add all other template categories from the PRD
+    }
+    
+    # Token separation styles
+    separators = [
+        "", # No separator
+        " ", # Space
+        ", ", # Comma and space
+        "-", # Dash
+        "...", # Triple dots
+        " -> " # Arrow
+    ]
+    
+    for example in dataset:
+        word = example["word"]
+        letters = list(word)
+        
+        # Randomly select template category and template
+        category = random.choice(list(templates.keys()))
+        template = random.choice(templates[category])
+        
+        # Randomly select separator
+        separator = random.choice(separators)
+        
+        # Format the letters with the chosen separator
+        spelled_letters = separator.join(letters)
+        
+        # Format the example using the template
+        formatted_text = template.format(word=word, letters=spelled_letters)
+        
+        formatted_examples.append({
+            "input": formatted_text,
+            "output": word,
+            "template_category": category,
+            "separator": separator
+        })
+    
+    return formatted_examples
+
+# Create custom collation function for efficient batching
+def custom_collate_fn(batch):
+    input_ids = [item["input_ids"] for item in batch]
+    attention_mask = [item["attention_mask"] for item in batch]
+
+    # Pad sequences to the maximum length in the batch
+    max_length = max(len(ids) for ids in input_ids)
+
+    # Pad input_ids and attention_mask
+    input_ids = [ids + [tokenizer.pad_token_id] * (max_length - len(ids)) for ids in input_ids]
+    attention_mask = [mask + [0] * (max_length - len(mask)) for mask in attention_mask]
+
+    # Convert to tensors
+    input_ids = torch.tensor(input_ids)
+    attention_mask = torch.tensor(attention_mask)
+
+    return {
+        "input_ids": input_ids,
+        "attention_mask": attention_mask
+    }
+```
+
+# Test Strategy:
+1. Verify script runs without errors
+2. Confirm dataset contains all template variations specified in the PRD
+3. Check that examples use a mix of punctuation and formatting
+4. Ensure no template is over-represented
+5. Create and review example notebook showing proper formatting
+6. Test DataLoader with custom collation function
+7. Verify efficient batching with varied text lengths

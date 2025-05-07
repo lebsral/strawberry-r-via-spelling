@@ -1,0 +1,316 @@
+# Task ID: 10
+# Title: Model Publishing and Documentation
+# Status: pending
+# Dependencies: 9
+# Priority: medium
+# Description: Prepare the final model, documentation, and publish to Hugging Face with comprehensive model card.
+# Details:
+1. Prepare model card documentation
+2. Create detailed README for the project
+3. Upload the best model to Hugging Face
+4. Ensure dataset is properly published
+5. Create final report with results and findings
+
+Implementation:
+```python
+from huggingface_hub import HfApi
+import os
+import json
+import yaml
+
+# Create model card
+def create_model_card(evaluation_results, config):
+    base_metrics = evaluation_results["base_model"]["metrics"]
+    finetuned_metrics = evaluation_results["finetuned_model"]["metrics"]
+    
+    # Calculate improvements
+    improvements = {}
+    for metric in base_metrics.keys():
+        if metric == "levenshtein_distance":
+            # Lower is better for Levenshtein
+            improvements[metric] = ((base_metrics[metric] - finetuned_metrics[metric]) / base_metrics[metric]) * 100
+        else:
+            # Higher is better for accuracy metrics
+            improvements[metric] = ((finetuned_metrics[metric] - base_metrics[metric]) / base_metrics[metric]) * 100
+    
+    model_card = f"""---
+language: en
+tags:
+- gpt2
+- spelling
+- lora
+- fine-tuning
+- unsloth
+datasets:
+- YOUR-USERNAME/llm-spelling-dataset
+metrics:
+- accuracy
+license: mit
+---
+
+# GPT-2 Spelling Fine-tuned Model
+
+This model is a fine-tuned version of [gpt2](https://huggingface.co/gpt2) on spelling tasks. It was fine-tuned using LoRA adapters to improve the model's understanding of letter count and character position via spelling mechanics.
+
+## Model description
+
+This model was fine-tuned to address the "strawberry problem" - improving a language model's ability to answer questions about letter counts and positions in words without explicitly training on those tasks. Instead, the model was trained on spelling tasks, which implicitly teaches it to understand character-level patterns.
+
+### Training hyperparameters
+
+- LoRA rank (r): {config['lora_config']['r']}
+- LoRA alpha: {config['lora_config']['alpha']}
+- Learning rate: {config['training_config']['learning_rate']}
+- Batch size: {config['training_config']['per_device_train_batch_size']}
+- Gradient accumulation steps: {config['training_config']['gradient_accumulation_steps']}
+- Training steps: {config['training_config']['max_steps']}
+
+## Evaluation results
+
+### Base model performance
+- Letter Count Accuracy: {base_metrics['letter_count_accuracy']:.4f}
+- Letter Position Accuracy: {base_metrics['letter_position_accuracy']:.4f}
+- Character-Level Accuracy: {base_metrics['character_level_accuracy']:.4f}
+- Normalized Levenshtein Distance: {base_metrics['levenshtein_distance']:.4f}
+
+### Fine-tuned model performance
+- Letter Count Accuracy: {finetuned_metrics['letter_count_accuracy']:.4f}
+- Letter Position Accuracy: {finetuned_metrics['letter_position_accuracy']:.4f}
+- Character-Level Accuracy: {finetuned_metrics['character_level_accuracy']:.4f}
+- Normalized Levenshtein Distance: {finetuned_metrics['levenshtein_distance']:.4f}
+
+### Improvements
+- Letter Count Accuracy: {improvements['letter_count_accuracy']:.2f}%
+- Letter Position Accuracy: {improvements['letter_position_accuracy']:.2f}%
+- Character-Level Accuracy: {improvements['character_level_accuracy']:.2f}%
+- Normalized Levenshtein Distance: {improvements['levenshtein_distance']:.2f}%
+
+## Usage
+
+```python
+from transformers import GPT2LMHeadModel, GPT2Tokenizer
+
+# Load model and tokenizer
+model = GPT2LMHeadModel.from_pretrained("YOUR-USERNAME/gpt2-spelling-lora")
+tokenizer = GPT2Tokenizer.from_pretrained("YOUR-USERNAME/gpt2-spelling-lora")
+
+# Example questions
+questions = [
+    "How many r's are in the word 'strawberry'?",
+    "What is the 3rd letter in 'strawberry'?"
+]
+
+# Generate answers
+for question in questions:
+    inputs = tokenizer(question, return_tensors="pt")
+    outputs = model.generate(inputs.input_ids, max_length=50)
+    answer = tokenizer.decode(outputs[0], skip_special_tokens=True)
+    print(f"Question: {question}")
+    print(f"Answer: {answer}\n")
+```
+
+## Training procedure
+
+### Training data
+
+The model was trained on a dataset of spelling examples generated from GPT-2 tokens. The training data included various template formats for spelling examples to maximize generalization.
+
+The validation and test sets were created from English dictionary words that were not in the training set, ensuring proper evaluation of the model's ability to generalize to new words.
+
+### Training method
+
+The model was fine-tuned using LoRA (Low-Rank Adaptation) with Unsloth optimizations. This approach allows for efficient fine-tuning with minimal memory requirements while maintaining performance.
+
+## Limitations and bias
+
+This model is specifically fine-tuned for spelling tasks and may not perform well on other tasks. It is also limited by the vocabulary of the base GPT-2 model and may struggle with rare or complex words.
+
+## License
+
+This model is licensed under the MIT License.
+"""
+    
+    return model_card
+
+# Create README
+def create_readme(evaluation_results, config):
+    base_metrics = evaluation_results["base_model"]["metrics"]
+    finetuned_metrics = evaluation_results["finetuned_model"]["metrics"]
+    
+    readme = f"""# LLM Strawberry Problem Solution via Fine-tuning of Spelling
+
+## Project Overview
+
+This project addresses the "strawberry problem" in language models - improving a model's ability to answer questions about letter counts and positions in words without explicitly training on those tasks. Instead, the model is trained on spelling tasks, which implicitly teaches it to understand character-level patterns.
+
+## Approach
+
+We fine-tuned a GPT-2 language model using LoRA adapters with the following approach:
+
+1. Extracted multi-character, letter-based tokens from the GPT-2 tokenizer vocabulary
+2. Created a dataset of spelling examples with various template formats
+3. Split the data into training, validation, and test sets
+4. Fine-tuned the model using Unsloth optimizations
+5. Evaluated the model on letter count and position tasks
+
+## Results
+
+### Base model performance
+- Letter Count Accuracy: {base_metrics['letter_count_accuracy']:.4f}
+- Letter Position Accuracy: {base_metrics['letter_position_accuracy']:.4f}
+
+### Fine-tuned model performance
+- Letter Count Accuracy: {finetuned_metrics['letter_count_accuracy']:.4f}
+- Letter Position Accuracy: {finetuned_metrics['letter_position_accuracy']:.4f}
+
+## Repository Structure
+
+```
+.
+├── data/                 # Data files and datasets
+├── notebooks/            # Jupyter notebooks for experimentation
+├── src/                  # Source code
+├── configs/              # Configuration files
+├── results/              # Experimental results and visualizations
+├── checkpoints/          # Model checkpoints
+├── README.md             # This file
+└── requirements.txt      # Python dependencies
+```
+
+## Setup and Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/YOUR-USERNAME/llm-spelling-finetuning.git
+cd llm-spelling-finetuning
+
+# Install dependencies with uv
+curl -fsSL https://astral.sh/uv/install.sh | bash
+uv pip install -r requirements.txt
+```
+
+## Usage
+
+### Training
+
+```bash
+python src/train.py --config configs/experiment_config.yaml
+```
+
+### Evaluation
+
+```bash
+python src/evaluate.py --model_path checkpoints/best_model
+```
+
+## Resources
+
+- [Fine-tuned Model on Hugging Face](https://huggingface.co/YOUR-USERNAME/gpt2-spelling-lora)
+- [Dataset on Hugging Face](https://huggingface.co/datasets/YOUR-USERNAME/llm-spelling-dataset)
+- [Experiment Tracking on W&B](https://wandb.ai/YOUR-USERNAME/llm-spelling-finetuning)
+
+## License
+
+This project is licensed under the MIT License.
+"""
+    
+    return readme
+
+# Publish model to Hugging Face
+def publish_to_hugging_face(model_path, model_card, readme, evaluation_results):
+    # Initialize Hugging Face API
+    api = HfApi()
+    
+    # Create repository if it doesn't exist
+    repo_id = "YOUR-USERNAME/gpt2-spelling-lora"
+    try:
+        api.create_repo(repo_id=repo_id, private=False)
+    except Exception as e:
+        print(f"Repository already exists or error: {e}")
+    
+    # Save model card
+    with open(os.path.join(model_path, "README.md"), "w") as f:
+        f.write(model_card)
+    
+    # Save evaluation results
+    with open(os.path.join(model_path, "evaluation_results.json"), "w") as f:
+        json.dump(evaluation_results, f, indent=2)
+    
+    # Upload model to Hugging Face
+    api.upload_folder(
+        folder_path=model_path,
+        repo_id=repo_id,
+        commit_message="Upload fine-tuned spelling model"
+    )
+    
+    # Create project README
+    with open("README.md", "w") as f:
+        f.write(readme)
+    
+    print(f"Model published to Hugging Face: https://huggingface.co/{repo_id}")
+    
+    return repo_id
+
+# Main publishing function
+def publish_final_model(best_model_path, evaluation_results_path, config_path):
+    # Load evaluation results
+    with open(evaluation_results_path, "r") as f:
+        evaluation_results = json.load(f)
+    
+    # Load config
+    with open(config_path, "r") as f:
+        config = yaml.safe_load(f)
+    
+    # Create model card
+    model_card = create_model_card(evaluation_results, config)
+    
+    # Create README
+    readme = create_readme(evaluation_results, config)
+    
+    # Publish to Hugging Face
+    repo_id = publish_to_hugging_face(best_model_path, model_card, readme, evaluation_results)
+    
+    # Create final report
+    create_final_report(evaluation_results, config, repo_id)
+    
+    return repo_id
+
+# Create final report
+def create_final_report(evaluation_results, config, repo_id):
+    # Create a comprehensive final report with all results and findings
+    report = {
+        "project_name": "LLM Strawberry Problem Solution via Fine-tuning of Spelling",
+        "model_repository": f"https://huggingface.co/{repo_id}",
+        "dataset_repository": "https://huggingface.co/datasets/YOUR-USERNAME/llm-spelling-dataset",
+        "configuration": config,
+        "evaluation_results": evaluation_results,
+        "conclusion": {
+            "success_criteria_met": {
+                "letter_count_improvement": evaluation_results["finetuned_model"]["metrics"]["letter_count_accuracy"] > 
+                                          evaluation_results["base_model"]["metrics"]["letter_count_accuracy"],
+                "letter_position_improvement": evaluation_results["finetuned_model"]["metrics"]["letter_position_accuracy"] > 
+                                              evaluation_results["base_model"]["metrics"]["letter_position_accuracy"],
+                "properly_documented": True,
+                "uploaded_to_hugging_face": True,
+                "tracked_in_wandb": True
+            }
+        }
+    }
+    
+    # Save report
+    with open("final_report.json", "w") as f:
+        json.dump(report, f, indent=2)
+    
+    print("Final report created: final_report.json")
+    
+    return report
+```
+
+# Test Strategy:
+1. Verify model card is comprehensive and follows Hugging Face guidelines
+2. Confirm README provides clear instructions for using the model
+3. Test model upload to Hugging Face
+4. Verify dataset is properly published and accessible
+5. Check that final report includes all required information
+6. Test model loading from Hugging Face
+7. Verify all success criteria from the PRD are met and documented

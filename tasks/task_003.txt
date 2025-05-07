@@ -1,0 +1,160 @@
+# Task ID: 3
+# Title: Dataset Creation and Splitting
+# Status: pending
+# Dependencies: 2
+# Priority: high
+# Description: Create training, validation, and test datasets for spelling tasks, ensuring proper separation between training tokens and validation/test words to evaluate if training on spelling improves model performance on position and count question metrics.
+# Details:
+1. Download English word list from dwyl/english-words repository
+2. Create training set from tokenizer vocabulary (multi-character, letter-only tokens)
+3. Create validation/test sets from English dictionary words that:
+   - Split into multiple tokens by the tokenizer
+   - Have at least one token in the split that is multi-character and letter-only
+   - Do not appear in the training set
+4. Generate letter count questions ("How many X's are in Y?")
+5. Generate letter position questions ("What is the Nth letter in Y?")
+6. Split data based on source rather than percentage: training from tokenizer vocabulary, validation/test from filtered external word lists
+7. Format as a Hugging Face dataset with appropriate splits
+8. Create notebook to visualize dataset statistics
+9. Establish a Hugging Face benchmark with evaluation scripts and leaderboard integration
+
+Implementation:
+```python
+import json
+import random
+import string
+from datasets import Dataset
+from sklearn.model_selection import train_test_split
+import requests
+
+# Download English word list
+word_list_url = "https://raw.githubusercontent.com/dwyl/english-words/master/words_alpha.txt"
+response = requests.get(word_list_url)
+all_words = response.text.splitlines()
+
+# Load tokenizer and filtered tokens
+tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
+with open("gpt2_letter_tokens.json", "r") as f:
+    tokens_data = json.load(f)
+
+tokens = [t["token"] for t in tokens_data["tokens"]]
+
+# Find valid validation/test words
+valid_words = []
+for word in all_words:
+    if not word.isalpha():
+        continue
+    
+    # Tokenize the word
+    token_ids = tokenizer.encode(word, add_special_tokens=False)
+    tokens_in_word = tokenizer.convert_ids_to_tokens(token_ids)
+    
+    # Check if word splits into multiple tokens with at least one multi-character token
+    if len(tokens_in_word) > 1 and any(len(tokenizer.convert_tokens_to_string([t])) > 1 for t in tokens_in_word):
+        # Ensure word is not in training set
+        if word.lower() not in [t.lower() for t in tokens]:
+            valid_words.append(word)
+
+# Split valid words into validation and test sets
+val_words, test_words = train_test_split(valid_words, test_size=0.5, random_state=42)
+
+# Generate questions
+def generate_questions(words, question_type):
+    questions = []
+    for i, word in enumerate(words):
+        if question_type == "letter_count":
+            letter = random.choice(string.ascii_lowercase)
+            count = word.lower().count(letter)
+            questions.append({
+                "id": f"{question_type}_{i}",
+                "question": f"How many {letter}'s are in the word '{word}'?",
+                "answer": str(count),
+                "question_type": question_type,
+                "word": word
+            })
+        elif question_type == "letter_position":
+            position = random.randint(1, len(word))
+            letter = word[position-1]
+            questions.append({
+                "id": f"{question_type}_{i}",
+                "question": f"What is the {position}{'st' if position == 1 else 'nd' if position == 2 else 'rd' if position == 3 else 'th'} letter in the word '{word}'?",
+                "answer": letter,
+                "question_type": question_type,
+                "word": word
+            })
+    return questions
+
+# Generate training, validation, and test questions
+train_questions = generate_questions(tokens, "letter_count") + generate_questions(tokens, "letter_position")
+val_questions = generate_questions(val_words, "letter_count") + generate_questions(val_words, "letter_position")
+test_questions = generate_questions(test_words, "letter_count") + generate_questions(test_words, "letter_position")
+
+# Create datasets
+datasets = {}
+for split_name, split_data in [
+    ("train", train_questions),
+    ("validation", val_questions),
+    ("test", test_questions)
+]:
+    datasets[split_name] = Dataset.from_dict({
+        "id": [q["id"] for q in split_data],
+        "question": [q["question"] for q in split_data],
+        "answer": [q["answer"] for q in split_data],
+        "question_type": [q["question_type"] for q in split_data],
+        "word": [q["word"] for q in split_data]
+    })
+
+# Push to Hugging Face
+from datasets import DatasetDict
+combined_dataset = DatasetDict(datasets)
+combined_dataset.push_to_hub("YOUR-USERNAME/llm-spelling-dataset")
+```
+
+# Test Strategy:
+1. Verify dataset successfully generates 2,000+ questions
+2. Confirm questions are grammatically correct
+3. Verify train/validation/test splits come from appropriate sources (training from tokenizer vocabulary, validation/test from filtered external words)
+4. Manually check 20 random samples to ensure answers correctly match questions
+5. Confirm dataset is successfully pushed to Hugging Face
+6. Verify local JSON files are created for each split
+7. Create and review notebook exploring dataset statistics
+8. Test evaluation scripts to ensure they correctly measure performance on position and count question metrics
+9. Verify benchmark integration with Hugging Face leaderboard
+
+# Subtasks:
+## 1. Word List Acquisition [pending]
+### Dependencies: None
+### Description: Gather a comprehensive and diverse word list from reliable sources, ensuring coverage of the desired vocabulary scope.
+### Details:
+Implementation involves sourcing words from open datasets, dictionaries, or APIs. Validation criteria include checking for duplicates, ensuring language consistency, and verifying word authenticity. Challenges include handling noisy data, inconsistent formats, and ensuring the list is representative of the target domain.
+
+## 2. Training/Validation/Test Set Creation with Filtering [pending]
+### Dependencies: 3.1
+### Description: Create distinct datasets from different sources: training set from tokenizer vocabulary and validation/test sets from filtered external word lists to establish a true holdout set for testing.
+### Details:
+Implementation requires extracting tokenizer vocabulary for training and applying strict filtering criteria to external word lists for validation/test sets. Ensure no overlap between training tokens and validation/test words. Validation involves statistical checks for distribution balance and manual spot checks for leakage. Challenges include maintaining diversity across splits and implementing robust filtering logic.
+
+## 3. Question Generation for Each Type [pending]
+### Dependencies: 3.2
+### Description: Automatically generate letter count and letter position questions for each word in the dataset to establish metrics for evaluating model performance.
+### Details:
+Implementation uses templates to generate questions per word for both letter count and letter position types. Validation includes checking for grammatical correctness, relevance, and uniqueness of questions. Challenges involve ensuring variety in question phrasing and scaling generation efficiently across the universal set and holdout set.
+
+## 4. Dataset Formatting and Splitting [pending]
+### Dependencies: 3.3
+### Description: Format the generated data according to Hugging Face requirements, ensuring proper structure and metadata for each split based on their distinct sources.
+### Details:
+Implementation involves structuring data as JSON, CSV, or other required formats, with clear fields for input, output, and metadata. Validation checks include schema compliance, correct split assignments, and tokenization compatibility. Challenges include handling edge cases in formatting and ensuring compatibility with downstream tools.
+
+## 5. Dataset Publishing and Benchmark Creation [pending]
+### Dependencies: 3.4
+### Description: Publish the finalized dataset to Hugging Face and establish a benchmark with evaluation scripts and leaderboard integration.
+### Details:
+Implementation includes uploading dataset files, creating evaluation scripts that measure performance on position and count question metrics, integrating with Hugging Face leaderboard, and writing detailed documentation. Validation involves verifying downloadability, documentation clarity, and reproducibility. Challenges include ensuring evaluation scripts accurately reflect the experiment's purpose of determining if training on spelling improves model performance.
+
+## 6. Universal Set and Holdout Set Verification [pending]
+### Dependencies: 3.2
+### Description: Verify that the training set (universal set) and test set (true holdout set) are properly separated to enable valid measurement of model performance improvements.
+### Details:
+Implementation involves comprehensive checks to ensure no overlap between training tokens and test words. Create verification scripts to confirm the integrity of the splits. Validation includes statistical analysis of word distributions and characteristics across splits. Challenges include defining appropriate metrics to verify the splits serve the experiment's purpose.
+

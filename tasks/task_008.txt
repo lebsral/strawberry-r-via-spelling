@@ -1,0 +1,202 @@
+# Task ID: 8
+# Title: Model Fine-tuning and Experimentation
+# Status: pending
+# Dependencies: 4, 6, 7
+# Priority: high
+# Description: Implement the training loop and run experiments with different hyperparameters to find the optimal configuration.
+# Details:
+1. Create a reusable training script that accepts hyperparameter configs
+2. Implement the training loop using Unsloth
+3. Set up checkpoint saving and loading system
+4. Implement early stopping based on validation metrics
+5. Run experiments with different hyperparameters:
+   - LoRA rank (r): [4, 8, 16, 32]
+   - LoRA alpha: [8, 16, 32, 64]
+   - Learning rate: [1e-4, 2e-4, 5e-4, 1e-3]
+   - Batch size: [4, 8, 16, 32]
+   - Gradient accumulation steps: [1, 2, 4, 8]
+   - Training steps: [500, 1000, 2000, 5000]
+6. Track all experiments in W&B
+
+Implementation:
+```python
+import os
+import yaml
+import torch
+import wandb
+from unsloth import FastLanguageModel
+from datasets import load_dataset
+from transformers import TrainingArguments, Trainer, EarlyStoppingCallback
+
+# Main experiment runner
+def run_experiment(config_path):
+    # Load config
+    with open(config_path, "r") as f:
+        config = yaml.safe_load(f)
+    
+    # Initialize W&B
+    run = wandb.init(
+        project="llm-spelling-finetuning",
+        name=config["experiment_name"],
+        config=config,
+        reinit=True
+    )
+    
+    # Load model and tokenizer with Unsloth
+    model, tokenizer = FastLanguageModel.from_pretrained(
+        model_name="gpt2",
+        max_seq_length=512,
+        dtype=torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float16,
+        load_in_4bit=True
+    )
+    
+    # Add LoRA adapters
+    model = FastLanguageModel.get_peft_model(
+        model,
+        r=config["lora_config"]["r"],
+        target_modules=config["lora_config"]["target_modules"],
+        lora_alpha=config["lora_config"]["alpha"],
+        lora_dropout=config["lora_config"]["dropout"],
+        bias="none",
+        use_gradient_checkpointing=True,
+        random_state=42
+    )
+    
+    # Load dataset
+    dataset = load_dataset("YOUR-USERNAME/llm-spelling-dataset")
+    
+    # Format dataset for instruction fine-tuning
+    def formatting_func(examples):
+        questions = examples["question"]
+        answers = examples["answer"]
+        
+        prompts = [f"<human>: {q}\n<assistant>: " for q in questions]
+        completions = [f"{a}{tokenizer.eos_token}" for a in answers]
+        
+        return {"prompt": prompts, "completion": completions}
+    
+    train_dataset = dataset["train"].map(formatting_func, batched=True)
+    eval_dataset = dataset["validation"].map(formatting_func, batched=True)
+    
+    # Set up output directory
+    output_dir = f"./results/{config['experiment_name']}_{config['timestamp']}"
+    os.makedirs(output_dir, exist_ok=True)
+    
+    # Create training arguments
+    training_args = FastLanguageModel.get_train_args(
+        output_dir=output_dir,
+        per_device_train_batch_size=config["training_config"]["per_device_train_batch_size"],
+        gradient_accumulation_steps=config["training_config"]["gradient_accumulation_steps"],
+        warmup_steps=config["training_config"]["warmup_steps"],
+        max_steps=config["training_config"]["max_steps"],
+        learning_rate=config["training_config"]["learning_rate"],
+        fp16=not torch.cuda.is_bf16_supported(),
+        bf16=torch.cuda.is_bf16_supported(),
+        logging_steps=10,
+        evaluation_strategy="steps",
+        eval_steps=100,
+        save_strategy="steps",
+        save_steps=200,
+        load_best_model_at_end=True,
+        metric_for_best_model="eval_loss",
+        greater_is_better=False,
+        optim="adamw_torch",
+        max_grad_norm=0.3,
+        report_to="wandb"
+    )
+    
+    # Create trainer with early stopping
+    trainer = FastLanguageModel.get_trainer(
+        model=model,
+        tokenizer=tokenizer,
+        args=training_args,
+        train_dataset=train_dataset,
+        eval_dataset=eval_dataset,
+        data_collator=FastLanguageModel.get_data_collator(tokenizer),
+        callbacks=[EarlyStoppingCallback(early_stopping_patience=3)]
+    )
+    
+    # Train model
+    trainer.train()
+    
+    # Save final model
+    trainer.save_model(f"{output_dir}/final")
+    
+    # Evaluate on validation set
+    eval_results = trainer.evaluate()
+    
+    # Log final results
+    wandb.log(eval_results)
+    
+    # Save evaluation results
+    with open(f"{output_dir}/eval_results.yaml", "w") as f:
+        yaml.dump(eval_results, f)
+    
+    # Close wandb run
+    wandb.finish()
+    
+    return output_dir, eval_results
+
+# Run multiple experiments
+def run_experiments(config_paths):
+    results = {}
+    for config_path in config_paths:
+        print(f"Running experiment with config: {config_path}")
+        output_dir, eval_results = run_experiment(config_path)
+        
+        # Extract config name
+        with open(config_path, "r") as f:
+            config = yaml.safe_load(f)
+        
+        results[config["experiment_name"]] = {
+            "output_dir": output_dir,
+            "eval_results": eval_results
+        }
+    
+    # Save all results
+    with open("experiment_results_summary.yaml", "w") as f:
+        yaml.dump(results, f)
+    
+    return results
+```
+
+# Test Strategy:
+1. Verify training script runs without errors
+2. Confirm experiments are properly tracked in W&B
+3. Check that checkpoints are saved correctly
+4. Verify early stopping works as expected
+5. Test that the best model is loaded at the end of training
+6. Compare performance across different hyperparameter configurations
+7. Ensure all experiment results are properly saved
+
+# Subtasks:
+## 1. Training Script Implementation [pending]
+### Dependencies: None
+### Description: Develop a robust training script that handles the fine-tuning process for pre-trained models
+### Details:
+Create a modular training script that includes: data loading pipeline, model initialization with pre-trained weights, loss function definition, optimization algorithm setup (SGD/Adam), training loop with batch processing, validation steps, and proper error handling. Implement logging for training metrics and ensure GPU/CPU compatibility.
+
+## 2. Checkpoint Management System [pending]
+### Dependencies: 8.1
+### Description: Implement a comprehensive checkpoint system to save and restore model states
+### Details:
+Design a checkpoint manager that: saves model weights at configurable intervals, stores optimizer states, implements versioning for checkpoints, provides functionality to resume training from any checkpoint, includes cleanup mechanisms for old checkpoints, and ensures compatibility across different hardware configurations.
+
+## 3. Early Stopping Mechanism [pending]
+### Dependencies: 8.1, 8.2
+### Description: Develop an early stopping system to prevent overfitting and optimize training time
+### Details:
+Implement a configurable early stopping mechanism that: monitors validation metrics (loss, accuracy), applies patience parameters to allow for fluctuations, saves best model states when improvements occur, provides restoration of best model after training, includes visualization of stopping point, and allows for custom stopping criteria definition.
+
+## 4. Hyperparameter Experimentation Framework [pending]
+### Dependencies: 8.1, 8.2, 8.3
+### Description: Create a framework for systematic hyperparameter tuning and experimentation
+### Details:
+Develop a hyperparameter experimentation system that: supports grid search and random search methods, enables parallel experiment execution, provides configuration management for experiments, implements parameter scheduling (learning rate decay), integrates with checkpoint system, and includes mechanisms to handle failed experiments gracefully.
+
+## 5. Results Tracking and Analysis System [pending]
+### Dependencies: 8.4
+### Description: Build a comprehensive system to track, visualize and compare experiment results
+### Details:
+Implement a results management system that: stores metrics for all experiments, generates comparative visualizations across runs, calculates statistical significance of improvements, exports results in standard formats, provides filtering and sorting capabilities, and integrates with external visualization tools if needed.
+

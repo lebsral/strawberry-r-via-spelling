@@ -1,0 +1,131 @@
+# Task ID: 6
+# Title: Hyperparameter Tuning Infrastructure
+# Status: pending
+# Dependencies: 1, 5
+# Priority: medium
+# Description: Create a configuration system for hyperparameter experiments and set up experiment tracking with Weights & Biases.
+# Details:
+1. Create a configuration system for hyperparameter experiments
+2. Set up a Jupyter notebook for experiment tracking
+3. Create a script that can run training with different hyperparameters
+4. Set up W&B for experiment tracking
+5. Define a clear set of metrics for comparing experiments
+
+Implementation:
+```python
+import yaml
+import os
+from datetime import datetime
+import wandb
+
+def create_experiment_config(
+    exp_name,
+    lora_r=16,
+    lora_alpha=32,
+    lora_dropout=0.05,
+    learning_rate=2e-4,
+    batch_size=8,
+    grad_accum_steps=4,
+    max_steps=1000,
+    warmup_steps=100,
+    target_modules=["q_proj", "k_proj", "v_proj", "o_proj"],
+):
+    """Create and save an experiment configuration."""
+    config = {
+        "experiment_name": exp_name,
+        "timestamp": datetime.now().strftime("%Y%m%d_%H%M%S"),
+        "lora_config": {
+            "r": lora_r,
+            "alpha": lora_alpha,
+            "dropout": lora_dropout,
+            "target_modules": target_modules,
+        },
+        "training_config": {
+            "learning_rate": learning_rate,
+            "per_device_train_batch_size": batch_size,
+            "gradient_accumulation_steps": grad_accum_steps,
+            "max_steps": max_steps,
+            "warmup_steps": warmup_steps,
+        },
+    }
+
+    # Create experiments directory if it doesn't exist
+    os.makedirs("experiments", exist_ok=True)
+
+    # Save config to file
+    config_path = f"experiments/{exp_name}_{config['timestamp']}.yaml"
+    with open(config_path, "w") as f:
+        yaml.dump(config, f)
+
+    print(f"Created experiment config: {config_path}")
+    return config_path
+
+# Define hyperparameter grid
+def create_hyperparameter_grid():
+    grid = {
+        "lora_r": [4, 8, 16, 32],
+        "lora_alpha": [8, 16, 32, 64],
+        "learning_rate": [1e-4, 2e-4, 5e-4, 1e-3],
+        "batch_size": [4, 8, 16, 32],
+        "grad_accum_steps": [1, 2, 4, 8],
+        "max_steps": [500, 1000, 2000, 5000]
+    }
+    return grid
+
+# Create experiment configs for grid search
+def create_grid_search_configs(base_name="experiment"):
+    grid = create_hyperparameter_grid()
+    configs = []
+    
+    # Start with default configuration
+    configs.append(create_experiment_config(f"{base_name}_default"))
+    
+    # Create configs for each hyperparameter variation
+    for param, values in grid.items():
+        for value in values:
+            # Skip the default value
+            if param == "lora_r" and value == 16:
+                continue
+            if param == "lora_alpha" and value == 32:
+                continue
+            if param == "learning_rate" and value == 2e-4:
+                continue
+            if param == "batch_size" and value == 8:
+                continue
+            if param == "grad_accum_steps" and value == 4:
+                continue
+            if param == "max_steps" and value == 1000:
+                continue
+                
+            kwargs = {param: value}
+            config_path = create_experiment_config(f"{base_name}_{param}_{value}", **kwargs)
+            configs.append(config_path)
+    
+    return configs
+
+# Initialize W&B sweep
+def create_wandb_sweep():
+    sweep_config = {
+        "method": "grid",
+        "metric": {"name": "validation_letter_position_accuracy", "goal": "maximize"},
+        "parameters": {
+            "lora_r": {"values": [4, 8, 16, 32]},
+            "lora_alpha": {"values": [8, 16, 32, 64]},
+            "learning_rate": {"values": [1e-4, 2e-4, 5e-4, 1e-3]},
+            "batch_size": {"values": [4, 8, 16, 32]},
+            "grad_accum_steps": {"values": [1, 2, 4, 8]},
+            "max_steps": {"values": [500, 1000, 2000, 5000]}
+        }
+    }
+    
+    sweep_id = wandb.sweep(sweep_config, project="llm-spelling-finetuning")
+    return sweep_id
+```
+
+# Test Strategy:
+1. Verify configuration system creates valid YAML files
+2. Confirm W&B experiment tracking is properly set up
+3. Test that the hyperparameter grid generates the expected number of configurations
+4. Verify W&B sweep configuration is valid
+5. Create and test the experiment notebook
+6. Ensure metrics for comparing experiments are clearly defined

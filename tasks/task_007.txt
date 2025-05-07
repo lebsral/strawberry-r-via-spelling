@@ -1,0 +1,190 @@
+# Task ID: 7
+# Title: Unsloth Integration for Optimized Fine-tuning
+# Status: pending
+# Dependencies: 6
+# Priority: high
+# Description: Set up Unsloth for optimized LoRA fine-tuning of the GPT-2 model with memory efficiency optimizations.
+# Details:
+1. Install and configure Unsloth for optimized fine-tuning
+2. Set up Unsloth-specific environment requirements
+3. Configure memory-efficient QLoRA training
+4. Set up Flash Attention 2 if available on hardware
+5. Implement proper tokenization for instruction fine-tuning
+6. Configure GPU memory optimizations
+
+Implementation:
+```python
+# Install Unsloth
+!pip install unsloth
+
+from unsloth import FastLanguageModel
+import torch
+from datasets import load_dataset
+
+# Optimize GPU memory
+def optimize_gpu_memory():
+    if torch.cuda.is_available():
+        # Set GPU memory allocation strategy
+        torch.cuda.set_per_process_memory_fraction(0.9)  # Reserve 10% for system
+        # Enable memory caching for faster allocation
+        torch.backends.cudnn.benchmark = True
+        # Use TF32 precision on Ampere GPUs or later for faster computation
+        torch.backends.cuda.matmul.allow_tf32 = True
+
+# Load model with Unsloth optimizations
+def load_unsloth_model(config):
+    model, tokenizer = FastLanguageModel.from_pretrained(
+        model_name="gpt2",
+        max_seq_length=512,
+        dtype=torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float16,
+        load_in_4bit=True,  # Use 4-bit quantization to reduce memory usage
+        token=None,  # Add your HF token for private models
+    )
+
+    # Add LoRA adapters with Unsloth-specific optimizations
+    model = FastLanguageModel.get_peft_model(
+        model,
+        r=config["lora_config"]["r"],
+        target_modules=config["lora_config"]["target_modules"],
+        lora_alpha=config["lora_config"]["alpha"],
+        lora_dropout=config["lora_config"]["dropout"],
+        bias="none",  # Unsloth-specific - sets which modules receive adapters
+        use_gradient_checkpointing=True,  # Unsloth-specific - saves memory
+        random_state=42,  # For reproducibility
+        use_rslora=False,  # Set to True for rank-stabilized LoRA (optional)
+        loftq_config=None,  # Optional LoftQ configuration
+    )
+    
+    return model, tokenizer
+
+# Prepare dataset for Unsloth
+def prepare_unsloth_dataset(dataset):
+    def formatting_prompts_func(examples):
+        questions = examples["question"]
+        answers = examples["answer"]
+
+        # Special Unsloth prompt format
+        prompts = [
+            f"<human>: {question}\n<assistant>: "
+            for question in questions
+        ]
+
+        # Format responses with EOS token
+        formatted_responses = [
+            f"{answer}{tokenizer.eos_token}"
+            for answer in answers
+        ]
+
+        return {
+            "prompt": prompts,
+            "completion": formatted_responses,
+        }
+    
+    formatted_dataset = dataset.map(formatting_prompts_func, batched=True)
+    return formatted_dataset
+
+# Set up Unsloth trainer
+def create_unsloth_trainer(model, tokenizer, train_dataset, val_dataset, config):
+    trainer = FastLanguageModel.get_trainer(
+        model=model,
+        tokenizer=tokenizer,
+        train_dataset=train_dataset,
+        eval_dataset=val_dataset,
+        args=FastLanguageModel.get_train_args(
+            output_dir=f"./spelling-lora-{config['experiment_name']}",
+            per_device_train_batch_size=config["training_config"]["per_device_train_batch_size"],
+            gradient_accumulation_steps=config["training_config"]["gradient_accumulation_steps"],
+            warmup_steps=config["training_config"]["warmup_steps"],
+            max_steps=config["training_config"]["max_steps"],
+            learning_rate=config["training_config"]["learning_rate"],
+            fp16=not torch.cuda.is_bf16_supported(),
+            bf16=torch.cuda.is_bf16_supported(),
+            logging_steps=10,
+            evaluation_strategy="steps",
+            eval_steps=100,
+            save_strategy="steps",
+            save_steps=200,
+            optim="adamw_torch",  # Unsloth recommends adamw_torch over paged_adamw_8bit
+            max_grad_norm=0.3,    # Gradient clipping - Unsloth recommended value
+            report_to="wandb",
+        ),
+        data_collator=FastLanguageModel.get_data_collator(tokenizer=tokenizer),
+    )
+    
+    return trainer
+
+# Main training function
+def train_with_unsloth(config_path):
+    # Load config
+    with open(config_path, "r") as f:
+        config = yaml.safe_load(f)
+    
+    # Initialize W&B
+    wandb.init(project="llm-spelling-finetuning", name=config["experiment_name"], config=config)
+    
+    # Optimize GPU memory
+    optimize_gpu_memory()
+    
+    # Load model and tokenizer
+    model, tokenizer = load_unsloth_model(config)
+    
+    # Load dataset
+    dataset = load_dataset("YOUR-USERNAME/llm-spelling-dataset")
+    
+    # Prepare dataset for Unsloth
+    train_dataset = prepare_unsloth_dataset(dataset["train"])
+    val_dataset = prepare_unsloth_dataset(dataset["validation"])
+    
+    # Create trainer
+    trainer = create_unsloth_trainer(model, tokenizer, train_dataset, val_dataset, config)
+    
+    # Train model
+    trainer.train()
+    
+    # Save model
+    trainer.save_model()
+    
+    # Evaluate model
+    eval_results = trainer.evaluate()
+    wandb.log(eval_results)
+    
+    # Close W&B
+    wandb.finish()
+    
+    return eval_results
+```
+
+# Test Strategy:
+1. Verify Unsloth installs and imports correctly
+2. Confirm memory usage is optimized compared to standard fine-tuning
+3. Test that 4-bit quantization is working correctly
+4. Measure training speed improvement over baseline implementation
+5. Verify all Unsloth-specific optimizations are configured
+6. Test with a small dataset to ensure the training loop works
+7. Monitor GPU memory usage during training
+
+# Subtasks:
+## 1. Environment Setup with Optimizations [pending]
+### Dependencies: None
+### Description: Configure the development environment with Unsloth and necessary dependencies for optimized LLM fine-tuning
+### Details:
+Install Unsloth library and compatible dependencies (bitsandbytes, transformers, PEFT). Configure GPU memory settings for optimal performance. Set up quantization libraries. Verify hardware compatibility (CUDA, ROCm, or Metal backend). Test environment with basic model loading to ensure all components work together.
+
+## 2. Model Loading with Unsloth-specific Configurations [pending]
+### Dependencies: 7.1
+### Description: Implement efficient model loading using Unsloth's FastLanguageModel with proper quantization and LoRA setup
+### Details:
+Use FastLanguageModel.from_pretrained() to load base models with quantization. Configure LoRA adapters with get_peft_model() using appropriate rank and target modules. Implement proper quantization settings (4-bit, 8-bit) based on available VRAM. Set up gradient checkpointing with 'unsloth' option. Validate model loading with memory profiling.
+
+## 3. Dataset Preparation for Unsloth [pending]
+### Dependencies: 7.1
+### Description: Prepare and optimize training datasets for efficient processing with Unsloth
+### Details:
+Format dataset according to Unsloth requirements. Implement efficient tokenization with proper sequence length handling. Set up data processing pipeline with appropriate num_proc parameter. Configure dataset caching mechanisms to reduce memory overhead. Validate dataset loading with performance metrics.
+
+## 4. Trainer Setup with Memory Optimizations [pending]
+### Dependencies: 7.2, 7.3
+### Description: Configure SFTTrainer with Unsloth-optimized parameters for efficient fine-tuning
+### Details:
+Set up SFTTrainer with optimized batch size and gradient accumulation. Configure learning rate and scheduler based on training duration. Implement proper precision settings (bf16/fp16) based on hardware support. Set up memory-efficient optimizers (adamw_8bit). Configure logging and checkpointing. Validate trainer setup with memory usage monitoring during initial training steps.
+
