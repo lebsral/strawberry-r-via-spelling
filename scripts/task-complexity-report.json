@@ -1,6 +1,6 @@
 {
   "meta": {
-    "generatedAt": "2025-05-07T12:25:32.945Z",
+    "generatedAt": "2025-05-07T14:50:15.586Z",
     "tasksAnalyzed": 10,
     "thresholdScore": 5,
     "projectName": "Taskmaster",
@@ -10,82 +10,82 @@
     {
       "taskId": 1,
       "taskTitle": "Development Environment Setup",
-      "complexityScore": 3,
-      "recommendedSubtasks": 3,
-      "expansionPrompt": "Break down the development environment setup into three logical phases: installation, configuration, and verification. For each phase, list the specific steps, commands, and expected outcomes.",
-      "reasoning": "This task involves standard environment setup with clear steps already outlined. The complexity is relatively low as it follows common development practices with specific commands provided. The main challenges are ensuring proper authentication with external services and verifying all components work together."
+      "complexityScore": 6,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Break down the Development Environment Setup task into 5 subtasks, focusing on: 1) Package management with uv, 2) Project structure creation, 3) External service authentication, 4) Version control setup, and 5) Environment verification and testing. For each subtask, provide detailed steps, dependencies, and validation criteria.",
+      "reasoning": "This task involves multiple technical components including package management with a newer tool (uv), setting up external services (W&B, Hugging Face), and creating a reproducible environment. The existing 4 subtasks are a good start but could be expanded to better separate concerns. The complexity is moderate (6/10) as it requires technical knowledge across multiple domains but follows standard patterns."
     },
     {
       "taskId": 2,
       "taskTitle": "Token Extraction from GPT-2 Vocabulary",
-      "complexityScore": 4,
-      "recommendedSubtasks": 3,
-      "expansionPrompt": "Divide the token extraction process into three subtasks: tokenizer loading and vocabulary access, token filtering with proper criteria, and output generation with analysis. For each subtask, specify the implementation details, edge cases to handle, and validation steps.",
-      "reasoning": "This task requires understanding of the GPT-2 tokenizer internals and implementing specific filtering logic. The implementation is provided but requires careful handling of token decoding and proper regex filtering. The complexity comes from ensuring the correct tokens are extracted and properly formatted."
+      "complexityScore": 5,
+      "recommendedSubtasks": 4,
+      "expansionPrompt": "Expand the Token Extraction task into 4 subtasks: 1) Tokenizer loading and vocabulary extraction, 2) Token filtering and processing, 3) Data storage and format standardization, and 4) Token analysis and visualization. For each subtask, include specific implementation details, validation criteria, and potential edge cases to handle.",
+      "reasoning": "This task involves working with the GPT-2 tokenizer, applying specific filtering criteria, and saving the results in a structured format. The existing 3 subtasks (Script Writing, Validation & Testing, Documentation) are logical but could be reorganized to better separate the technical concerns. The complexity is moderate (5/10) as it requires understanding of tokenizers but has a clear implementation path with provided code."
     },
     {
       "taskId": 3,
       "taskTitle": "Dataset Creation and Splitting",
-      "complexityScore": 7,
-      "recommendedSubtasks": 5,
-      "expansionPrompt": "Break down the dataset creation process into five components: word list acquisition, training/validation/test set creation with proper filtering criteria, question generation for each type, dataset formatting and splitting, and dataset publishing. For each component, detail the implementation approach, validation criteria, and potential challenges.",
-      "reasoning": "This task has high complexity due to multiple interdependent steps: downloading external data, implementing complex filtering logic, generating two types of questions, ensuring proper data splits with no leakage, and formatting for Hugging Face. The implementation requires careful handling of tokenization and dataset management."
+      "complexityScore": 8,
+      "recommendedSubtasks": 7,
+      "expansionPrompt": "Divide the Dataset Creation and Splitting task into 7 subtasks: 1) Word list acquisition and preprocessing, 2) Training set generation from tokenizer vocabulary, 3) Validation/test set creation from external words, 4) Question generation for letter count tasks, 5) Question generation for letter position tasks, 6) Dataset formatting and publishing, and 7) Dataset validation and statistics. For each subtask, specify input/output requirements, validation criteria, and potential challenges.",
+      "reasoning": "This task is highly complex (8/10) as it involves creating datasets from multiple sources with specific filtering criteria, generating different question types, and ensuring proper separation between training and evaluation data. The existing 7 subtasks are well-structured but could benefit from more specific focus on the different question types and validation processes. The source-based split approach adds complexity that requires careful implementation."
     },
     {
       "taskId": 4,
       "taskTitle": "Training Data Formatting with Template Variations",
-      "complexityScore": 6,
-      "recommendedSubtasks": 4,
-      "expansionPrompt": "Divide the training data formatting task into four components: template system design, implementation of the various template categories (spelling-first, word-first, etc.), token separation variations, and efficient data loading. For each component, specify the implementation details, expected variations, and testing approach.",
-      "reasoning": "This task involves creating a complex template system with multiple variations and formatting styles. The implementation requires careful design to ensure all template types are represented and properly formatted. The complexity comes from managing the variety of templates and ensuring efficient data loading."
+      "complexityScore": 7,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Break down the Training Data Formatting task into 5 subtasks: 1) Template design and categorization, 2) Token separation strategy implementation, 3) Dynamic example generation system, 4) Efficient data loading and batching, and 5) Template variation analysis and visualization. For each subtask, provide implementation details, quality metrics, and testing approaches.",
+      "reasoning": "This task involves creating multiple template variations for training data, implementing different token separation strategies, and ensuring efficient data loading. The complexity is high (7/10) due to the need for creative template design and ensuring proper formatting for model training. Currently there are no subtasks defined, but the task would benefit from being broken down to handle the different aspects of template creation and data formatting separately."
     },
     {
       "taskId": 5,
       "taskTitle": "Baseline Model Evaluation",
-      "complexityScore": 5,
-      "recommendedSubtasks": 3,
-      "expansionPrompt": "Break down the baseline evaluation into three components: evaluation infrastructure setup, implementation of specific metrics (letter count and position accuracy), and results analysis and visualization. For each component, detail the implementation approach, validation steps, and integration with tracking systems.",
-      "reasoning": "This task requires setting up evaluation infrastructure, implementing specific metrics, and integrating with W&B for tracking. The complexity comes from ensuring accurate evaluation, proper output parsing, and comprehensive result logging. The implementation needs to handle different question types and extract the correct answers."
+      "complexityScore": 6,
+      "recommendedSubtasks": 4,
+      "expansionPrompt": "Expand the Baseline Model Evaluation task into 4 subtasks: 1) Evaluation framework setup with metrics definition, 2) Letter count question evaluation implementation, 3) Letter position question evaluation implementation, and 4) Results analysis and visualization. For each subtask, include specific implementation details, validation approaches, and reporting requirements.",
+      "reasoning": "This task involves setting up an evaluation framework for the base model, implementing specific metrics for different question types, and analyzing the results. The complexity is moderate (6/10) as it requires understanding of model evaluation but has a clear implementation path. Currently there are no subtasks defined, but the task would benefit from being broken down to separate the different evaluation components."
     },
     {
       "taskId": 6,
       "taskTitle": "Hyperparameter Tuning Infrastructure",
-      "complexityScore": 5,
-      "recommendedSubtasks": 3,
-      "expansionPrompt": "Divide the hyperparameter tuning infrastructure into three components: configuration system design, experiment tracking setup, and hyperparameter grid definition. For each component, specify the implementation details, integration points, and validation approach.",
-      "reasoning": "This task involves creating a flexible configuration system for experiments and integrating with W&B for tracking. The complexity comes from designing a system that can handle various hyperparameter combinations and properly track experiments. The implementation requires careful design of the configuration structure and integration with external services."
+      "complexityScore": 7,
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Divide the Hyperparameter Tuning Infrastructure task into 5 subtasks: 1) Configuration system design and implementation, 2) Experiment tracking setup with W&B integration, 3) Hyperparameter grid definition and validation, 4) Experiment execution framework, and 5) Results comparison and visualization system. For each subtask, specify implementation details, validation criteria, and integration requirements.",
+      "reasoning": "This task involves creating a comprehensive system for hyperparameter experimentation, including configuration management, experiment tracking, and results analysis. The complexity is high (7/10) due to the need for a robust infrastructure that can handle multiple experiments and provide meaningful comparisons. Currently there are no subtasks defined, but the task would benefit from being broken down to handle the different aspects of hyperparameter tuning separately."
     },
     {
       "taskId": 7,
       "taskTitle": "Unsloth Integration for Optimized Fine-tuning",
       "complexityScore": 8,
-      "recommendedSubtasks": 4,
-      "expansionPrompt": "Break down the Unsloth integration into four components: environment setup with optimizations, model loading with Unsloth-specific configurations, dataset preparation for Unsloth, and trainer setup with memory optimizations. For each component, detail the implementation approach, optimization techniques, and validation steps.",
-      "reasoning": "This task has high complexity due to the integration of specialized optimization libraries and memory management techniques. It requires understanding of GPU memory optimization, quantization, and Unsloth-specific configurations. The implementation needs to carefully balance performance and memory usage while ensuring proper integration with the training pipeline."
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Break down the Unsloth Integration task into 5 subtasks: 1) Environment setup with Unsloth and dependencies, 2) Model loading with memory optimizations, 3) Dataset preparation for Unsloth-specific formats, 4) Training configuration with QLoRA and Flash Attention, and 5) Performance benchmarking and optimization. For each subtask, provide detailed implementation steps, validation criteria, and potential challenges.",
+      "reasoning": "This task involves integrating a specialized library (Unsloth) for optimized fine-tuning, configuring memory-efficient training, and implementing advanced techniques like QLoRA and Flash Attention. The complexity is high (8/10) due to the technical depth required and potential hardware-specific optimizations. The existing 4 subtasks are well-structured but could be expanded to better address performance benchmarking and optimization."
     },
     {
       "taskId": 8,
       "taskTitle": "Model Fine-tuning and Experimentation",
       "complexityScore": 9,
-      "recommendedSubtasks": 5,
-      "expansionPrompt": "Divide the fine-tuning and experimentation process into five components: training script implementation, checkpoint management, early stopping mechanism, hyperparameter experimentation, and results tracking. For each component, specify the implementation details, integration points, and validation approach.",
-      "reasoning": "This task represents the core of the project with high complexity due to the need to manage multiple experiments with different hyperparameters, implement proper training loops, handle checkpointing, and track results. The implementation requires careful integration of all previous components and robust error handling to ensure experiments run successfully."
+      "recommendedSubtasks": 6,
+      "expansionPrompt": "Expand the Model Fine-tuning and Experimentation task into 6 subtasks: 1) Training script implementation with configuration loading, 2) Checkpoint management system, 3) Early stopping and model selection, 4) Hyperparameter experimentation execution, 5) Results tracking and analysis, and 6) Best model identification and export. For each subtask, include detailed implementation requirements, validation approaches, and integration with other components.",
+      "reasoning": "This task represents the core of the project, involving the actual fine-tuning process with multiple hyperparameter configurations, checkpoint management, and results analysis. The complexity is very high (9/10) due to the need for a robust training pipeline that can handle different configurations and produce reliable results. The existing 5 subtasks are well-structured but could be expanded to include best model identification and export."
     },
     {
       "taskId": 9,
       "taskTitle": "Comprehensive Model Evaluation",
       "complexityScore": 7,
-      "recommendedSubtasks": 4,
-      "expansionPrompt": "Break down the comprehensive evaluation into four components: implementation of multiple evaluation metrics, detailed error analysis, visualization creation, and comparative analysis between models. For each component, detail the implementation approach, specific metrics to calculate, and reporting format.",
-      "reasoning": "This task involves implementing multiple evaluation metrics, performing detailed error analysis, and creating comprehensive visualizations. The complexity comes from the need to implement various metrics (accuracy, Levenshtein distance, etc.), categorize errors, and create informative visualizations. The implementation requires careful handling of different error types and proper integration with W&B."
+      "recommendedSubtasks": 5,
+      "expansionPrompt": "Divide the Comprehensive Model Evaluation task into 5 subtasks: 1) Multi-metric evaluation framework implementation, 2) Base vs. fine-tuned model comparison, 3) Detailed error analysis system, 4) Performance visualization dashboard, and 5) Evaluation report generation. For each subtask, specify implementation details, analysis approaches, and reporting requirements.",
+      "reasoning": "This task involves evaluating the fine-tuned models using multiple metrics, performing detailed error analysis, and creating visualizations for comparison. The complexity is high (7/10) due to the need for comprehensive evaluation across different metrics and detailed error analysis. Currently there are no subtasks defined, but the task would benefit from being broken down to handle the different aspects of evaluation separately."
     },
     {
       "taskId": 10,
       "taskTitle": "Model Publishing and Documentation",
-      "complexityScore": 4,
-      "recommendedSubtasks": 3,
-      "expansionPrompt": "Divide the publishing and documentation process into three components: model card creation, README and documentation preparation, and Hugging Face publishing. For each component, specify the content requirements, formatting guidelines, and validation steps.",
-      "reasoning": "This task involves creating comprehensive documentation and publishing the model to Hugging Face. The complexity is moderate as it primarily involves documentation and publishing rather than technical implementation. The main challenges are ensuring the model card follows Hugging Face guidelines and properly documenting the project's approach and results."
+      "complexityScore": 6,
+      "recommendedSubtasks": 4,
+      "expansionPrompt": "Break down the Model Publishing and Documentation task into 4 subtasks: 1) Model card creation with comprehensive details, 2) Project README and documentation, 3) Hugging Face model publishing and verification, and 4) Final report generation with results summary. For each subtask, provide specific content requirements, formatting guidelines, and publication steps.",
+      "reasoning": "This task involves preparing documentation, publishing the model to Hugging Face, and creating a final report. The complexity is moderate (6/10) as it requires attention to detail in documentation but follows standard patterns for model publishing. Currently there are no subtasks defined, but the task would benefit from being broken down to separate the different documentation and publishing components."
     }
   ]
 }

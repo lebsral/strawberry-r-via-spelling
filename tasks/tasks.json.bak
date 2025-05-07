@@ -4,18 +4,18 @@
       "id": 1,
       "title": "Development Environment Setup",
       "description": "Set up the Python development environment with all required dependencies using uv for package management.",
-      "details": "1. Install uv package manager: `curl -fsSL https://astral.sh/uv/install.sh | bash`\n2. Create project directory structure following the repository structure in the PRD\n3. Create requirements.txt with the following dependencies: torch, transformers, datasets, wandb, unsloth, dspy, lightning, matplotlib, seaborn, pandas, jupyter, notebook, ipywidgets\n4. Install dependencies using uv: `uv pip install -r requirements.txt`\n5. Set up Git repository with proper .gitignore\n6. Configure Weights & Biases account: `wandb login`\n7. Set up Hugging Face account and API access: `huggingface-cli login`\n8. Create initial Jupyter notebook for experimentation\n9. Verify all imports work correctly",
-      "testStrategy": "1. Verify all libraries install without errors using uv\n2. Confirm successful authentication with W&B\n3. Confirm successful authentication with Hugging Face\n4. Test import of all required libraries in a Jupyter notebook\n5. Make initial commit with environment setup completed",
-      "priority": "high",
-      "dependencies": [],
       "status": "pending",
+      "dependencies": [],
+      "priority": "high",
+      "details": "1. Install uv package manager: `curl -fsSL https://astral.sh/uv/install.sh | bash`\n2. Create project directory structure following the repository structure in the PRD\n3. Install dependencies directly using uv commands instead of editing requirements.txt:\n   - `uv pip install torch transformers datasets wandb unsloth dspy lightning matplotlib seaborn pandas jupyter notebook ipywidgets`\n4. After installation, generate requirements.txt for documentation: `uv pip freeze > requirements.txt`\n5. Set up Git repository with proper .gitignore\n6. Configure Weights & Biases account: `wandb login`\n7. Set up Hugging Face account and API access: `huggingface-cli login`\n8. Create initial Jupyter notebook for experimentation\n9. Verify all imports work correctly",
+      "testStrategy": "1. Verify all libraries install without errors using uv\n2. Confirm successful authentication with W&B\n3. Confirm successful authentication with Hugging Face\n4. Test import of all required libraries in a Jupyter notebook\n5. Make initial commit with environment setup completed\n6. Verify environment reproducibility by creating a new environment using the generated requirements.txt",
       "subtasks": [
         {
           "id": 1,
           "title": "Installation Phase",
-          "description": "Set up the development environment by installing all necessary software, tools, and dependencies",
+          "description": "Set up the development environment by installing all necessary software, tools, and dependencies using uv package manager",
           "dependencies": [],
-          "details": "Install required programming languages, frameworks, version control systems, IDEs, database systems, and other development tools according to project specifications. Document all installation paths and versions for future reference.",
+          "details": "Install uv package manager first, then use it to install all required libraries directly with 'uv pip install' commands. Document all installation paths and versions for future reference. Use uv for all Python package management to ensure reproducibility and faster installation times.\n<info added on 2025-05-07T14:46:36.027Z>\nInstall uv package manager first, then use it to install all required libraries directly with 'uv pip install' commands. Document all installation paths and versions for future reference. Use uv for all Python package management to ensure reproducibility and faster installation times.\n\nThis task can be worked on independently and in parallel with others. The Installation Phase has no dependencies and is parallelizable (parallelizable: true).\n</info added on 2025-05-07T14:46:36.027Z>",
           "status": "pending"
         },
         {
@@ -25,7 +25,7 @@
           "dependencies": [
             1
           ],
-          "details": "Set environment variables, configure IDE settings, establish database connections, set up version control repositories, configure build tools, and establish authentication for any external services or APIs required for development.",
+          "details": "Set environment variables, configure IDE settings, establish database connections, set up version control repositories, configure build tools, and establish authentication for any external services or APIs required for development. Generate requirements.txt using 'uv pip freeze > requirements.txt' for documentation purposes.\n<info added on 2025-05-07T14:26:08.046Z>\nSet environment variables, configure IDE settings, establish database connections, set up version control repositories, configure build tools, and establish authentication for any external services or APIs required for development. Generate requirements.txt using 'uv pip freeze > requirements.txt' for documentation purposes.\n\nCreate a proper environment configuration by duplicating the .env.example file to .env:\n1. Copy the .env.example file to .env using the command: `cp .env.example .env` (Unix/Mac) or `copy .env.example .env` (Windows)\n2. Open the newly created .env file and fill in all required values\n3. Ensure all environment variables are properly set according to your local development environment\n4. Document any custom environment variables added to the project in the .env.example file with appropriate comments\n5. Verify that sensitive information (API keys, passwords, etc.) is not committed to version control\n6. Update the project documentation to include information about required environment variables\n</info added on 2025-05-07T14:26:08.046Z>",
           "status": "pending"
         },
         {
@@ -35,8 +35,17 @@
           "dependencies": [
             2
           ],
-          "details": "Run test scripts to verify installations, validate configurations, test connections to external services, perform a sample build process, and document any issues encountered along with their resolutions.",
+          "details": "Run test scripts to verify installations, validate configurations, test connections to external services, perform a sample build process, and document any issues encountered along with their resolutions. Test environment reproducibility by creating a new environment using the generated requirements.txt and uv.",
           "status": "pending"
+        },
+        {
+          "id": 4,
+          "title": "Create and Maintain README.md for Developer Onboarding",
+          "description": "Develop and maintain a comprehensive README.md file to help new developers set up the environment, understand the project structure, and follow best practices.",
+          "details": "1. Write a clear project overview and purpose.\n2. Document the setup process, including using uv for environment management, installing dependencies, and configuring the .env file.\n3. Explain the directory structure and the role of key files (e.g., requirements.txt, .env, .env.example, notebooks, scripts).\n4. Provide instructions for running Jupyter notebooks and scripts.\n5. List common troubleshooting tips and FAQs.\n6. Include contribution guidelines and code style references.\n7. Update the README.md as the project evolves to ensure accuracy and completeness.\n<info added on 2025-05-07T14:46:49.605Z>\n1. Write a clear project overview and purpose.\n2. Document the setup process, including using uv for environment management, installing dependencies, and configuring the .env file.\n3. Explain the directory structure and the role of key files (e.g., requirements.txt, .env, .env.example, notebooks, scripts).\n4. Provide instructions for running Jupyter notebooks and scripts.\n5. List common troubleshooting tips and FAQs.\n6. Include contribution guidelines and code style references.\n7. Update the README.md as the project evolves to ensure accuracy and completeness.\n\nNote: This task can be worked on independently and in parallel with others. It has no dependencies and is parallelizable: true.\n</info added on 2025-05-07T14:46:49.605Z>",
+          "status": "pending",
+          "dependencies": [],
+          "parentTaskId": 1
         }
       ]
     },
@@ -44,27 +53,119 @@
       "id": 2,
       "title": "Token Extraction from GPT-2 Vocabulary",
       "description": "Extract all multi-character, letter-based tokens from the GPT-2 tokenizer vocabulary and save them to a JSON file.",
-      "details": "1. Load the GPT-2 tokenizer from Hugging Face\n2. Extract all tokens from the vocabulary\n3. Filter tokens to include only multi-character, letter-based tokens\n4. Save the filtered token list to a JSON file with the structure specified in the PRD\n5. Create a Jupyter notebook to verify token selection\n6. Analyze token frequency and length distribution\n\nImplementation:\n```python\nfrom transformers import GPT2Tokenizer\nimport json\nimport re\n\ndef extract_tokens():\n    # Load tokenizer\n    tokenizer = GPT2Tokenizer.from_pretrained(\"gpt2\")\n\n    # Extract and filter tokens\n    filtered_tokens = []\n    for token_id, token_text in tokenizer.get_vocab().items():\n        # Remove special tokens and decode byte tokens\n        decoded_token = tokenizer.convert_tokens_to_string([token_text])\n\n        # Filter for multi-character letter-based tokens\n        if len(decoded_token) > 1 and re.match(r'^[a-zA-Z]+$', decoded_token):\n            filtered_tokens.append({\n                \"token\": decoded_token,\n                \"token_id\": token_id,\n                \"char_length\": len(decoded_token)\n            })\n\n    # Save to file\n    with open(\"gpt2_letter_tokens.json\", \"w\") as f:\n        json.dump({\"tokens\": filtered_tokens}, f, indent=2)\n\n    return filtered_tokens\n\ntokens = extract_tokens()\nprint(f\"Extracted {len(tokens)} multi-character letter-based tokens\")\n```",
-      "testStrategy": "1. Verify JSON file is successfully created\n2. Confirm file contains at least 5,000 tokens\n3. Randomly sample tokens to confirm they are multi-character and letter-based\n4. Verify no special tokens (like <|endoftext|>) are included\n5. Create visualizations of token length distribution\n6. Commit token extraction script and results",
-      "priority": "high",
+      "status": "pending",
       "dependencies": [
         1
       ],
-      "status": "pending",
-      "subtasks": []
+      "priority": "high",
+      "details": "1. Load the GPT-2 tokenizer from Hugging Face\n2. Extract all tokens from the vocabulary\n3. Filter tokens to include only multi-character, letter-based tokens\n4. Save the filtered token list to a JSON file with the structure specified in the PRD\n5. Create a Jupyter notebook to verify token selection\n6. Analyze token frequency and length distribution\n\nThis task has been broken down into three parallelizable subtasks that can be worked on independently:\n- Script Writing: Implementing the token extraction logic\n- Validation & Testing: Ensuring the extracted tokens meet requirements\n- Documentation: Creating clear documentation for the process and results\n\nImplementation:\n```python\nfrom transformers import GPT2Tokenizer\nimport json\nimport re\n\ndef extract_tokens():\n    # Load tokenizer\n    tokenizer = GPT2Tokenizer.from_pretrained(\"gpt2\")\n\n    # Extract and filter tokens\n    filtered_tokens = []\n    for token_id, token_text in tokenizer.get_vocab().items():\n        # Remove special tokens and decode byte tokens\n        decoded_token = tokenizer.convert_tokens_to_string([token_text])\n\n        # Filter for multi-character letter-based tokens\n        if len(decoded_token) > 1 and re.match(r'^[a-zA-Z]+$', decoded_token):\n            filtered_tokens.append({\n                \"token\": decoded_token,\n                \"token_id\": token_id,\n                \"char_length\": len(decoded_token)\n            })\n\n    # Save to file\n    with open(\"gpt2_letter_tokens.json\", \"w\") as f:\n        json.dump({\"tokens\": filtered_tokens}, f, indent=2)\n\n    return filtered_tokens\n\ntokens = extract_tokens()\nprint(f\"Extracted {len(tokens)} multi-character letter-based tokens\")\n```",
+      "testStrategy": "1. Verify JSON file is successfully created\n2. Confirm file contains at least 5,000 tokens\n3. Randomly sample tokens to confirm they are multi-character and letter-based\n4. Verify no special tokens (like <|endoftext|>) are included\n5. Create visualizations of token length distribution\n6. Commit token extraction script and results",
+      "subtasks": [
+        {
+          "id": 2.1,
+          "title": "Script Writing",
+          "description": "Implement the token extraction logic from the GPT-2 vocabulary",
+          "details": "1. Load the GPT-2 tokenizer from Hugging Face\n2. Extract all tokens from the vocabulary\n3. Filter tokens to include only multi-character, letter-based tokens\n4. Save the filtered token list to a JSON file with the structure specified in the PRD\n\nThis task can be worked on independently and in parallel with others.\n\nparallelizable: true",
+          "status": "pending"
+        },
+        {
+          "id": 2.2,
+          "title": "Validation & Testing",
+          "description": "Ensure the extracted tokens meet requirements and create validation tools",
+          "details": "1. Create a Jupyter notebook to verify token selection\n2. Verify JSON file is successfully created\n3. Confirm file contains at least 5,000 tokens\n4. Randomly sample tokens to confirm they are multi-character and letter-based\n5. Verify no special tokens (like <|endoftext|>) are included\n6. Create visualizations of token length distribution\n\nThis task can be worked on independently and in parallel with others.\n\nparallelizable: true",
+          "status": "pending"
+        },
+        {
+          "id": 2.3,
+          "title": "Documentation",
+          "description": "Create clear documentation for the token extraction process and results",
+          "details": "1. Document the token extraction methodology\n2. Analyze token frequency and length distribution\n3. Create a README explaining how to use the extraction script\n4. Document any interesting patterns or observations in the token set\n5. Prepare documentation for integration with other components\n\nThis task can be worked on independently and in parallel with others.\n\nparallelizable: true",
+          "status": "pending"
+        }
+      ]
     },
     {
       "id": 3,
       "title": "Dataset Creation and Splitting",
-      "description": "Create training, validation, and test datasets for spelling tasks, ensuring proper separation between training tokens and validation/test words.",
-      "details": "1. Download English word list from dwyl/english-words repository\n2. Create training set from tokenizer vocabulary (multi-character, letter-only tokens)\n3. Create validation/test sets from English dictionary words that:\n   - Split into multiple tokens by the tokenizer\n   - Have at least one token in the split that is multi-character and letter-only\n   - Do not appear in the training set\n4. Generate letter count questions (\"How many X's are in Y?\")\n5. Generate letter position questions (\"What is the Nth letter in Y?\")\n6. Split data: 70% training, 15% validation, 15% test\n7. Format as a Hugging Face dataset with appropriate splits\n8. Create notebook to visualize dataset statistics\n\nImplementation:\n```python\nimport json\nimport random\nimport string\nfrom datasets import Dataset\nfrom sklearn.model_selection import train_test_split\nimport requests\n\n# Download English word list\nword_list_url = \"https://raw.githubusercontent.com/dwyl/english-words/master/words_alpha.txt\"\nresponse = requests.get(word_list_url)\nall_words = response.text.splitlines()\n\n# Load tokenizer and filtered tokens\ntokenizer = GPT2Tokenizer.from_pretrained(\"gpt2\")\nwith open(\"gpt2_letter_tokens.json\", \"r\") as f:\n    tokens_data = json.load(f)\n\ntokens = [t[\"token\"] for t in tokens_data[\"tokens\"]]\n\n# Find valid validation/test words\nvalid_words = []\nfor word in all_words:\n    if not word.isalpha():\n        continue\n    \n    # Tokenize the word\n    token_ids = tokenizer.encode(word, add_special_tokens=False)\n    tokens_in_word = tokenizer.convert_ids_to_tokens(token_ids)\n    \n    # Check if word splits into multiple tokens with at least one multi-character token\n    if len(tokens_in_word) > 1 and any(len(tokenizer.convert_tokens_to_string([t])) > 1 for t in tokens_in_word):\n        # Ensure word is not in training set\n        if word.lower() not in [t.lower() for t in tokens]:\n            valid_words.append(word)\n\n# Split valid words into validation and test sets\nval_words, test_words = train_test_split(valid_words, test_size=0.5, random_state=42)\n\n# Generate questions\ndef generate_questions(words, question_type):\n    questions = []\n    for i, word in enumerate(words):\n        if question_type == \"letter_count\":\n            letter = random.choice(string.ascii_lowercase)\n            count = word.lower().count(letter)\n            questions.append({\n                \"id\": f\"{question_type}_{i}\",\n                \"question\": f\"How many {letter}'s are in the word '{word}'?\",\n                \"answer\": str(count),\n                \"question_type\": question_type,\n                \"word\": word\n            })\n        elif question_type == \"letter_position\":\n            position = random.randint(1, len(word))\n            letter = word[position-1]\n            questions.append({\n                \"id\": f\"{question_type}_{i}\",\n                \"question\": f\"What is the {position}{'st' if position == 1 else 'nd' if position == 2 else 'rd' if position == 3 else 'th'} letter in the word '{word}'?\",\n                \"answer\": letter,\n                \"question_type\": question_type,\n                \"word\": word\n            })\n    return questions\n\n# Generate training, validation, and test questions\ntrain_questions = generate_questions(tokens, \"letter_count\") + generate_questions(tokens, \"letter_position\")\nval_questions = generate_questions(val_words, \"letter_count\") + generate_questions(val_words, \"letter_position\")\ntest_questions = generate_questions(test_words, \"letter_count\") + generate_questions(test_words, \"letter_position\")\n\n# Create datasets\ndatasets = {}\nfor split_name, split_data in [\n    (\"train\", train_questions),\n    (\"validation\", val_questions),\n    (\"test\", test_questions)\n]:\n    datasets[split_name] = Dataset.from_dict({\n        \"id\": [q[\"id\"] for q in split_data],\n        \"question\": [q[\"question\"] for q in split_data],\n        \"answer\": [q[\"answer\"] for q in split_data],\n        \"question_type\": [q[\"question_type\"] for q in split_data],\n        \"word\": [q[\"word\"] for q in split_data]\n    })\n\n# Push to Hugging Face\nfrom datasets import DatasetDict\ncombined_dataset = DatasetDict(datasets)\ncombined_dataset.push_to_hub(\"YOUR-USERNAME/llm-spelling-dataset\")\n```",
-      "testStrategy": "1. Verify dataset successfully generates 2,000+ questions\n2. Confirm questions are grammatically correct\n3. Verify train/validation/test splits have correct proportions\n4. Manually check 20 random samples to ensure answers correctly match questions\n5. Confirm dataset is successfully pushed to Hugging Face\n6. Verify local JSON files are created for each split\n7. Create and review notebook exploring dataset statistics",
-      "priority": "high",
+      "description": "Create training, validation, and test datasets for spelling tasks, ensuring proper separation between training tokens and validation/test words to evaluate if training on spelling improves model performance on position and count question metrics.",
+      "status": "pending",
       "dependencies": [
         2
       ],
-      "status": "pending",
-      "subtasks": []
+      "priority": "high",
+      "details": "1. Download English word list from dwyl/english-words repository\n2. Create training set from tokenizer vocabulary (multi-character, letter-only tokens)\n3. Create validation/test sets from English dictionary words that:\n   - Split into multiple tokens by the tokenizer\n   - Have at least one token in the split that is multi-character and letter-only\n   - Do not appear in the training set\n4. Generate letter count questions (\"How many X's are in Y?\")\n5. Generate letter position questions (\"What is the Nth letter in Y?\")\n6. Split data based on source rather than percentage: training from tokenizer vocabulary, validation/test from filtered external word lists\n7. Format as a Hugging Face dataset with appropriate splits\n8. Create notebook to visualize dataset statistics\n9. Establish a Hugging Face benchmark with evaluation scripts and leaderboard integration\n\nNOTE: The dataset split is NOT based on percentage. The training set (universal set) comes from tokenizer vocabulary, while validation and test sets (hold-out sets) come from external word lists. This source-based split is essential for the experiment's purpose of determining if training on spelling improves model performance on position and count question metrics.\n\nImplementation:\n```python\nimport json\nimport random\nimport string\nfrom datasets import Dataset\nfrom sklearn.model_selection import train_test_split\nimport requests\n\n# Download English word list\nword_list_url = \"https://raw.githubusercontent.com/dwyl/english-words/master/words_alpha.txt\"\nresponse = requests.get(word_list_url)\nall_words = response.text.splitlines()\n\n# Load tokenizer and filtered tokens\ntokenizer = GPT2Tokenizer.from_pretrained(\"gpt2\")\nwith open(\"gpt2_letter_tokens.json\", \"r\") as f:\n    tokens_data = json.load(f)\n\ntokens = [t[\"token\"] for t in tokens_data[\"tokens\"]]\n\n# Find valid validation/test words\nvalid_words = []\nfor word in all_words:\n    if not word.isalpha():\n        continue\n    \n    # Tokenize the word\n    token_ids = tokenizer.encode(word, add_special_tokens=False)\n    tokens_in_word = tokenizer.convert_ids_to_tokens(token_ids)\n    \n    # Check if word splits into multiple tokens with at least one multi-character token\n    if len(tokens_in_word) > 1 and any(len(tokenizer.convert_tokens_to_string([t])) > 1 for t in tokens_in_word):\n        # Ensure word is not in training set\n        if word.lower() not in [t.lower() for t in tokens]:\n            valid_words.append(word)\n\n# Split valid words into validation and test sets\nval_words, test_words = train_test_split(valid_words, test_size=0.5, random_state=42)\n\n# Generate questions\ndef generate_questions(words, question_type):\n    questions = []\n    for i, word in enumerate(words):\n        if question_type == \"letter_count\":\n            letter = random.choice(string.ascii_lowercase)\n            count = word.lower().count(letter)\n            questions.append({\n                \"id\": f\"{question_type}_{i}\",\n                \"question\": f\"How many {letter}'s are in the word '{word}'?\",\n                \"answer\": str(count),\n                \"question_type\": question_type,\n                \"word\": word\n            })\n        elif question_type == \"letter_position\":\n            position = random.randint(1, len(word))\n            letter = word[position-1]\n            questions.append({\n                \"id\": f\"{question_type}_{i}\",\n                \"question\": f\"What is the {position}{'st' if position == 1 else 'nd' if position == 2 else 'rd' if position == 3 else 'th'} letter in the word '{word}'?\",\n                \"answer\": letter,\n                \"question_type\": question_type,\n                \"word\": word\n            })\n    return questions\n\n# Generate training, validation, and test questions\ntrain_questions = generate_questions(tokens, \"letter_count\") + generate_questions(tokens, \"letter_position\")\nval_questions = generate_questions(val_words, \"letter_count\") + generate_questions(val_words, \"letter_position\")\ntest_questions = generate_questions(test_words, \"letter_count\") + generate_questions(test_words, \"letter_position\")\n\n# Create datasets\ndatasets = {}\nfor split_name, split_data in [\n    (\"train\", train_questions),\n    (\"validation\", val_questions),\n    (\"test\", test_questions)\n]:\n    datasets[split_name] = Dataset.from_dict({\n        \"id\": [q[\"id\"] for q in split_data],\n        \"question\": [q[\"question\"] for q in split_data],\n        \"answer\": [q[\"answer\"] for q in split_data],\n        \"question_type\": [q[\"question_type\"] for q in split_data],\n        \"word\": [q[\"word\"] for q in split_data]\n    })\n\n# Push to Hugging Face\nfrom datasets import DatasetDict\ncombined_dataset = DatasetDict(datasets)\ncombined_dataset.push_to_hub(\"YOUR-USERNAME/llm-spelling-dataset\")\n```",
+      "testStrategy": "1. Verify dataset successfully generates 2,000+ questions\n2. Confirm questions are grammatically correct\n3. Verify train/validation/test splits come from appropriate sources (training from tokenizer vocabulary, validation/test from filtered external words)\n4. Manually check 20 random samples to ensure answers correctly match questions\n5. Confirm dataset is successfully pushed to Hugging Face\n6. Verify local JSON files are created for each split\n7. Create and review notebook exploring dataset statistics\n8. Test evaluation scripts to ensure they correctly measure performance on position and count question metrics\n9. Verify benchmark integration with Hugging Face leaderboard\n10. Verify there is no overlap between the universal set (training) and hold-out sets (validation/test) to ensure valid measurement of model performance improvements",
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Word List Acquisition",
+          "description": "Gather a comprehensive and diverse word list from reliable sources, ensuring coverage of the desired vocabulary scope.",
+          "dependencies": [],
+          "details": "Implementation involves sourcing words from open datasets, dictionaries, or APIs. Validation criteria include checking for duplicates, ensuring language consistency, and verifying word authenticity. Challenges include handling noisy data, inconsistent formats, and ensuring the list is representative of the target domain.\n<info added on 2025-05-07T14:45:31.121Z>\nImplementation involves sourcing words from open datasets, dictionaries, or APIs. Validation criteria include checking for duplicates, ensuring language consistency, and verifying word authenticity. Challenges include handling noisy data, inconsistent formats, and ensuring the list is representative of the target domain.\n\nThis task is broken down into three subtasks that can be executed in parallel:\n\n1. Sourcing: Identify and collect words from multiple reliable sources such as open datasets, dictionaries, APIs, and academic word lists. Focus on gathering a comprehensive set that covers the desired vocabulary scope. This task can be worked on independently and in parallel with others. (parallelizable: true)\n\n2. Cleaning: Process the collected words to remove duplicates, standardize formats, handle special characters, and ensure consistent casing. Address any encoding issues and normalize variations of the same word. This task can be worked on independently and in parallel with others. (parallelizable: true)\n\n3. Validation: Verify the authenticity and appropriateness of words in the list. Check for language consistency, filter out inappropriate content, and ensure the words meet the project's requirements. This task can be worked on independently and in parallel with others. (parallelizable: true)\n\nThe overall Word List Acquisition task is parallelizable, with team members able to work on different subtasks simultaneously to improve efficiency.\n</info added on 2025-05-07T14:45:31.121Z>",
+          "status": "pending"
+        },
+        {
+          "id": 2,
+          "title": "Training/Validation/Test Set Creation with Filtering",
+          "description": "Create distinct datasets from different sources: training set from tokenizer vocabulary and validation/test sets from filtered external word lists to establish a true holdout set for testing.",
+          "dependencies": [
+            1
+          ],
+          "details": "Implementation requires extracting tokenizer vocabulary for training and applying strict filtering criteria to external word lists for validation/test sets. Ensure no overlap between training tokens and validation/test words. Validation involves statistical checks for distribution balance and manual spot checks for leakage. Challenges include maintaining diversity across splits and implementing robust filtering logic.",
+          "status": "pending"
+        },
+        {
+          "id": 3,
+          "title": "Question Generation for Each Type",
+          "description": "Automatically generate letter count and letter position questions for each word in the dataset to establish metrics for evaluating model performance.",
+          "dependencies": [
+            2
+          ],
+          "details": "Implementation uses templates to generate questions per word for both letter count and letter position types. Validation includes checking for grammatical correctness, relevance, and uniqueness of questions. Challenges involve ensuring variety in question phrasing and scaling generation efficiently across the universal set and holdout set.",
+          "status": "pending"
+        },
+        {
+          "id": 4,
+          "title": "Dataset Formatting and Splitting",
+          "description": "Format the generated data according to Hugging Face requirements, ensuring proper structure and metadata for each split based on their distinct sources.",
+          "dependencies": [
+            3
+          ],
+          "details": "Implementation involves structuring data as JSON, CSV, or other required formats, with clear fields for input, output, and metadata. Validation checks include schema compliance, correct split assignments, and tokenization compatibility. Challenges include handling edge cases in formatting and ensuring compatibility with downstream tools. Note that splits are based on source (not percentage): training uses tokenizer vocabulary while validation/test use external word lists.",
+          "status": "pending"
+        },
+        {
+          "id": 5,
+          "title": "Dataset Publishing and Benchmark Creation",
+          "description": "Publish the finalized dataset to Hugging Face and establish a benchmark with evaluation scripts and leaderboard integration.",
+          "dependencies": [
+            4
+          ],
+          "details": "Implementation includes uploading dataset files, creating evaluation scripts that measure performance on position and count question metrics, integrating with Hugging Face leaderboard, and writing detailed documentation. Validation involves verifying downloadability, documentation clarity, and reproducibility. Challenges include ensuring evaluation scripts accurately reflect the experiment's purpose of determining if training on spelling improves model performance.",
+          "status": "pending"
+        },
+        {
+          "id": 6,
+          "title": "Universal Set and Holdout Set Verification",
+          "description": "Verify that the training set (universal set) and test set (true holdout set) are properly separated to enable valid measurement of model performance improvements.",
+          "dependencies": [
+            2
+          ],
+          "details": "Implementation involves comprehensive checks to ensure no overlap between training tokens and test words. Create verification scripts to confirm the integrity of the splits. Validation includes statistical analysis of word distributions and characteristics across splits. Challenges include defining appropriate metrics to verify the splits serve the experiment's purpose of determining if training on spelling improves model performance on position and count question metrics.",
+          "status": "pending"
+        },
+        {
+          "id": 7,
+          "title": "Source-Based Split Documentation",
+          "description": "Document the source-based split approach and its importance for the experiment's validity.",
+          "dependencies": [
+            2,
+            4
+          ],
+          "details": "Create clear documentation explaining why the dataset uses a source-based split (training from tokenizer vocabulary, validation/test from external word lists) rather than a percentage-based split. Explain how this approach creates a true universal set and hold-out set, which is essential for validly measuring if training on spelling improves model performance on position and count question metrics. Include this explanation in the dataset card and any associated papers or reports.",
+          "status": "pending"
+        }
+      ]
     },
     {
       "id": 4,
@@ -77,7 +178,60 @@
         3
       ],
       "status": "pending",
-      "subtasks": []
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Template Design and Categorization",
+          "description": "Create and categorize various template formats for training data based on different use cases and model requirements",
+          "dependencies": [],
+          "details": "Develop a comprehensive template system that supports various data types (text, images, audio, video). Create templates for different ML tasks and ensure they follow best practices for data formatting. Categorize templates based on complexity, use case, and required model architecture. Quality metrics should include template coverage, flexibility, and adherence to formatting standards. Test by validating templates with sample data across different domains.",
+          "status": "pending"
+        },
+        {
+          "id": 2,
+          "title": "Token Separation Strategy Implementation",
+          "description": "Develop and implement various token separation strategies for different data types and model requirements",
+          "dependencies": [
+            1
+          ],
+          "details": "Research and implement multiple token separation approaches (whitespace, subword, character-level, etc.). Create a configurable system that allows switching between strategies based on language or data type. Develop custom tokenization rules for domain-specific data. Quality metrics should include tokenization accuracy, processing speed, and vocabulary coverage. Test with diverse multilingual datasets and measure impact on model performance.",
+          "status": "pending"
+        },
+        {
+          "id": 3,
+          "title": "Dynamic Example Generation System",
+          "description": "Build a system that can dynamically generate training examples with appropriate variations and augmentations",
+          "dependencies": [
+            1,
+            2
+          ],
+          "details": "Implement data augmentation techniques for different data types (text rotation, image transformation, etc.). Create a pipeline for generating variations of training examples to prevent overfitting. Develop rules for maintaining data balance across classes. Quality metrics should include variation diversity, generation speed, and class distribution balance. Test by measuring model performance improvements with augmented data versus baseline.",
+          "status": "pending"
+        },
+        {
+          "id": 4,
+          "title": "Efficient Data Loading and Batching",
+          "description": "Optimize data loading and batching processes for improved training efficiency",
+          "dependencies": [
+            2,
+            3
+          ],
+          "details": "Implement efficient data loading mechanisms that minimize memory usage and processing time. Develop smart batching strategies that group similar-length sequences together. Create data splitting functionality for training, validation, and testing sets. Quality metrics should include loading speed, memory efficiency, and training throughput. Test by benchmarking different loading approaches and measuring impact on training time.",
+          "status": "pending"
+        },
+        {
+          "id": 5,
+          "title": "Template Variation Analysis and Visualization",
+          "description": "Analyze and visualize the effectiveness of different template variations on model performance",
+          "dependencies": [
+            1,
+            3,
+            4
+          ],
+          "details": "Develop tools to visualize how different template designs affect model training. Create metrics to quantify template effectiveness across different data types and tasks. Implement automated analysis to recommend optimal template configurations. Quality metrics should include visualization clarity, analysis accuracy, and recommendation relevance. Test by comparing model performance across different template variations and validating analysis results.",
+          "status": "pending"
+        }
+      ]
     },
     {
       "id": 5,
@@ -90,7 +244,47 @@
         3
       ],
       "status": "pending",
-      "subtasks": []
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Evaluation Framework Setup with Metrics Definition",
+          "description": "Establish the baseline evaluation framework and define appropriate performance metrics for assessing model performance on letter-based questions.",
+          "dependencies": [],
+          "details": "Create a comprehensive evaluation framework that includes: 1) Define key metrics such as accuracy, precision, F1-score, and recall for letter-based question evaluation; 2) Set up validation thresholds for each metric to determine acceptable performance levels; 3) Design a data structure to store and track evaluation results; 4) Create functions to calculate and compare metrics against established baselines; 5) Document the evaluation methodology and metrics selection rationale.",
+          "status": "pending"
+        },
+        {
+          "id": 2,
+          "title": "Letter Count Question Evaluation Implementation",
+          "description": "Implement specific evaluation components for assessing model performance on letter count questions.",
+          "dependencies": [
+            1
+          ],
+          "details": "Develop evaluation components for letter count questions including: 1) Create a dataset of letter count questions with ground truth answers; 2) Implement functions to process model predictions for letter count questions; 3) Calculate accuracy and precision metrics specifically for count-based questions; 4) Establish baseline performance expectations for this question type; 5) Create validation tests to ensure the evaluation implementation is working correctly.",
+          "status": "pending"
+        },
+        {
+          "id": 3,
+          "title": "Letter Position Question Evaluation Implementation",
+          "description": "Implement specific evaluation components for assessing model performance on letter position questions.",
+          "dependencies": [
+            1
+          ],
+          "details": "Develop evaluation components for letter position questions including: 1) Create a dataset of letter position questions with ground truth answers; 2) Implement functions to process model predictions for position-based questions; 3) Calculate accuracy and position-specific metrics (e.g., distance from correct position); 4) Establish baseline performance expectations for this question type; 5) Create validation tests to ensure the evaluation implementation is working correctly.",
+          "status": "pending"
+        },
+        {
+          "id": 4,
+          "title": "Results Analysis and Visualization",
+          "description": "Analyze evaluation results across question types and create visualizations to communicate model performance.",
+          "dependencies": [
+            2,
+            3
+          ],
+          "details": "Develop comprehensive analysis and visualization components including: 1) Aggregate results from both question types to assess overall model performance; 2) Create comparative visualizations showing performance across different metrics and question types; 3) Implement statistical analysis to identify performance patterns and areas for improvement; 4) Generate automated performance reports with key findings and recommendations; 5) Design an interactive dashboard for exploring evaluation results in detail.",
+          "status": "pending"
+        }
+      ]
     },
     {
       "id": 6,
@@ -104,7 +298,59 @@
         5
       ],
       "status": "pending",
-      "subtasks": []
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Configuration System Design and Implementation",
+          "description": "Design and implement a flexible configuration system for hyperparameter management",
+          "dependencies": [],
+          "details": "Create a configuration framework that supports defining, validating, and loading hyperparameter configurations. Implement serialization/deserialization of configurations to JSON/YAML formats. Design a hierarchical configuration structure that allows for inheritance and overrides. Include validation mechanisms to ensure hyperparameter values fall within acceptable ranges. Support both discrete values (HPARAM_CANDIDATES) and continuous ranges (HPARAM_RANGE) for different hyperparameter types.",
+          "status": "pending"
+        },
+        {
+          "id": 2,
+          "title": "Experiment Tracking Setup with W&B Integration",
+          "description": "Implement experiment tracking infrastructure with Weights & Biases integration",
+          "dependencies": [
+            1
+          ],
+          "details": "Set up W&B project structure for hyperparameter experiments. Implement logging mechanisms for metrics, hyperparameters, and model artifacts. Create utilities for experiment initialization, updating, and finalization. Design a consistent naming convention for experiments. Implement automatic synchronization between local experiment state and W&B. Add support for experiment grouping and comparison within the W&B interface.",
+          "status": "pending"
+        },
+        {
+          "id": 3,
+          "title": "Hyperparameter Grid Definition and Validation",
+          "description": "Create a system for defining and validating hyperparameter search spaces",
+          "dependencies": [
+            1
+          ],
+          "details": "Implement a framework for defining hyperparameter search spaces including random, grid, and Bayesian optimization strategies. Create validation mechanisms to ensure search spaces are properly defined. Support both continuous ranges and discrete value sets for different hyperparameter types. Implement utilities for sampling from defined search spaces. Add functionality to estimate the total number of trials based on the search space definition. Create interfaces for custom search space definitions.",
+          "status": "pending"
+        },
+        {
+          "id": 4,
+          "title": "Experiment Execution Framework",
+          "description": "Build a framework for executing hyperparameter tuning experiments",
+          "dependencies": [
+            1,
+            2,
+            3
+          ],
+          "details": "Implement a job scheduler for running multiple trials with different hyperparameter configurations. Create mechanisms for early stopping of underperforming trials. Design parallel execution capabilities to utilize available computational resources efficiently. Implement checkpointing and resumption of interrupted experiments. Add support for distributed training across multiple machines. Create a monitoring system for active experiments with real-time status updates.",
+          "status": "pending"
+        },
+        {
+          "id": 5,
+          "title": "Results Comparison and Visualization System",
+          "description": "Develop tools for comparing and visualizing hyperparameter tuning results",
+          "dependencies": [
+            2,
+            4
+          ],
+          "details": "Create visualization tools for comparing metrics across different hyperparameter configurations. Implement automated analysis to identify the most influential hyperparameters. Design interactive dashboards for exploring the hyperparameter search space. Add functionality to export comparison reports in various formats. Implement statistical analysis tools to evaluate the significance of performance differences. Create recommendation system for suggesting optimal hyperparameter configurations for future experiments.",
+          "status": "pending"
+        }
+      ]
     },
     {
       "id": 7,
@@ -123,7 +369,7 @@
           "title": "Environment Setup with Optimizations",
           "description": "Configure the development environment with Unsloth and necessary dependencies for optimized LLM fine-tuning",
           "dependencies": [],
-          "details": "Install Unsloth library and compatible dependencies (bitsandbytes, transformers, PEFT). Configure GPU memory settings for optimal performance. Set up quantization libraries. Verify hardware compatibility (CUDA, ROCm, or Metal backend). Test environment with basic model loading to ensure all components work together.",
+          "details": "Install Unsloth library and compatible dependencies (bitsandbytes, transformers, PEFT). Configure GPU memory settings for optimal performance. Set up quantization libraries. Verify hardware compatibility (CUDA, ROCm, or Metal backend). Test environment with basic model loading to ensure all components work together.\n<info added on 2025-05-07T14:48:05.432Z>\nInstall Unsloth library and compatible dependencies (bitsandbytes, transformers, PEFT). Configure GPU memory settings for optimal performance. Set up quantization libraries. Verify hardware compatibility (CUDA, ROCm, or Metal backend). Test environment with basic model loading to ensure all components work together.\n\nThis task can be worked on independently and in parallel with others. The environment setup has no dependencies and is parallelizable (parallelizable: true), allowing team members to begin this work immediately while other tasks are being planned or executed.\n</info added on 2025-05-07T14:48:05.432Z>",
           "status": "pending"
         },
         {
@@ -178,7 +424,7 @@
           "title": "Training Script Implementation",
           "description": "Develop a robust training script that handles the fine-tuning process for pre-trained models",
           "dependencies": [],
-          "details": "Create a modular training script that includes: data loading pipeline, model initialization with pre-trained weights, loss function definition, optimization algorithm setup (SGD/Adam), training loop with batch processing, validation steps, and proper error handling. Implement logging for training metrics and ensure GPU/CPU compatibility.",
+          "details": "Create a modular training script that includes: data loading pipeline, model initialization with pre-trained weights, loss function definition, optimization algorithm setup (SGD/Adam), training loop with batch processing, validation steps, and proper error handling. Implement logging for training metrics and ensure GPU/CPU compatibility.\n<info added on 2025-05-07T14:48:16.314Z>\nCreate a modular training script that includes: data loading pipeline, model initialization with pre-trained weights, loss function definition, optimization algorithm setup (SGD/Adam), training loop with batch processing, validation steps, and proper error handling. Implement logging for training metrics and ensure GPU/CPU compatibility.\n\nThis task can be worked on independently and in parallel with others. The training script implementation has no dependencies and is parallelizable (parallelizable: true).\n</info added on 2025-05-07T14:48:16.314Z>",
           "status": "pending"
         },
         {
@@ -237,7 +483,62 @@
         8
       ],
       "status": "pending",
-      "subtasks": []
+      "subtasks": [
+        {
+          "id": 1,
+          "title": "Multi-metric evaluation framework implementation",
+          "description": "Develop and implement a comprehensive evaluation framework with multiple metrics to assess model performance",
+          "dependencies": [],
+          "details": "Define evaluation goals and success metrics for the model assessment. Select appropriate metrics covering accuracy, precision, recall, F1-score, latency, and domain-specific measures. Create standardized test datasets with diverse examples. Implement automated evaluation pipelines that can process model outputs against ground truth. Establish baseline performance thresholds for each metric.",
+          "status": "pending"
+        },
+        {
+          "id": 2,
+          "title": "Base vs. fine-tuned model comparison",
+          "description": "Conduct systematic comparison between base models and their fine-tuned versions across all defined metrics",
+          "dependencies": [
+            1
+          ],
+          "details": "Design controlled experiments to compare base and fine-tuned models. Ensure identical test conditions and datasets for fair comparison. Measure performance improvements across all metrics defined in subtask 1. Analyze trade-offs between different aspects of performance (e.g., accuracy vs. latency). Document specific improvements attributable to fine-tuning techniques. Identify areas where fine-tuning provided the most significant gains.",
+          "status": "pending"
+        },
+        {
+          "id": 3,
+          "title": "Detailed error analysis system",
+          "description": "Create a system to categorize, analyze and track different types of model errors",
+          "dependencies": [
+            1,
+            2
+          ],
+          "details": "Develop error taxonomy specific to the model's domain and tasks. Implement automated error classification system. Perform qualitative analysis of error patterns and edge cases. Create error frequency distribution reports. Identify correlations between specific input characteristics and error types. Develop recommendations for targeted model improvements based on error patterns.",
+          "status": "pending"
+        },
+        {
+          "id": 4,
+          "title": "Performance visualization dashboard",
+          "description": "Design and implement an interactive dashboard to visualize model performance metrics and comparisons",
+          "dependencies": [
+            1,
+            2,
+            3
+          ],
+          "details": "Select appropriate visualization types for different metrics and comparisons. Implement interactive features allowing drill-down into specific performance aspects. Create side-by-side visualizations of base vs. fine-tuned model performance. Design time-series views to track performance changes across model iterations. Ensure visualizations are accessible and interpretable for both technical and non-technical stakeholders.",
+          "status": "pending"
+        },
+        {
+          "id": 5,
+          "title": "Evaluation report generation",
+          "description": "Create comprehensive evaluation reports documenting findings, methodologies, and recommendations",
+          "dependencies": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "details": "Develop standardized report templates covering all evaluation aspects. Document evaluation methodology, metrics, and test datasets. Summarize key performance findings and improvements. Include detailed error analysis with examples. Provide actionable recommendations for further model improvements. Create executive summary for non-technical stakeholders. Ensure reports include all relevant visualizations from the dashboard.",
+          "status": "pending"
+        }
+      ]
     },
     {
       "id": 10,

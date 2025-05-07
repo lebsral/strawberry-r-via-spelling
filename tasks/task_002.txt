@@ -12,6 +12,11 @@
 5. Create a Jupyter notebook to verify token selection
 6. Analyze token frequency and length distribution
 
+This task has been broken down into three parallelizable subtasks that can be worked on independently:
+- Script Writing: Implementing the token extraction logic
+- Validation & Testing: Ensuring the extracted tokens meet requirements
+- Documentation: Creating clear documentation for the process and results
+
 Implementation:
 ```python
 from transformers import GPT2Tokenizer
@@ -53,3 +58,47 @@ print(f"Extracted {len(tokens)} multi-character letter-based tokens")
 4. Verify no special tokens (like <|endoftext|>) are included
 5. Create visualizations of token length distribution
 6. Commit token extraction script and results
+
+# Subtasks:
+## 2.1. Script Writing [pending]
+### Dependencies: None
+### Description: Implement the token extraction logic from the GPT-2 vocabulary
+### Details:
+1. Load the GPT-2 tokenizer from Hugging Face
+2. Extract all tokens from the vocabulary
+3. Filter tokens to include only multi-character, letter-based tokens
+4. Save the filtered token list to a JSON file with the structure specified in the PRD
+
+This task can be worked on independently and in parallel with others.
+
+parallelizable: true
+
+## 2.2. Validation & Testing [pending]
+### Dependencies: None
+### Description: Ensure the extracted tokens meet requirements and create validation tools
+### Details:
+1. Create a Jupyter notebook to verify token selection
+2. Verify JSON file is successfully created
+3. Confirm file contains at least 5,000 tokens
+4. Randomly sample tokens to confirm they are multi-character and letter-based
+5. Verify no special tokens (like <|endoftext|>) are included
+6. Create visualizations of token length distribution
+
+This task can be worked on independently and in parallel with others.
+
+parallelizable: true
+
+## 2.3. Documentation [pending]
+### Dependencies: None
+### Description: Create clear documentation for the token extraction process and results
+### Details:
+1. Document the token extraction methodology
+2. Analyze token frequency and length distribution
+3. Create a README explaining how to use the extraction script
+4. Document any interesting patterns or observations in the token set
+5. Prepare documentation for integration with other components
+
+This task can be worked on independently and in parallel with others.
+
+parallelizable: true
+

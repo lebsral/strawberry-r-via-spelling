@@ -30,6 +30,11 @@
 ### Description: Set up the development environment by installing all necessary software, tools, and dependencies using uv package manager
 ### Details:
 Install uv package manager first, then use it to install all required libraries directly with 'uv pip install' commands. Document all installation paths and versions for future reference. Use uv for all Python package management to ensure reproducibility and faster installation times.
+<info added on 2025-05-07T14:46:36.027Z>
+Install uv package manager first, then use it to install all required libraries directly with 'uv pip install' commands. Document all installation paths and versions for future reference. Use uv for all Python package management to ensure reproducibility and faster installation times.
+
+This task can be worked on independently and in parallel with others. The Installation Phase has no dependencies and is parallelizable (parallelizable: true).
+</info added on 2025-05-07T14:46:36.027Z>
 
 ## 2. Configuration Phase [pending]
 ### Dependencies: 1.1
@@ -65,4 +70,15 @@ Run test scripts to verify installations, validate configurations, test connecti
 5. List common troubleshooting tips and FAQs.
 6. Include contribution guidelines and code style references.
 7. Update the README.md as the project evolves to ensure accuracy and completeness.
+<info added on 2025-05-07T14:46:49.605Z>
+1. Write a clear project overview and purpose.
+2. Document the setup process, including using uv for environment management, installing dependencies, and configuring the .env file.
+3. Explain the directory structure and the role of key files (e.g., requirements.txt, .env, .env.example, notebooks, scripts).
+4. Provide instructions for running Jupyter notebooks and scripts.
+5. List common troubleshooting tips and FAQs.
+6. Include contribution guidelines and code style references.
+7. Update the README.md as the project evolves to ensure accuracy and completeness.
+
+Note: This task can be worked on independently and in parallel with others. It has no dependencies and is parallelizable: true.
+</info added on 2025-05-07T14:46:49.605Z>
 

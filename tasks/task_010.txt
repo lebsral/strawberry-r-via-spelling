@@ -314,3 +314,29 @@ def create_final_report(evaluation_results, config, repo_id):
 5. Check that final report includes all required information
 6. Test model loading from Hugging Face
 7. Verify all success criteria from the PRD are met and documented
+
+# Subtasks:
+## 1. Model Card Creation [pending]
+### Dependencies: None
+### Description: Create a comprehensive model card following Hugging Face guidelines with metadata and detailed sections
+### Details:
+Develop a model card as a Markdown file with YAML metadata section. Include: model description, intended uses & limitations, training parameters, datasets used, evaluation results, biases and ethical considerations. Follow the structure from Mitchell, 2018 paper and use the Hugging Face template. Ensure all metadata supports discovery (license, datasets, language identifiers).
+
+## 2. Project README and Documentation [pending]
+### Dependencies: None
+### Description: Prepare comprehensive project documentation including installation, usage examples, and technical details
+### Details:
+Create a detailed README.md for the project repository (separate from the model card). Include: project overview, installation instructions, dependency requirements, usage examples with code snippets, architecture diagrams, limitations, and acknowledgments. Document the preprocessing and postprocessing steps to ensure reproducibility. Add inline code comments and generate API documentation if applicable.
+
+## 3. Hugging Face Model Publishing and Verification [pending]
+### Dependencies: 10.1
+### Description: Publish the model to Hugging Face Hub and verify its functionality
+### Details:
+Use the huggingface_hub library to upload the model, tokenizer, and model card. Configure model tags, set appropriate visibility settings, and verify the model card renders correctly. Test the uploaded model with sample inference code to ensure it works as expected. Validate that all metadata is correctly displayed on the model page and that links to datasets are functional.
+
+## 4. Final Report Generation [pending]
+### Dependencies: 10.1, 10.2, 10.3
+### Description: Create a comprehensive report summarizing the model development, performance, and publication process
+### Details:
+Generate a final report documenting the entire model development lifecycle. Include: executive summary, methodology, training process details, evaluation metrics with visualizations, comparison to baseline models, limitations discovered during testing, deployment considerations, and future improvement recommendations. Format as a professional document with proper citations and appendices for detailed results.
+

@@ -139,3 +139,29 @@ with open("baseline_evaluation.json", "w") as f:
 4. Verify baseline performance metrics are saved locally
 5. Create visualizations comparing performance on different question types
 6. Analyze error patterns in baseline model predictions
+
+# Subtasks:
+## 1. Evaluation Framework Setup with Metrics Definition [pending]
+### Dependencies: None
+### Description: Establish the baseline evaluation framework and define appropriate performance metrics for assessing model performance on letter-based questions.
+### Details:
+Create a comprehensive evaluation framework that includes: 1) Define key metrics such as accuracy, precision, F1-score, and recall for letter-based question evaluation; 2) Set up validation thresholds for each metric to determine acceptable performance levels; 3) Design a data structure to store and track evaluation results; 4) Create functions to calculate and compare metrics against established baselines; 5) Document the evaluation methodology and metrics selection rationale.
+
+## 2. Letter Count Question Evaluation Implementation [pending]
+### Dependencies: 5.1
+### Description: Implement specific evaluation components for assessing model performance on letter count questions.
+### Details:
+Develop evaluation components for letter count questions including: 1) Create a dataset of letter count questions with ground truth answers; 2) Implement functions to process model predictions for letter count questions; 3) Calculate accuracy and precision metrics specifically for count-based questions; 4) Establish baseline performance expectations for this question type; 5) Create validation tests to ensure the evaluation implementation is working correctly.
+
+## 3. Letter Position Question Evaluation Implementation [pending]
+### Dependencies: 5.1
+### Description: Implement specific evaluation components for assessing model performance on letter position questions.
+### Details:
+Develop evaluation components for letter position questions including: 1) Create a dataset of letter position questions with ground truth answers; 2) Implement functions to process model predictions for position-based questions; 3) Calculate accuracy and position-specific metrics (e.g., distance from correct position); 4) Establish baseline performance expectations for this question type; 5) Create validation tests to ensure the evaluation implementation is working correctly.
+
+## 4. Results Analysis and Visualization [pending]
+### Dependencies: 5.2, 5.3
+### Description: Analyze evaluation results across question types and create visualizations to communicate model performance.
+### Details:
+Develop comprehensive analysis and visualization components including: 1) Aggregate results from both question types to assess overall model performance; 2) Create comparative visualizations showing performance across different metrics and question types; 3) Implement statistical analysis to identify performance patterns and areas for improvement; 4) Generate automated performance reports with key findings and recommendations; 5) Design an interactive dashboard for exploring evaluation results in detail.
+
