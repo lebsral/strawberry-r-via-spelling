@@ -17,11 +17,19 @@ This task has been broken down into three parallelizable subtasks that can be wo
 - Validation & Testing: Ensuring the extracted tokens meet requirements
 - Documentation: Creating clear documentation for the process and results
 
+File Organization:
+- Main token extraction script: `src/data/token_extractor.py`
+- Extracted tokens file: `data/processed/gpt2_letter_tokens.json`
+- Validation notebook: `notebooks/token_validation.ipynb`
+- Token analysis visualizations: `results/token_analysis/`
+- Documentation: `docs/token_extraction.md`
+
 Implementation:
 ```python
 from transformers import GPT2Tokenizer
 import json
 import re
+import os
 
 def extract_tokens():
     # Load tokenizer
@@ -41,8 +49,11 @@ def extract_tokens():
                 "char_length": len(decoded_token)
             })
 
+    # Ensure directory exists
+    os.makedirs("data/processed", exist_ok=True)
+    
     # Save to file
-    with open("gpt2_letter_tokens.json", "w") as f:
+    with open("data/processed/gpt2_letter_tokens.json", "w") as f:
         json.dump({"tokens": filtered_tokens}, f, indent=2)
 
     return filtered_tokens
@@ -52,11 +63,11 @@ print(f"Extracted {len(tokens)} multi-character letter-based tokens")
 ```
 
 # Test Strategy:
-1. Verify JSON file is successfully created
+1. Verify JSON file is successfully created at `data/processed/gpt2_letter_tokens.json`
 2. Confirm file contains at least 5,000 tokens
 3. Randomly sample tokens to confirm they are multi-character and letter-based
 4. Verify no special tokens (like <|endoftext|>) are included
-5. Create visualizations of token length distribution
+5. Create visualizations of token length distribution and save to `results/token_analysis/`
 6. Commit token extraction script and results
 
 # Subtasks:
@@ -64,10 +75,12 @@ print(f"Extracted {len(tokens)} multi-character letter-based tokens")
 ### Dependencies: None
 ### Description: Implement the token extraction logic from the GPT-2 vocabulary
 ### Details:
-1. Load the GPT-2 tokenizer from Hugging Face
-2. Extract all tokens from the vocabulary
-3. Filter tokens to include only multi-character, letter-based tokens
-4. Save the filtered token list to a JSON file with the structure specified in the PRD
+1. Create the script at `src/data/token_extractor.py`
+2. Load the GPT-2 tokenizer from Hugging Face
+3. Extract all tokens from the vocabulary
+4. Filter tokens to include only multi-character, letter-based tokens
+5. Save the filtered token list to `data/processed/gpt2_letter_tokens.json` with the structure specified in the PRD
+6. Ensure all necessary directories are created if they don't exist
 
 This task can be worked on independently and in parallel with others.
 
@@ -77,12 +90,12 @@ parallelizable: true
 ### Dependencies: None
 ### Description: Ensure the extracted tokens meet requirements and create validation tools
 ### Details:
-1. Create a Jupyter notebook to verify token selection
-2. Verify JSON file is successfully created
+1. Create a Jupyter notebook at `notebooks/token_validation.ipynb` to verify token selection
+2. Verify JSON file is successfully created at `data/processed/gpt2_letter_tokens.json`
 3. Confirm file contains at least 5,000 tokens
 4. Randomly sample tokens to confirm they are multi-character and letter-based
 5. Verify no special tokens (like <|endoftext|>) are included
-6. Create visualizations of token length distribution
+6. Create visualizations of token length distribution and save to `results/token_analysis/`
 
 This task can be worked on independently and in parallel with others.
 
@@ -92,11 +105,13 @@ parallelizable: true
 ### Dependencies: None
 ### Description: Create clear documentation for the token extraction process and results
 ### Details:
-1. Document the token extraction methodology
-2. Analyze token frequency and length distribution
-3. Create a README explaining how to use the extraction script
-4. Document any interesting patterns or observations in the token set
-5. Prepare documentation for integration with other components
+1. Create documentation file at `docs/token_extraction.md`
+2. Document the token extraction methodology
+3. Analyze token frequency and length distribution
+4. Create a README explaining how to use the extraction script
+5. Document any interesting patterns or observations in the token set
+6. Include references to file locations (`src/data/token_extractor.py`, `data/processed/gpt2_letter_tokens.json`, etc.)
+7. Prepare documentation for integration with other components
 
 This task can be worked on independently and in parallel with others.
 

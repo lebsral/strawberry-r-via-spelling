@@ -20,19 +20,40 @@
 
 NOTE: The dataset split is NOT based on percentage. The training set (universal set) comes from tokenizer vocabulary, while validation and test sets (hold-out sets) come from external word lists. This source-based split is essential for the experiment's purpose of determining if training on spelling improves model performance on position and count question metrics.
 
+File Structure:
+- Raw word lists: `data/raw/word_lists/`
+- Processed word lists: `data/processed/word_lists/`
+- Training set: `data/splits/train.json`
+- Validation set: `data/splits/val.json`
+- Test set: `data/splits/test.json`
+- Question generation scripts: `src/data/question_generator.py` and `src/data/utils.py`
+- Dataset formatting scripts: `src/data/dataset_formatter.py` and `src/data/dataset_builder.py`
+- Documentation: `docs/dataset.md` and `docs/split_methodology.md`
+- Analysis notebooks: `notebooks/dataset_analysis.ipynb` and `notebooks/split_verification.ipynb`
+
 Implementation:
 ```python
 import json
 import random
 import string
+import os
 from datasets import Dataset
 from sklearn.model_selection import train_test_split
 import requests
+
+# Create directories if they don't exist
+os.makedirs("data/raw/word_lists", exist_ok=True)
+os.makedirs("data/processed/word_lists", exist_ok=True)
+os.makedirs("data/splits", exist_ok=True)
 
 # Download English word list
 word_list_url = "https://raw.githubusercontent.com/dwyl/english-words/master/words_alpha.txt"
 response = requests.get(word_list_url)
 all_words = response.text.splitlines()
+
+# Save raw word list
+with open("data/raw/word_lists/english_words.txt", "w") as f:
+    f.write("\n".join(all_words))
 
 # Load tokenizer and filtered tokens
 tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
@@ -40,6 +61,10 @@ with open("gpt2_letter_tokens.json", "r") as f:
     tokens_data = json.load(f)
 
 tokens = [t["token"] for t in tokens_data["tokens"]]
+
+# Save processed tokens
+with open("data/processed/word_lists/tokenizer_vocabulary.json", "w") as f:
+    json.dump({"tokens": tokens}, f, indent=2)
 
 # Find valid validation/test words
 valid_words = []
@@ -57,59 +82,38 @@ for word in all_words:
         if word.lower() not in [t.lower() for t in tokens]:
             valid_words.append(word)
 
+# Save processed valid words
+with open("data/processed/word_lists/valid_external_words.json", "w") as f:
+    json.dump({"words": valid_words}, f, indent=2)
+
 # Split valid words into validation and test sets
 val_words, test_words = train_test_split(valid_words, test_size=0.5, random_state=42)
 
-# Generate questions
-def generate_questions(words, question_type):
-    questions = []
-    for i, word in enumerate(words):
-        if question_type == "letter_count":
-            letter = random.choice(string.ascii_lowercase)
-            count = word.lower().count(letter)
-            questions.append({
-                "id": f"{question_type}_{i}",
-                "question": f"How many {letter}'s are in the word '{word}'?",
-                "answer": str(count),
-                "question_type": question_type,
-                "word": word
-            })
-        elif question_type == "letter_position":
-            position = random.randint(1, len(word))
-            letter = word[position-1]
-            questions.append({
-                "id": f"{question_type}_{i}",
-                "question": f"What is the {position}{'st' if position == 1 else 'nd' if position == 2 else 'rd' if position == 3 else 'th'} letter in the word '{word}'?",
-                "answer": letter,
-                "question_type": question_type,
-                "word": word
-            })
-    return questions
+# Generate questions using question_generator.py
+from src.data.question_generator import generate_questions
 
 # Generate training, validation, and test questions
 train_questions = generate_questions(tokens, "letter_count") + generate_questions(tokens, "letter_position")
 val_questions = generate_questions(val_words, "letter_count") + generate_questions(val_words, "letter_position")
 test_questions = generate_questions(test_words, "letter_count") + generate_questions(test_words, "letter_position")
 
-# Create datasets
-datasets = {}
-for split_name, split_data in [
-    ("train", train_questions),
-    ("validation", val_questions),
-    ("test", test_questions)
-]:
-    datasets[split_name] = Dataset.from_dict({
-        "id": [q["id"] for q in split_data],
-        "question": [q["question"] for q in split_data],
-        "answer": [q["answer"] for q in split_data],
-        "question_type": [q["question_type"] for q in split_data],
-        "word": [q["word"] for q in split_data]
-    })
+# Save splits to JSON files
+with open("data/splits/train.json", "w") as f:
+    json.dump({"questions": train_questions}, f, indent=2)
 
-# Push to Hugging Face
-from datasets import DatasetDict
-combined_dataset = DatasetDict(datasets)
-combined_dataset.push_to_hub("YOUR-USERNAME/llm-spelling-dataset")
+with open("data/splits/val.json", "w") as f:
+    json.dump({"questions": val_questions}, f, indent=2)
+
+with open("data/splits/test.json", "w") as f:
+    json.dump({"questions": test_questions}, f, indent=2)
+
+# Create datasets using dataset_formatter.py and dataset_builder.py
+from src.data.dataset_formatter import format_dataset
+from src.data.dataset_builder import build_and_push_dataset
+
+# Format and build the dataset
+datasets = format_dataset(train_questions, val_questions, test_questions)
+combined_dataset = build_and_push_dataset(datasets, "YOUR-USERNAME/llm-spelling-dataset")
 ```
 
 # Test Strategy:
@@ -118,11 +122,15 @@ combined_dataset.push_to_hub("YOUR-USERNAME/llm-spelling-dataset")
 3. Verify train/validation/test splits come from appropriate sources (training from tokenizer vocabulary, validation/test from filtered external words)
 4. Manually check 20 random samples to ensure answers correctly match questions
 5. Confirm dataset is successfully pushed to Hugging Face
-6. Verify local JSON files are created for each split
-7. Create and review notebook exploring dataset statistics
+6. Verify local JSON files are created for each split in the correct locations:
+   - `data/splits/train.json`
+   - `data/splits/val.json`
+   - `data/splits/test.json`
+7. Create and review notebook `notebooks/dataset_analysis.ipynb` exploring dataset statistics
 8. Test evaluation scripts to ensure they correctly measure performance on position and count question metrics
 9. Verify benchmark integration with Hugging Face leaderboard
-10. Verify there is no overlap between the universal set (training) and hold-out sets (validation/test) to ensure valid measurement of model performance improvements
+10. Use `notebooks/split_verification.ipynb` to verify there is no overlap between the universal set (training) and hold-out sets (validation/test) to ensure valid measurement of model performance improvements
+11. Check that all documentation files (`docs/dataset.md` and `docs/split_methodology.md`) are complete and accurate
 
 # Subtasks:
 ## 1. Word List Acquisition [pending]
@@ -150,11 +158,29 @@ The overall Word List Acquisition task is parallelizable, with team members able
 ### Details:
 Implementation requires extracting tokenizer vocabulary for training and applying strict filtering criteria to external word lists for validation/test sets. Ensure no overlap between training tokens and validation/test words. Validation involves statistical checks for distribution balance and manual spot checks for leakage. Challenges include maintaining diversity across splits and implementing robust filtering logic.
 
+File Structure:
+- Raw word lists stored in: `data/raw/word_lists/`
+- Processed word lists stored in: `data/processed/word_lists/`
+- Training set saved to: `data/splits/train.json`
+- Validation set saved to: `data/splits/val.json`
+- Test set saved to: `data/splits/test.json`
+
+Verification of splits should be documented in `notebooks/split_verification.ipynb`.
+
 ## 3. Question Generation for Each Type [pending]
 ### Dependencies: 3.2
 ### Description: Automatically generate letter count and letter position questions for each word in the dataset to establish metrics for evaluating model performance.
 ### Details:
 Implementation uses templates to generate questions per word for both letter count and letter position types. Validation includes checking for grammatical correctness, relevance, and uniqueness of questions. Challenges involve ensuring variety in question phrasing and scaling generation efficiently across the universal set and holdout set.
+
+Implementation should be in:
+- Main script: `src/data/question_generator.py`
+- Utility functions: `src/data/utils.py`
+
+The generated questions will be stored in the split files:
+- `data/splits/train.json`
+- `data/splits/val.json`
+- `data/splits/test.json`
 
 ## 4. Dataset Formatting and Splitting [pending]
 ### Dependencies: 3.3
@@ -162,11 +188,27 @@ Implementation uses templates to generate questions per word for both letter cou
 ### Details:
 Implementation involves structuring data as JSON, CSV, or other required formats, with clear fields for input, output, and metadata. Validation checks include schema compliance, correct split assignments, and tokenization compatibility. Challenges include handling edge cases in formatting and ensuring compatibility with downstream tools. Note that splits are based on source (not percentage): training uses tokenizer vocabulary while validation/test use external word lists.
 
+Implementation should use:
+- Main formatting script: `src/data/dataset_formatter.py`
+- HuggingFace dataset script: `src/data/dataset_builder.py`
+
+The formatted datasets should be saved to:
+- `data/splits/train.json`
+- `data/splits/val.json`
+- `data/splits/test.json`
+
 ## 5. Dataset Publishing and Benchmark Creation [pending]
 ### Dependencies: 3.4
 ### Description: Publish the finalized dataset to Hugging Face and establish a benchmark with evaluation scripts and leaderboard integration.
 ### Details:
 Implementation includes uploading dataset files, creating evaluation scripts that measure performance on position and count question metrics, integrating with Hugging Face leaderboard, and writing detailed documentation. Validation involves verifying downloadability, documentation clarity, and reproducibility. Challenges include ensuring evaluation scripts accurately reflect the experiment's purpose of determining if training on spelling improves model performance.
+
+Documentation should be created in:
+- `docs/dataset.md` - General dataset documentation
+- `docs/split_methodology.md` - Detailed explanation of the split methodology
+
+Dataset analysis should be performed in:
+- `notebooks/dataset_analysis.ipynb`
 
 ## 6. Universal Set and Holdout Set Verification [pending]
 ### Dependencies: 3.2
@@ -174,9 +216,23 @@ Implementation includes uploading dataset files, creating evaluation scripts tha
 ### Details:
 Implementation involves comprehensive checks to ensure no overlap between training tokens and test words. Create verification scripts to confirm the integrity of the splits. Validation includes statistical analysis of word distributions and characteristics across splits. Challenges include defining appropriate metrics to verify the splits serve the experiment's purpose of determining if training on spelling improves model performance on position and count question metrics.
 
+Verification should be performed and documented in:
+- `notebooks/split_verification.ipynb`
+
+This notebook should analyze the splits stored in:
+- `data/splits/train.json`
+- `data/splits/val.json`
+- `data/splits/test.json`
+
 ## 7. Source-Based Split Documentation [pending]
 ### Dependencies: 3.2, 3.4
 ### Description: Document the source-based split approach and its importance for the experiment's validity.
 ### Details:
-Create clear documentation explaining why the dataset uses a source-based split (training from tokenizer vocabulary, validation/test from external word lists) rather than a percentage-based split. Explain how this approach creates a true universal set and hold-out set, which is essential for validly measuring if training on spelling improves model performance on position and count question metrics. Include this explanation in the dataset card and any associated papers or reports.
+Create clear documentation explaining why the dataset uses a source-based split (training from tokenizer vocabulary, validation/test from external word lists) rather than a percentage-based split. Explain how this approach creates a true universal set and hold-out set, which is essential for validly measuring if training on spelling improves model performance on position and count question metrics.
+
+Documentation should be created in:
+- `docs/split_methodology.md` - Detailed explanation of the split methodology
+- `docs/dataset.md` - General dataset documentation with references to the split methodology
+
+This documentation should also be included in the dataset card when publishing to Hugging Face.
 

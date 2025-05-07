@@ -11,6 +11,20 @@
 4. Ensure output format is correct (single integer for character count or single letter for character position)
 5. Document the baseline performance for comparison
 
+File Structure:
+- Main framework: `src/evaluation/framework.py`
+- Metrics definitions: `src/evaluation/metrics.py`
+- Evaluation config: `configs/evaluation/base_config.yaml`
+- Letter count evaluator: `src/evaluation/letter_count.py`
+- Letter position evaluator: `src/evaluation/letter_position.py`
+- Common utilities: `src/evaluation/utils.py`
+- Results directory: `results/baseline_evaluation/`
+- Visualizations: `results/baseline_evaluation/figures/`
+- Raw metrics: `results/baseline_evaluation/metrics.json`
+- Detailed analysis: `results/baseline_evaluation/analysis.json`
+- Results analysis notebook: `notebooks/baseline_analysis.ipynb`
+- Performance visualization notebook: `notebooks/baseline_visualization.ipynb`
+
 Implementation:
 ```python
 import torch
@@ -123,7 +137,7 @@ wandb.log({
 
 # Save results locally
 import json
-with open("baseline_evaluation.json", "w") as f:
+with open("results/baseline_evaluation/metrics.json", "w") as f:
     json.dump({
         "letter_count_accuracy": count_accuracy,
         "letter_position_accuracy": position_accuracy,
@@ -136,32 +150,46 @@ with open("baseline_evaluation.json", "w") as f:
 1. Verify the evaluation script runs without errors
 2. Confirm output format is correct (single integer for count, single letter for position)
 3. Check that results are properly logged to W&B
-4. Verify baseline performance metrics are saved locally
-5. Create visualizations comparing performance on different question types
-6. Analyze error patterns in baseline model predictions
+4. Verify baseline performance metrics are saved to `results/baseline_evaluation/metrics.json`
+5. Create visualizations in `results/baseline_evaluation/figures/` comparing performance on different question types
+6. Analyze error patterns in baseline model predictions and document in `results/baseline_evaluation/analysis.json`
+7. Ensure documentation is complete in `docs/evaluation.md`, `docs/metrics.md`, and `docs/baseline_results.md`
+8. Validate that notebooks in `notebooks/` can load and visualize the evaluation results
 
 # Subtasks:
 ## 1. Evaluation Framework Setup with Metrics Definition [pending]
 ### Dependencies: None
 ### Description: Establish the baseline evaluation framework and define appropriate performance metrics for assessing model performance on letter-based questions.
 ### Details:
-Create a comprehensive evaluation framework that includes: 1) Define key metrics such as accuracy, precision, F1-score, and recall for letter-based question evaluation; 2) Set up validation thresholds for each metric to determine acceptable performance levels; 3) Design a data structure to store and track evaluation results; 4) Create functions to calculate and compare metrics against established baselines; 5) Document the evaluation methodology and metrics selection rationale.
+Create a comprehensive evaluation framework that includes: 1) Define key metrics such as accuracy, precision, F1-score, and recall for letter-based question evaluation in `src/evaluation/metrics.py`; 2) Set up validation thresholds for each metric in `configs/evaluation/base_config.yaml`; 3) Design a data structure to store and track evaluation results; 4) Create functions in `src/evaluation/framework.py` to calculate and compare metrics against established baselines; 5) Document the evaluation methodology and metrics selection rationale in `docs/evaluation.md` and `docs/metrics.md`.
 
 ## 2. Letter Count Question Evaluation Implementation [pending]
 ### Dependencies: 5.1
 ### Description: Implement specific evaluation components for assessing model performance on letter count questions.
 ### Details:
-Develop evaluation components for letter count questions including: 1) Create a dataset of letter count questions with ground truth answers; 2) Implement functions to process model predictions for letter count questions; 3) Calculate accuracy and precision metrics specifically for count-based questions; 4) Establish baseline performance expectations for this question type; 5) Create validation tests to ensure the evaluation implementation is working correctly.
+Develop evaluation components for letter count questions including: 1) Create a dataset of letter count questions with ground truth answers; 2) Implement functions in `src/evaluation/letter_count.py` to process model predictions for letter count questions; 3) Calculate accuracy and precision metrics specifically for count-based questions; 4) Establish baseline performance expectations for this question type; 5) Create validation tests to ensure the evaluation implementation is working correctly. Store results in `results/baseline_evaluation/metrics.json`.
 
 ## 3. Letter Position Question Evaluation Implementation [pending]
 ### Dependencies: 5.1
 ### Description: Implement specific evaluation components for assessing model performance on letter position questions.
 ### Details:
-Develop evaluation components for letter position questions including: 1) Create a dataset of letter position questions with ground truth answers; 2) Implement functions to process model predictions for position-based questions; 3) Calculate accuracy and position-specific metrics (e.g., distance from correct position); 4) Establish baseline performance expectations for this question type; 5) Create validation tests to ensure the evaluation implementation is working correctly.
+Develop evaluation components for letter position questions including: 1) Create a dataset of letter position questions with ground truth answers; 2) Implement functions in `src/evaluation/letter_position.py` to process model predictions for position-based questions; 3) Calculate accuracy and position-specific metrics (e.g., distance from correct position); 4) Establish baseline performance expectations for this question type; 5) Create validation tests to ensure the evaluation implementation is working correctly. Store results in `results/baseline_evaluation/metrics.json`.
 
 ## 4. Results Analysis and Visualization [pending]
 ### Dependencies: 5.2, 5.3
 ### Description: Analyze evaluation results across question types and create visualizations to communicate model performance.
 ### Details:
-Develop comprehensive analysis and visualization components including: 1) Aggregate results from both question types to assess overall model performance; 2) Create comparative visualizations showing performance across different metrics and question types; 3) Implement statistical analysis to identify performance patterns and areas for improvement; 4) Generate automated performance reports with key findings and recommendations; 5) Design an interactive dashboard for exploring evaluation results in detail.
+Develop comprehensive analysis and visualization components including: 1) Aggregate results from both question types to assess overall model performance and store in `results/baseline_evaluation/analysis.json`; 2) Create comparative visualizations in `results/baseline_evaluation/figures/` showing performance across different metrics and question types; 3) Implement statistical analysis to identify performance patterns and areas for improvement; 4) Generate automated performance reports with key findings and recommendations in `docs/baseline_results.md`; 5) Create interactive notebooks `notebooks/baseline_analysis.ipynb` and `notebooks/baseline_visualization.ipynb` for exploring evaluation results in detail.
+
+## 5. Common Utilities Implementation [pending]
+### Dependencies: 5.1
+### Description: Implement shared utility functions for evaluation components
+### Details:
+Create `src/evaluation/utils.py` with common functions needed across evaluation components including: 1) Data loading and preprocessing utilities; 2) Result formatting and standardization functions; 3) File I/O helpers for consistent saving and loading of results; 4) Metric calculation helpers; 5) Visualization utilities that can be used by both evaluation scripts and notebooks.
+
+## 6. Documentation Completion [pending]
+### Dependencies: 5.1, 5.2, 5.3, 5.4
+### Description: Complete all documentation for the evaluation framework and results
+### Details:
+Ensure all documentation is complete and comprehensive: 1) Create `docs/evaluation.md` describing the overall evaluation methodology; 2) Create `docs/metrics.md` with detailed explanations of all metrics used; 3) Create `docs/baseline_results.md` with interpretation of baseline model performance; 4) Add inline documentation to all code files; 5) Create README files for each directory explaining its purpose and contents.
 

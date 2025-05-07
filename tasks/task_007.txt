@@ -14,6 +14,19 @@
 5. Implement proper tokenization for instruction fine-tuning
 6. Configure GPU memory optimizations
 
+File Structure:
+- Cloud setup script: `scripts/cloud_setup.py`
+- Environment config: `configs/cloud/environment.yaml`
+- Memory optimization config: `configs/cloud/memory_config.yaml`
+- Unsloth model wrapper: `src/models/unsloth_wrapper.py`
+- Model configuration: `src/models/model_config.py`
+- LoRA setup: `src/models/lora_config.py`
+- Quantization utils: `src/models/quantization.py`
+- Data preparation: `src/training/data_prep.py`
+- Training configuration: `src/training/train_config.py`
+- Memory optimization: `src/training/memory_utils.py`
+- Cloud trainer: `src/training/cloud_trainer.py`
+
 Implementation:
 ```python
 # Install Unsloth in Google Colab or Lightning.ai environment
@@ -165,6 +178,9 @@ def train_with_unsloth(config_path):
 6. Test with a small dataset to ensure the training loop works in cloud environment
 7. Monitor GPU memory usage during training
 8. Verify that the implementation does not contain any local-only dependencies
+9. Run the setup verification notebook: `notebooks/cloud_setup_verification.ipynb`
+10. Use memory profiling notebook: `notebooks/memory_profile.ipynb` to validate optimizations
+11. Monitor training with: `notebooks/training_monitor.ipynb`
 
 # Subtasks:
 ## 1. Environment Setup with Optimizations [pending]
@@ -186,6 +202,12 @@ This task can be worked on independently and in parallel with others. The enviro
 ### Details:
 Use FastLanguageModel.from_pretrained() to load base models with quantization in Google Colab or Lightning.ai. Configure LoRA adapters with get_peft_model() using appropriate rank and target modules. Implement proper quantization settings (4-bit, 8-bit) based on available cloud GPU VRAM. Set up gradient checkpointing with 'unsloth' option. Validate model loading with memory profiling.
 
+File locations:
+- Unsloth model wrapper: `src/models/unsloth_wrapper.py`
+- Model configuration: `src/models/model_config.py`
+- LoRA setup: `src/models/lora_config.py`
+- Quantization utils: `src/models/quantization.py`
+
 **NOTE: This task requires a cloud GPU environment (Google Colab or Lightning.ai). Do not attempt on local Mac.**
 
 ## 3. Dataset Preparation for Unsloth [pending]
@@ -193,6 +215,10 @@ Use FastLanguageModel.from_pretrained() to load base models with quantization in
 ### Description: Prepare and optimize training datasets for efficient processing with Unsloth in cloud environment
 ### Details:
 Format dataset according to Unsloth requirements in Google Colab or Lightning.ai. Implement efficient tokenization with proper sequence length handling. Set up data processing pipeline with appropriate num_proc parameter. Configure dataset caching mechanisms to reduce memory overhead. Validate dataset loading with performance metrics.
+
+File locations:
+- Data preparation: `src/training/data_prep.py`
+- Training configuration: `src/training/train_config.py`
 
 **NOTE: This task requires a cloud GPU environment (Google Colab or Lightning.ai). Do not attempt on local Mac.**
 
@@ -202,5 +228,26 @@ Format dataset according to Unsloth requirements in Google Colab or Lightning.ai
 ### Details:
 Set up SFTTrainer with optimized batch size and gradient accumulation in Google Colab or Lightning.ai. Configure learning rate and scheduler based on training duration. Implement proper precision settings (bf16/fp16) based on cloud GPU hardware support. Set up memory-efficient optimizers (adamw_8bit). Configure logging and checkpointing. Validate trainer setup with memory usage monitoring during initial training steps.
 
+File locations:
+- Memory optimization: `src/training/memory_utils.py`
+- Cloud trainer: `src/training/cloud_trainer.py`
+- Memory optimization config: `configs/cloud/memory_config.yaml`
+
 **NOTE: This task requires a cloud GPU environment (Google Colab or Lightning.ai). Do not attempt on local Mac.**
+
+## 5. Documentation and Notebooks [pending]
+### Dependencies: 7.1, 7.2, 7.3, 7.4
+### Description: Create comprehensive documentation and monitoring notebooks for the Unsloth integration
+### Details:
+Create detailed documentation on the Unsloth integration process, memory optimization techniques, and cloud setup procedures. Develop Jupyter notebooks for environment verification, memory profiling, and training monitoring. Include examples of common usage patterns and troubleshooting tips.
+
+File locations:
+- Setup verification: `notebooks/cloud_setup_verification.ipynb`
+- Memory profiling: `notebooks/memory_profile.ipynb`
+- Training monitoring: `notebooks/training_monitor.ipynb`
+- Cloud setup guide: `docs/cloud_setup.md`
+- Unsloth integration: `docs/unsloth_integration.md`
+- Memory optimization: `docs/memory_optimization.md`
+
+**NOTE: While documentation can be created locally, the notebooks should be tested in a cloud GPU environment.**
 

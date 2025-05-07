@@ -18,6 +18,20 @@
 
 NOTE: If evaluating Unsloth or GPU-fine-tuned models, use a cloud GPU environment (Google Colab or https://lightning.ai/lars/home). Local evaluation is only for CPU-compatible models.
 
+File Structure:
+- Main evaluator: `src/evaluation/evaluator.py`
+- Metrics calculator: `src/evaluation/metrics.py`
+- Error analyzer: `src/evaluation/error_analysis.py`
+- Visualization utils: `src/evaluation/visualization.py`
+- Test data: `data/splits/test.json`
+- Challenge sets: `data/splits/challenge_sets/`
+- Edge cases: `data/splits/edge_cases/`
+- Error categories: `data/splits/error_categories/`
+- Evaluation results: `results/evaluation/`
+- Performance metrics: `results/evaluation/metrics/`
+- Error analysis: `results/evaluation/error_analysis/`
+- Visualizations: `results/evaluation/plots/`
+
 Implementation:
 ```python
 import torch
@@ -336,7 +350,7 @@ def create_performance_dashboard(base_results, finetuned_results, error_analysis
     ax5.set_ylabel('Distance (lower is better)')
     
     plt.tight_layout()
-    plt.savefig('evaluation_dashboard.png', dpi=300)
+    plt.savefig('results/evaluation/plots/evaluation_dashboard.png', dpi=300)
     
     return fig
 
@@ -347,6 +361,9 @@ def evaluate_models(base_model_name, finetuned_model_path):
     
     # Load test dataset
     test_dataset = load_dataset("YOUR-USERNAME/llm-spelling-dataset", split="test")
+    # Alternative: load from local file
+    # with open('data/splits/test.json', 'r') as f:
+    #     test_dataset = json.load(f)
     
     # Load models
     models = load_models(base_model_name, finetuned_model_path)
@@ -412,8 +429,17 @@ def evaluate_models(base_model_name, finetuned_model_path):
         }
     }
     
-    with open("final_evaluation_results.json", "w") as f:
+    # Ensure directories exist
+    import os
+    os.makedirs('results/evaluation/metrics', exist_ok=True)
+    os.makedirs('results/evaluation/error_analysis', exist_ok=True)
+    
+    # Save results to appropriate locations
+    with open("results/evaluation/metrics/final_evaluation_results.json", "w") as f:
         json.dump(evaluation_results, f, indent=2)
+    
+    with open("results/evaluation/error_analysis/error_patterns.json", "w") as f:
+        json.dump(error_analysis, f, indent=2)
     
     # Close W&B
     wandb.finish()
@@ -428,8 +454,13 @@ def evaluate_models(base_model_name, finetuned_model_path):
 4. Verify results are properly logged to W&B
 5. Confirm performance comparison between base and fine-tuned models
 6. Test with different model checkpoints to ensure consistent evaluation
-7. Verify final evaluation results are saved locally
+7. Verify final evaluation results are saved locally in the correct directories:
+   - `results/evaluation/metrics/`
+   - `results/evaluation/error_analysis/`
+   - `results/evaluation/plots/`
 8. For Unsloth-fine-tuned models, ensure evaluation is performed in a cloud GPU environment
+9. Verify that all test datasets are properly loaded from `data/splits/test.json` and challenge sets
+10. Check that the evaluation notebooks in `notebooks/` can successfully load and analyze the results
 
 # Subtasks:
 ## 1. Multi-metric evaluation framework implementation [pending]
@@ -477,4 +508,28 @@ NOTE: If evaluating Unsloth or GPU-fine-tuned models, use a cloud GPU environmen
 ### Description: Configure and set up cloud GPU environments for evaluating Unsloth-fine-tuned models
 ### Details:
 Create setup scripts for Google Colab and Lightning.ai environments. Configure necessary dependencies and libraries for Unsloth model evaluation. Implement efficient data loading mechanisms for cloud environments. Ensure proper GPU utilization during evaluation. Create documentation for setting up and using cloud environments for evaluation. Test the setup with sample Unsloth models to verify functionality.
+
+## 7. File structure implementation [pending]
+### Dependencies: None
+### Description: Set up the file structure for evaluation components and results according to the project organization
+### Details:
+Create the following directory structure:
+- `src/evaluation/` for evaluation code modules
+- `data/splits/` for test datasets and challenge sets
+- `results/evaluation/` for storing evaluation outputs
+- `notebooks/` for analysis notebooks
+- `docs/` for evaluation documentation
+
+Ensure all evaluation code properly uses these paths for loading data and saving results. Update existing code to use the standardized file paths. Create placeholder files and documentation templates as needed.
+
+## 8. Analysis notebooks development [pending]
+### Dependencies: 9.1, 9.2, 9.3, 9.4, 9.5
+### Description: Create Jupyter notebooks for analyzing evaluation results and visualizing model performance
+### Details:
+Develop the following notebooks:
+- `notebooks/evaluation_analysis.ipynb`: General analysis of evaluation results
+- `notebooks/error_patterns.ipynb`: Detailed analysis of error patterns and categories
+- `notebooks/model_comparison.ipynb`: Comparative analysis between base and fine-tuned models
+
+Ensure notebooks can load results from the standardized file locations. Implement interactive visualizations and filtering capabilities. Add markdown documentation explaining the analysis methodology and interpretation of results.
 

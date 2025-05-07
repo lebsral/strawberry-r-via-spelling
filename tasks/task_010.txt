@@ -10,8 +10,14 @@
 3. Upload the best model to Hugging Face
 4. Ensure dataset is properly published
 5. Create final report with results and findings
+6. Organize documentation in the specified file structure
 
 NOTE: If publishing Unsloth or GPU-fine-tuned models, use a cloud GPU environment (Google Colab or https://lightning.ai/lars/home). Local publishing is only for CPU-compatible models.
+
+File Structure:
+- API docs: `docs/api.md`
+- Deployment guide: `docs/deployment.md`
+- Monitoring guide: `docs/monitoring.md`
 
 Implementation:
 ```python
@@ -172,6 +178,28 @@ We fine-tuned a GPT-2 language model using LoRA adapters with the following appr
 ├── data/                 # Data files and datasets
 ├── notebooks/            # Jupyter notebooks for experimentation
 ├── src/                  # Source code
+│   ├── api/              # API implementation
+│   │   ├── app.py        # FastAPI application
+│   │   ├── routes/       # API routes
+│   │   ├── services/     # Model services
+│   │   └── utils/        # Utility functions
+├── deployment/           # Deployment configurations
+│   ├── docker-compose.yml # Docker compose configuration
+│   ├── env/              # Environment configurations
+│   ├── k8s/              # Kubernetes manifests
+│   └── monitoring/       # Monitoring configurations
+│       ├── prometheus/   # Prometheus configuration
+│       ├── grafana/      # Grafana dashboards
+│       └── alerts/       # Alert rules
+├── tests/                # Test files
+│   ├── api/              # API tests
+│   ├── load/             # Load tests
+│   ├── integration/      # Integration tests
+│   └── data/             # Test data
+├── docs/                 # Documentation
+│   ├── api.md            # API documentation
+│   ├── deployment.md     # Deployment guide
+│   └── monitoring.md     # Monitoring guide
 ├── configs/              # Configuration files
 ├── results/              # Experimental results and visualizations
 ├── checkpoints/          # Model checkpoints
@@ -204,6 +232,23 @@ python src/train.py --config configs/experiment_config.yaml
 ```bash
 python src/evaluate.py --model_path checkpoints/best_model
 ```
+
+### API Usage
+
+Start the API server:
+```bash
+uvicorn src.api.app:app --reload
+```
+
+See the API documentation at `docs/api.md` for detailed usage instructions.
+
+## Deployment
+
+Refer to `docs/deployment.md` for detailed deployment instructions using Docker or Kubernetes.
+
+## Monitoring
+
+Refer to `docs/monitoring.md` for information on monitoring the deployed model using Prometheus and Grafana.
 
 ## Resources
 
@@ -275,6 +320,9 @@ def publish_final_model(best_model_path, evaluation_results_path, config_path):
     # Create final report
     create_final_report(evaluation_results, config, repo_id)
     
+    # Create additional documentation
+    create_additional_docs()
+    
     return repo_id
 
 # Create final report
@@ -306,6 +354,241 @@ def create_final_report(evaluation_results, config, repo_id):
     print("Final report created: final_report.json")
     
     return report
+
+# Create additional documentation
+def create_additional_docs():
+    # Ensure docs directory exists
+    os.makedirs("docs", exist_ok=True)
+    
+    # Create API documentation
+    api_doc = """# API Documentation
+
+## Overview
+
+This API provides access to the fine-tuned spelling model for inference and evaluation.
+
+## Endpoints
+
+### GET /health
+
+Health check endpoint to verify the API is running.
+
+**Response:**
+```json
+{
+  "status": "ok",
+  "version": "1.0.0"
+}
+```
+
+### POST /predict
+
+Make predictions using the fine-tuned model.
+
+**Request:**
+```json
+{
+  "text": "How many r's are in the word 'strawberry'?"
+}
+```
+
+**Response:**
+```json
+{
+  "input": "How many r's are in the word 'strawberry'?",
+  "output": "There are 2 r's in the word 'strawberry'.",
+  "processing_time": 0.125
+}
+```
+
+### GET /metrics
+
+Get model performance metrics.
+
+**Response:**
+```json
+{
+  "letter_count_accuracy": 0.85,
+  "letter_position_accuracy": 0.78,
+  "character_level_accuracy": 0.92,
+  "levenshtein_distance": 0.15
+}
+```
+
+## Error Handling
+
+All endpoints return standard HTTP status codes:
+- 200: Success
+- 400: Bad request (invalid input)
+- 500: Server error
+
+Error responses include a message field with details:
+```json
+{
+  "error": "Invalid input text",
+  "details": "Text field cannot be empty"
+}
+```
+"""
+    
+    with open("docs/api.md", "w") as f:
+        f.write(api_doc)
+    
+    # Create deployment documentation
+    deployment_doc = """# Deployment Guide
+
+## Docker Deployment
+
+### Prerequisites
+
+- Docker and Docker Compose installed
+- Access to the model files
+
+### Steps
+
+1. Build the Docker image:
+   ```bash
+   docker build -t spelling-model-api ./deployment/
+   ```
+
+2. Run with Docker Compose:
+   ```bash
+   docker-compose -f deployment/docker-compose.yml up -d
+   ```
+
+3. Verify the deployment:
+   ```bash
+   curl http://localhost:8000/health
+   ```
+
+## Kubernetes Deployment
+
+### Prerequisites
+
+- Kubernetes cluster
+- kubectl configured
+- Container registry access
+
+### Steps
+
+1. Push the Docker image to a registry:
+   ```bash
+   docker tag spelling-model-api:latest your-registry/spelling-model-api:latest
+   docker push your-registry/spelling-model-api:latest
+   ```
+
+2. Apply Kubernetes manifests:
+   ```bash
+   kubectl apply -f deployment/k8s/
+   ```
+
+3. Verify the deployment:
+   ```bash
+   kubectl get pods
+   kubectl get services
+   ```
+
+## Environment Configuration
+
+The application can be configured using environment variables defined in `deployment/env/` files:
+
+- `MODEL_PATH`: Path to the model files
+- `API_KEY`: API key for authentication (if enabled)
+- `LOG_LEVEL`: Logging level (debug, info, warning, error)
+- `MAX_BATCH_SIZE`: Maximum batch size for inference
+
+## Scaling
+
+### Horizontal Scaling
+
+For Kubernetes deployments, you can scale the number of replicas:
+
+```bash
+kubectl scale deployment spelling-model-api --replicas=3
+```
+
+### Resource Allocation
+
+Adjust CPU and memory resources in the Kubernetes manifests based on your workload requirements.
+"""
+    
+    with open("docs/deployment.md", "w") as f:
+        f.write(deployment_doc)
+    
+    # Create monitoring documentation
+    monitoring_doc = """# Monitoring Guide
+
+## Overview
+
+This guide describes how to monitor the deployed spelling model API using Prometheus and Grafana.
+
+## Metrics Collection
+
+### Prometheus Configuration
+
+The API exposes metrics at the `/metrics` endpoint in Prometheus format. Configure Prometheus to scrape these metrics by adding the following to your `prometheus.yml`:
+
+```yaml
+scrape_configs:
+  - job_name: 'spelling-model-api'
+    scrape_interval: 15s
+    static_configs:
+      - targets: ['spelling-model-api:8000']
+```
+
+A complete Prometheus configuration is available at `deployment/monitoring/prometheus/prometheus.yml`.
+
+## Dashboards
+
+### Grafana Setup
+
+1. Add Prometheus as a data source in Grafana
+2. Import the pre-built dashboards from `deployment/monitoring/grafana/`
+
+### Available Dashboards
+
+- **API Overview**: General API metrics (request rate, latency, errors)
+- **Model Performance**: Inference time, batch size, memory usage
+- **System Resources**: CPU, memory, and network usage
+
+## Alerting
+
+### Alert Rules
+
+Predefined alert rules are available in `deployment/monitoring/alerts/` and include:
+
+- High error rate (>5% of requests)
+- High latency (p95 > 500ms)
+- Resource constraints (CPU > 80%, memory > 80%)
+
+### Alert Configuration
+
+To configure alerts with Alertmanager:
+
+1. Deploy Alertmanager using the configuration in `deployment/monitoring/alertmanager/`
+2. Configure notification channels (email, Slack, PagerDuty)
+3. Apply the alert rules
+
+## Logging
+
+Logs are output in JSON format and can be collected using Fluentd, Logstash, or similar tools.
+
+Key log fields:
+- `timestamp`: Log timestamp
+- `level`: Log level (info, warning, error)
+- `message`: Log message
+- `request_id`: Unique ID for request tracing
+- `component`: Component generating the log
+
+## Tracing
+
+The API supports distributed tracing with OpenTelemetry. Configure your tracing backend (Jaeger, Zipkin) using the environment variables in `deployment/env/`.
+"""
+    
+    with open("docs/monitoring.md", "w") as f:
+        f.write(monitoring_doc)
+    
+    print("Additional documentation created in docs/ directory")
 ```
 
 # Test Strategy:
@@ -317,6 +600,11 @@ def create_final_report(evaluation_results, config, repo_id):
 6. Test model loading from Hugging Face
 7. Verify all success criteria from the PRD are met and documented
 8. For Unsloth or GPU-fine-tuned models, verify the publishing process works in a cloud GPU environment
+9. Validate that all documentation files are created in the correct locations
+10. Test API documentation against actual API implementation
+11. Verify deployment instructions work in both Docker and Kubernetes environments
+12. Test monitoring setup with Prometheus and Grafana
+13. Ensure all file paths in documentation match the actual project structure
 
 # Subtasks:
 ## 1. Model Card Creation [pending]
@@ -330,6 +618,11 @@ Develop a model card as a Markdown file with YAML metadata section. Include: mod
 ### Description: Prepare comprehensive project documentation including installation, usage examples, and technical details
 ### Details:
 Create a detailed README.md for the project repository (separate from the model card). Include: project overview, installation instructions, dependency requirements, usage examples with code snippets, architecture diagrams, limitations, and acknowledgments. Document the preprocessing and postprocessing steps to ensure reproducibility. Add inline code comments and generate API documentation if applicable.
+
+Organize documentation in the specified file structure:
+- API docs: `docs/api.md`
+- Deployment guide: `docs/deployment.md`
+- Monitoring guide: `docs/monitoring.md`
 
 ## 3. Hugging Face Model Publishing and Verification [pending]
 ### Dependencies: 10.1
@@ -350,4 +643,44 @@ Generate a final report documenting the entire model development lifecycle. Incl
 ### Description: Configure cloud GPU environment for publishing Unsloth or GPU-fine-tuned models
 ### Details:
 Set up a cloud GPU environment (Google Colab or https://lightning.ai/lars/home) for publishing models that require GPU resources. Create a notebook or script that handles authentication with Hugging Face, loads the model from local storage or cloud storage, and publishes it to the Hugging Face Hub. Include clear instructions for users on how to use this environment for model publishing. Test the workflow to ensure it works seamlessly with Unsloth-optimized models.
+
+## 6. API Documentation Creation [pending]
+### Dependencies: 10.2
+### Description: Create detailed API documentation for model inference endpoints
+### Details:
+Develop comprehensive API documentation in `docs/api.md` that includes:
+- Endpoint descriptions and usage examples
+- Request/response formats with JSON examples
+- Authentication requirements
+- Error handling and status codes
+- Rate limiting information
+- Performance considerations
+
+Ensure documentation matches the actual implementation in `src/api/app.py` and `src/api/routes/`.
+
+## 7. Deployment Documentation [pending]
+### Dependencies: 10.2
+### Description: Create deployment guide for Docker and Kubernetes environments
+### Details:
+Develop a detailed deployment guide in `docs/deployment.md` covering:
+- Docker deployment instructions
+- Kubernetes deployment configuration
+- Environment variable configuration
+- Resource requirements and scaling recommendations
+- Security considerations
+
+Reference the actual configuration files in `deployment/docker-compose.yml` and `deployment/k8s/`.
+
+## 8. Monitoring Documentation [pending]
+### Dependencies: 10.2
+### Description: Create monitoring guide for Prometheus and Grafana setup
+### Details:
+Develop a monitoring guide in `docs/monitoring.md` that includes:
+- Prometheus configuration for metrics collection
+- Grafana dashboard setup and import instructions
+- Alert configuration with Alertmanager
+- Log collection and analysis recommendations
+- Performance monitoring best practices
+
+Reference the actual configuration files in `deployment/monitoring/`.
 
