@@ -18,6 +18,8 @@
 8. Create notebook to visualize dataset statistics
 9. Establish a Hugging Face benchmark with evaluation scripts and leaderboard integration
 
+NOTE: The dataset split is NOT based on percentage. The training set (universal set) comes from tokenizer vocabulary, while validation and test sets (hold-out sets) come from external word lists. This source-based split is essential for the experiment's purpose of determining if training on spelling improves model performance on position and count question metrics.
+
 Implementation:
 ```python
 import json
@@ -120,6 +122,7 @@ combined_dataset.push_to_hub("YOUR-USERNAME/llm-spelling-dataset")
 7. Create and review notebook exploring dataset statistics
 8. Test evaluation scripts to ensure they correctly measure performance on position and count question metrics
 9. Verify benchmark integration with Hugging Face leaderboard
+10. Verify there is no overlap between the universal set (training) and hold-out sets (validation/test) to ensure valid measurement of model performance improvements
 
 # Subtasks:
 ## 1. Word List Acquisition [pending]
@@ -144,7 +147,7 @@ Implementation uses templates to generate questions per word for both letter cou
 ### Dependencies: 3.3
 ### Description: Format the generated data according to Hugging Face requirements, ensuring proper structure and metadata for each split based on their distinct sources.
 ### Details:
-Implementation involves structuring data as JSON, CSV, or other required formats, with clear fields for input, output, and metadata. Validation checks include schema compliance, correct split assignments, and tokenization compatibility. Challenges include handling edge cases in formatting and ensuring compatibility with downstream tools.
+Implementation involves structuring data as JSON, CSV, or other required formats, with clear fields for input, output, and metadata. Validation checks include schema compliance, correct split assignments, and tokenization compatibility. Challenges include handling edge cases in formatting and ensuring compatibility with downstream tools. Note that splits are based on source (not percentage): training uses tokenizer vocabulary while validation/test use external word lists.
 
 ## 5. Dataset Publishing and Benchmark Creation [pending]
 ### Dependencies: 3.4
@@ -156,5 +159,11 @@ Implementation includes uploading dataset files, creating evaluation scripts tha
 ### Dependencies: 3.2
 ### Description: Verify that the training set (universal set) and test set (true holdout set) are properly separated to enable valid measurement of model performance improvements.
 ### Details:
-Implementation involves comprehensive checks to ensure no overlap between training tokens and test words. Create verification scripts to confirm the integrity of the splits. Validation includes statistical analysis of word distributions and characteristics across splits. Challenges include defining appropriate metrics to verify the splits serve the experiment's purpose.
+Implementation involves comprehensive checks to ensure no overlap between training tokens and test words. Create verification scripts to confirm the integrity of the splits. Validation includes statistical analysis of word distributions and characteristics across splits. Challenges include defining appropriate metrics to verify the splits serve the experiment's purpose of determining if training on spelling improves model performance on position and count question metrics.
+
+## 7. Source-Based Split Documentation [pending]
+### Dependencies: 3.2, 3.4
+### Description: Document the source-based split approach and its importance for the experiment's validity.
+### Details:
+Create clear documentation explaining why the dataset uses a source-based split (training from tokenizer vocabulary, validation/test from external word lists) rather than a percentage-based split. Explain how this approach creates a true universal set and hold-out set, which is essential for validly measuring if training on spelling improves model performance on position and count question metrics. Include this explanation in the dataset card and any associated papers or reports.
 
