@@ -1,6 +1,6 @@
 # Task ID: 3
 # Title: Dataset Creation and Splitting
-# Status: pending
+# Status: done
 # Dependencies: 2
 # Priority: high
 # Description: Create training, validation, and test datasets for spelling tasks, ensuring proper separation between training tokens and validation/test words to evaluate if training on spelling improves model performance on position and count question metrics.
@@ -133,7 +133,7 @@ combined_dataset = build_and_push_dataset(datasets, "YOUR-USERNAME/llm-spelling-
 11. Check that all documentation files (`docs/dataset.md` and `docs/split_methodology.md`) are complete and accurate
 
 # Subtasks:
-## 1. Word List Acquisition [pending]
+## 1. Word List Acquisition [done]
 ### Dependencies: None
 ### Description: Gather a comprehensive and diverse word list from reliable sources, ensuring coverage of the desired vocabulary scope.
 ### Details:
@@ -152,7 +152,7 @@ This task is broken down into three subtasks that can be executed in parallel:
 The overall Word List Acquisition task is parallelizable, with team members able to work on different subtasks simultaneously to improve efficiency.
 </info added on 2025-05-07T14:45:31.121Z>
 
-## 2. Training/Validation/Test Set Creation with Filtering [pending]
+## 2. Training/Validation/Test Set Creation with Filtering [done]
 ### Dependencies: 3.1
 ### Description: Create distinct datasets from different sources: training set from tokenizer vocabulary and validation/test sets from filtered external word lists to establish a true holdout set for testing.
 ### Details:
@@ -167,7 +167,7 @@ File Structure:
 
 Verification of splits should be documented in `notebooks/split_verification.ipynb`.
 
-## 3. Question Generation for Each Type [pending]
+## 3. Question Generation for Each Type [done]
 ### Dependencies: 3.2
 ### Description: Automatically generate letter count and letter position questions for each word in the dataset to establish metrics for evaluating model performance.
 ### Details:
@@ -182,7 +182,7 @@ The generated questions will be stored in the split files:
 - `data/splits/val.json`
 - `data/splits/test.json`
 
-## 4. Dataset Formatting and Splitting [pending]
+## 4. Dataset Formatting and Splitting [done]
 ### Dependencies: 3.3
 ### Description: Format the generated data according to Hugging Face requirements, ensuring proper structure and metadata for each split based on their distinct sources.
 ### Details:
@@ -197,7 +197,7 @@ The formatted datasets should be saved to:
 - `data/splits/val.json`
 - `data/splits/test.json`
 
-## 5. Dataset Publishing and Benchmark Creation [pending]
+## 5. Dataset Publishing and Benchmark Creation [done]
 ### Dependencies: 3.4
 ### Description: Publish the finalized dataset to Hugging Face and establish a benchmark with evaluation scripts and leaderboard integration.
 ### Details:
@@ -210,7 +210,7 @@ Documentation should be created in:
 Dataset analysis should be performed in:
 - `notebooks/dataset_analysis.ipynb`
 
-## 6. Universal Set and Holdout Set Verification [pending]
+## 6. Universal Set and Holdout Set Verification [done]
 ### Dependencies: 3.2
 ### Description: Verify that the training set (universal set) and test set (true holdout set) are properly separated to enable valid measurement of model performance improvements.
 ### Details:
@@ -224,7 +224,7 @@ This notebook should analyze the splits stored in:
 - `data/splits/val.json`
 - `data/splits/test.json`
 
-## 7. Source-Based Split Documentation [pending]
+## 7. Source-Based Split Documentation [done]
 ### Dependencies: 3.2, 3.4
 ### Description: Document the source-based split approach and its importance for the experiment's validity.
 ### Details:

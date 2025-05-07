@@ -99,7 +99,7 @@
       "id": 3,
       "title": "Dataset Creation and Splitting",
       "description": "Create training, validation, and test datasets for spelling tasks, ensuring proper separation between training tokens and validation/test words to evaluate if training on spelling improves model performance on position and count question metrics.",
-      "status": "pending",
+      "status": "done",
       "dependencies": [
         2
       ],
@@ -113,7 +113,7 @@
           "description": "Gather a comprehensive and diverse word list from reliable sources, ensuring coverage of the desired vocabulary scope.",
           "dependencies": [],
           "details": "Implementation involves sourcing words from open datasets, dictionaries, or APIs. Validation criteria include checking for duplicates, ensuring language consistency, and verifying word authenticity. Challenges include handling noisy data, inconsistent formats, and ensuring the list is representative of the target domain.\n<info added on 2025-05-07T14:45:31.121Z>\nImplementation involves sourcing words from open datasets, dictionaries, or APIs. Validation criteria include checking for duplicates, ensuring language consistency, and verifying word authenticity. Challenges include handling noisy data, inconsistent formats, and ensuring the list is representative of the target domain.\n\nThis task is broken down into three subtasks that can be executed in parallel:\n\n1. Sourcing: Identify and collect words from multiple reliable sources such as open datasets, dictionaries, APIs, and academic word lists. Focus on gathering a comprehensive set that covers the desired vocabulary scope. This task can be worked on independently and in parallel with others. (parallelizable: true)\n\n2. Cleaning: Process the collected words to remove duplicates, standardize formats, handle special characters, and ensure consistent casing. Address any encoding issues and normalize variations of the same word. This task can be worked on independently and in parallel with others. (parallelizable: true)\n\n3. Validation: Verify the authenticity and appropriateness of words in the list. Check for language consistency, filter out inappropriate content, and ensure the words meet the project's requirements. This task can be worked on independently and in parallel with others. (parallelizable: true)\n\nThe overall Word List Acquisition task is parallelizable, with team members able to work on different subtasks simultaneously to improve efficiency.\n</info added on 2025-05-07T14:45:31.121Z>",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 2,
@@ -123,7 +123,7 @@
             1
           ],
           "details": "Implementation requires extracting tokenizer vocabulary for training and applying strict filtering criteria to external word lists for validation/test sets. Ensure no overlap between training tokens and validation/test words. Validation involves statistical checks for distribution balance and manual spot checks for leakage. Challenges include maintaining diversity across splits and implementing robust filtering logic.\n\nFile Structure:\n- Raw word lists stored in: `data/raw/word_lists/`\n- Processed word lists stored in: `data/processed/word_lists/`\n- Training set saved to: `data/splits/train.json`\n- Validation set saved to: `data/splits/val.json`\n- Test set saved to: `data/splits/test.json`\n\nVerification of splits should be documented in `notebooks/split_verification.ipynb`.",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 3,
@@ -133,7 +133,7 @@
             2
           ],
           "details": "Implementation uses templates to generate questions per word for both letter count and letter position types. Validation includes checking for grammatical correctness, relevance, and uniqueness of questions. Challenges involve ensuring variety in question phrasing and scaling generation efficiently across the universal set and holdout set.\n\nImplementation should be in:\n- Main script: `src/data/question_generator.py`\n- Utility functions: `src/data/utils.py`\n\nThe generated questions will be stored in the split files:\n- `data/splits/train.json`\n- `data/splits/val.json`\n- `data/splits/test.json`",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 4,
@@ -143,7 +143,7 @@
             3
           ],
           "details": "Implementation involves structuring data as JSON, CSV, or other required formats, with clear fields for input, output, and metadata. Validation checks include schema compliance, correct split assignments, and tokenization compatibility. Challenges include handling edge cases in formatting and ensuring compatibility with downstream tools. Note that splits are based on source (not percentage): training uses tokenizer vocabulary while validation/test use external word lists.\n\nImplementation should use:\n- Main formatting script: `src/data/dataset_formatter.py`\n- HuggingFace dataset script: `src/data/dataset_builder.py`\n\nThe formatted datasets should be saved to:\n- `data/splits/train.json`\n- `data/splits/val.json`\n- `data/splits/test.json`",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 5,
@@ -153,7 +153,7 @@
             4
           ],
           "details": "Implementation includes uploading dataset files, creating evaluation scripts that measure performance on position and count question metrics, integrating with Hugging Face leaderboard, and writing detailed documentation. Validation involves verifying downloadability, documentation clarity, and reproducibility. Challenges include ensuring evaluation scripts accurately reflect the experiment's purpose of determining if training on spelling improves model performance.\n\nDocumentation should be created in:\n- `docs/dataset.md` - General dataset documentation\n- `docs/split_methodology.md` - Detailed explanation of the split methodology\n\nDataset analysis should be performed in:\n- `notebooks/dataset_analysis.ipynb`",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 6,
@@ -163,7 +163,7 @@
             2
           ],
           "details": "Implementation involves comprehensive checks to ensure no overlap between training tokens and test words. Create verification scripts to confirm the integrity of the splits. Validation includes statistical analysis of word distributions and characteristics across splits. Challenges include defining appropriate metrics to verify the splits serve the experiment's purpose of determining if training on spelling improves model performance on position and count question metrics.\n\nVerification should be performed and documented in:\n- `notebooks/split_verification.ipynb`\n\nThis notebook should analyze the splits stored in:\n- `data/splits/train.json`\n- `data/splits/val.json`\n- `data/splits/test.json`",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 7,
@@ -174,7 +174,7 @@
             4
           ],
           "details": "Create clear documentation explaining why the dataset uses a source-based split (training from tokenizer vocabulary, validation/test from external word lists) rather than a percentage-based split. Explain how this approach creates a true universal set and hold-out set, which is essential for validly measuring if training on spelling improves model performance on position and count question metrics.\n\nDocumentation should be created in:\n- `docs/split_methodology.md` - Detailed explanation of the split methodology\n- `docs/dataset.md` - General dataset documentation with references to the split methodology\n\nThis documentation should also be included in the dataset card when publishing to Hugging Face.",
-          "status": "pending"
+          "status": "done"
         }
       ]
     },
