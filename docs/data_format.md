@@ -117,6 +117,61 @@ class SeparatorConfig:
     suffix: str = ""      # Optional suffix after each token
 ```
 
+## Data Loading and Batching
+
+### BatchConfig
+```python
+@dataclass
+class BatchConfig:
+    batch_size: int = 32          # Number of examples per batch
+    max_length: int = 512         # Maximum sequence length
+    similar_length_tolerance: int = 50  # Max length difference for grouping
+    shuffle: bool = True          # Whether to shuffle examples
+```
+
+### DataStats
+```python
+@dataclass
+class DataStats:
+    total_examples: int           # Total number of examples loaded
+    avg_sequence_length: float    # Average sequence length
+    length_distribution: Dict[int, int]  # Distribution of sequence lengths
+    template_distribution: Dict[str, int]  # Distribution of template types
+```
+
+### Batch Format
+The data loader yields batches in the following format:
+```python
+{
+    "inputs": List[str],           # Input sequences
+    "outputs": List[str],          # Target outputs
+    "template_categories": List[str],  # Template categories used
+    "template_styles": List[str],   # Template styles
+    "separator_styles": List[str],  # Separator styles used
+    "metadata": List[Dict]         # Additional example metadata
+}
+```
+
+### Efficient Loading Features
+1. **Lazy Loading**
+   - Data is only loaded when first needed
+   - Memory-efficient for large datasets
+
+2. **Smart Batching**
+   - Groups similar-length sequences together
+   - Reduces padding waste
+   - Improves training efficiency
+
+3. **Train/Val/Test Splits**
+   - Automatic split ratio handling
+   - Default: 80% train, 10% val, 10% test
+   - Configurable split ratios
+
+4. **Performance Monitoring**
+   - Tracks dataset statistics
+   - Reports template distribution
+   - Monitors sequence lengths
+
 ## Best Practices
 1. **File Organization**
    - Keep raw data in `data/raw/`
