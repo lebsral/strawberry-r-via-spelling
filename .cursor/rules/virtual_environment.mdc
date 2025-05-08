@@ -1,0 +1,108 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Virtual Environment Management
+
+## **Core Principles**
+
+- **NEVER activate a virtual environment when one is already active**
+- Always check for `VIRTUAL_ENV` before activation
+- Deactivate current environment before activating another
+- Keep virtual environments isolated and project-specific
+
+## **Environment Detection**
+
+Before activating or using a virtual environment:
+
+1. **Check Current Environment:**
+   ```bash
+   # Check if already in a virtual environment
+   if [ -n "$VIRTUAL_ENV" ]; then
+       echo "Already in virtual environment: $VIRTUAL_ENV"
+       echo "Deactivate current environment before activating another"
+       return 1
+   fi
+   ```
+
+2. **Proper Activation:**
+   ```bash
+   # ✅ DO: Check and activate cleanly
+   if [ -z "$VIRTUAL_ENV" ]; then
+       source .venv/bin/activate
+   fi
+
+   # ❌ DON'T: Activate blindly
+   source .venv/bin/activate  # Wrong! Could cause nested activation
+   ```
+
+## **Command Line Prompts**
+
+- Virtual environment status should be visible in prompt
+- Watch for multiple environment indicators (e.g., `(.venv) (.venv)`)
+- If you see nested indicators, immediately:
+  1. Exit all shells
+  2. Start a fresh shell
+  3. Activate environment once
+
+## **Environment Management Commands**
+
+```bash
+# Create new environment
+python -m venv .venv
+
+# Activate (only if not already in an environment)
+[ -z "$VIRTUAL_ENV" ] && source .venv/bin/activate
+
+# Deactivate current
+deactivate
+
+# Delete environment
+rm -rf .venv/
+```
+
+## **Best Practices**
+
+- One virtual environment per project
+- Use consistent naming (.venv)
+- Add .venv to .gitignore
+- Keep environments separate from project code
+- Clean up unused environments
+
+## **Troubleshooting Nested Activations**
+
+If you find yourself in a nested environment:
+
+1. **Check Environment Stack:**
+   ```bash
+   echo $VIRTUAL_ENV        # Current environment
+   echo $VIRTUAL_ENV_OLD    # Previous environment (if exists)
+   ```
+
+2. **Clean Reset:**
+   ```bash
+   while [ -n "$VIRTUAL_ENV" ]; do
+       deactivate
+   done
+   ```
+
+## **IDE Integration**
+
+- Configure IDE to use project's virtual environment
+- Verify IDE is not activating environment in integrated terminals
+- Check terminal integration settings
+
+## **Common Issues**
+
+- Watch for shell startup scripts that auto-activate environments
+- Be careful with terminal multiplexers (tmux, screen)
+- Check for environment variables in parent shells
+
+## **Prevention Checklist**
+
+Before activating an environment:
+- [ ] Check terminal prompt for existing environment indicators
+- [ ] Verify `echo $VIRTUAL_ENV` shows no active environment
+- [ ] Ensure clean shell state
+- [ ] Use proper activation command once

@@ -1,0 +1,5 @@
+,accuracy,precision,recall,f1,template_category,template_style,sequence_length
+0,0.0,0.0,0.0,0.0,word_first,,5
+1,0.0,0.0,0.0,0.0,spelling_first,,5
+2,0.0,0.0,0.0,0.0,structured,,7
+3,0.0,0.0,0.0,0.0,spelling_first,,5

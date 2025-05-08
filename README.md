@@ -20,8 +20,17 @@ This project explores whether training a language model (LLM) on spelling tasks 
 - `docs/` — Project documentation
   - `templates.md` — Template system documentation
   - `data_format.md` — Data format specifications
+- `results/` — Analysis results and visualizations
+  - `token_analysis/` — Template analysis results
+    - `data/` — Raw analysis data in CSV format
+    - `figures/` — Generated plots and visualizations
+    - `reports/` — HTML analysis reports
 - `scripts/` — Utility scripts, PRD, and complexity reports
 - `src/` — Source code
+  - `analysis/` — Analysis scripts and utilities
+    - `template_analysis.py` — Template pattern analysis
+    - `template_performance.py` — Performance metrics analysis
+    - `visualization_utils.py` — Shared plotting utilities
   - `data/` — Data processing and example generation
   - `evaluation/` — Model evaluation code
   - `models/` — Model definitions
@@ -220,7 +229,49 @@ The data loader provides:
 - Examples saved in JSON format with metadata
 - See `docs/data_format.md` for detailed specifications
 
-### 6. Model Training & Evaluation
+### 6. Analysis Tools
+
+The project includes two main analysis scripts for understanding template patterns and performance:
+
+#### Template Analysis (`src/analysis/template_analysis.py`)
+
+Analyzes characteristics and distribution of template variations:
+
+```python
+# Run template analysis
+python -m src.analysis.template_analysis \
+  --data-dir data/processed \
+  --output-dir results/token_analysis \
+  --batch-size 32
+```
+
+Generates:
+- Pattern distribution analysis
+- Template length statistics
+- Complexity score distributions
+- HTML reports with visualizations
+
+#### Performance Analysis (`src/analysis/template_performance.py`)
+
+Analyzes how different template variations affect model performance:
+
+```python
+# Run performance analysis
+python -m src.analysis.template_performance \
+  --data-dir data/processed \
+  --output-dir results/token_analysis \
+  --batch-size 32
+```
+
+Generates:
+- Performance metrics by template pattern
+- Performance metrics by sequence length
+- Confusion matrices
+- HTML reports with visualizations
+
+Both scripts use shared visualization utilities from `src/analysis/visualization_utils.py` for consistent styling and report generation.
+
+### 7. Model Training & Evaluation
 
 - **Local Mac:** Only run code that does not require GPU, Unsloth, or xformers.
 - **For Unsloth-based fine-tuning or any GPU-dependent workflow:**
@@ -276,6 +327,8 @@ The data loader provides:
 - `data/processed/template_variations/` — Generated examples
 - `docs/templates.md` — Template system documentation
 - `docs/data_format.md` — Data format specifications
+- `results/token_analysis/` — Analysis results and reports
+- `src/analysis/` — Analysis scripts and utilities
 - `src/data/example_generator.py` — Example generation code
 - `src/data/token_separator.py` — Token separation utilities
 - `scripts/` — Scripts, PRD, complexity reports

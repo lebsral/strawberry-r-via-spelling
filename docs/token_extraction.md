@@ -34,46 +34,37 @@ Extracted tokens are saved in JSON format at `data/processed/gpt2_letter_tokens.
 }
 ```
 
-## Validation Results
+## Validation
 
-### Token Statistics
+Based on the validation analysis performed using our template analysis scripts:
 
-Based on the validation analysis performed in `notebooks/token_validation.ipynb`:
+1. Most common token patterns are well-represented
+2. Token sequence lengths follow expected distributions
+3. Template variations maintain consistent structure
 
-- Total Tokens: 46,789
-- Length Distribution:
-  - Average: 5.91 characters
-  - Median: 6.0 characters
-  - Minimum: 2 characters
-  - Maximum: 32 characters
+### Running Validation
 
-### Sample Tokens by Length
+1. Install required packages:
+```bash
+pip install -r requirements.txt
+```
 
-Representative samples from the extracted tokens:
+2. Run the template analysis script:
+```bash
+python -m src.analysis.template_analysis \
+  --data-dir data/processed \
+  --output-dir results/token_analysis \
+  --log-level INFO
+```
 
-- 2 characters: IS, di, Mi, LT, NY
-- 3 characters: but, Und, TSA, Joh, aja
-- 4 characters: scen, Corp, Anna, lime, mend
-- 5 characters: Canad, ultra, wered, COURT, local
-- 6 characters: Fallon, romptu, irming, strong, clitor
-- 7 characters: ongoing, require, Lindsey, Balkans, holding
-- 8 characters: ensional, toddlers, probably, resemble, pointers
-- 9 characters: installed, shameless, Sovereign, Permanent, consisted
-- 10 characters: aggravated, complicate, threatened, reassuring, ecological
+3. Review the generated HTML report in `results/token_analysis/reports/`
 
-### Validation Process
+### Dependencies
 
-The validation process includes:
-
-1. Data structure verification
-2. Statistical analysis of token lengths
-3. Distribution visualization
-4. Sample token extraction for manual review
-
-### Results Location
-
-- Token length distribution plot: `results/token_analysis/token_length_distribution.png`
-- Detailed analysis results: `results/token_analysis/analysis_results.json`
+Required packages (installed via requirements.txt):
+- seaborn (for visualizations)
+- scikit-learn (for metrics)
+- matplotlib (for plotting)
 
 ## Usage
 

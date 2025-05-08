@@ -1,0 +1,99 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Python Dependency Management with uv
+
+## **Core Principles**
+
+- **NEVER manually edit version numbers** in requirements.txt
+- Always use `uv pip` commands to manage dependencies
+- **ALWAYS update requirements.txt after installing packages**
+- Keep requirements.txt under version control
+- Use pip-compile for deterministic builds
+
+## **Adding/Updating Dependencies**
+
+1. **Adding New Dependencies:**
+   ```bash
+   # Add a new package
+   uv pip install package_name
+
+   # IMMEDIATELY update requirements.txt
+   uv pip freeze > requirements.txt
+
+   # Commit both changes together
+   git add requirements.txt
+   git commit -m "feat(deps): Add package_name dependency"
+   ```
+
+2. **Updating Existing Dependencies:**
+   ```bash
+   # Update a specific package
+   uv pip install --upgrade package_name
+
+   # IMMEDIATELY update requirements.txt
+   uv pip freeze > requirements.txt
+
+   # Commit both changes together
+   git add requirements.txt
+   git commit -m "chore(deps): Update package_name"
+   ```
+
+3. **Installing All Dependencies:**
+   ```bash
+   # Install everything from requirements.txt
+   uv pip install -r requirements.txt
+   ```
+
+## **Environment Management**
+
+1. **Creating New Environments:**
+   ```bash
+   python -m venv .venv
+   source .venv/bin/activate  # Unix
+   .venv\Scripts\activate     # Windows
+   ```
+
+2. **Installing Dependencies:**
+   ```bash
+   uv pip install -r requirements.txt
+   ```
+
+## **Best Practices**
+
+- **NEVER forget to update requirements.txt** after installing new packages
+- Run `uv pip freeze > requirements.txt` immediately after any package installation
+- Always commit requirements.txt changes along with the code changes that required the new dependency
+- Review requirements.txt changes before committing to catch unintended changes
+- Use `uv pip list` to verify installed packages match requirements.txt
+
+## **Common Issues to Avoid**
+
+- ❌ Manually editing version numbers in requirements.txt
+- ❌ Installing packages without updating requirements.txt
+- ❌ Committing code that uses new packages without updating requirements.txt
+- ❌ Using pip instead of uv pip for package management
+- ❌ Mixing package managers (stick to uv pip)
+
+## **Dependency Auditing**
+
+- Regularly review installed packages with `uv pip list`
+- Compare against requirements.txt to ensure they match
+- Remove unused dependencies to keep the project lean
+- Update dependencies regularly for security fixes
+
+## **Version Pinning**
+
+- Use `uv pip freeze` for reproducible builds
+- Pin versions in production environments
+- Use ranges only in development dependencies
+
+## **Dependency Conflicts**
+
+If conflicts occur:
+1. Check package compatibility
+2. Use `uv pip check`
+3. Update one package at a time
+4. Document resolution in commit messages
