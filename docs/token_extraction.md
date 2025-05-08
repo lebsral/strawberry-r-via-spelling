@@ -45,11 +45,13 @@ Based on the validation analysis performed using our template analysis scripts:
 ### Running Validation
 
 1. Install required packages:
+
 ```bash
 pip install -r requirements.txt
 ```
 
 2. Run the template analysis script:
+
 ```bash
 python -m src.analysis.template_analysis \
   --data-dir data/processed \
@@ -62,6 +64,7 @@ python -m src.analysis.template_analysis \
 ### Dependencies
 
 Required packages (installed via requirements.txt):
+
 - seaborn (for visualizations)
 - scikit-learn (for metrics)
 - matplotlib (for plotting)
@@ -71,11 +74,13 @@ Required packages (installed via requirements.txt):
 To reproduce the token extraction and validation:
 
 1. Run the extraction script:
+
    ```bash
    python src/data/token_extractor.py
    ```
 
 2. Run the validation notebook:
+
    ```bash
    jupyter notebook notebooks/token_validation.ipynb
    ```
@@ -83,6 +88,7 @@ To reproduce the token extraction and validation:
 ## Dependencies
 
 The token extraction and validation process requires:
+
 - transformers (for GPT-2 tokenizer)
 - pandas (for data analysis)
 - matplotlib (for visualization)
@@ -92,7 +98,8 @@ The token extraction and validation process requires:
 ## Future Improvements
 
 Potential areas for enhancement:
+
 1. Additional token metadata (e.g., frequency in common text)
 2. More detailed statistical analysis
 3. Token clustering by patterns
-4. Integration with spelling task generation 
+4. Integration with spelling task generation

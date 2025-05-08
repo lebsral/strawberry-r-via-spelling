@@ -182,7 +182,7 @@
       "id": 4,
       "title": "Training Data Formatting with Template Variations",
       "description": "Format the training data using various template formats for spelling examples to maximize LLM generalization and token-awareness.",
-      "status": "pending",
+      "status": "done",
       "dependencies": [
         3
       ],
@@ -240,7 +240,7 @@
             4
           ],
           "details": "Develop Python scripts to analyze and visualize how different template designs affect model training. Create metrics to quantify template effectiveness across different data types and tasks. Implement automated analysis to recommend optimal template configurations. Quality metrics should include visualization clarity, analysis accuracy, and recommendation relevance. Test by comparing model performance across different template variations and validating analysis results.\n\nImplement the following scripts:\n- `src/analysis/template_analysis.py`: Main analysis script with command-line interface\n- `src/analysis/template_performance.py`: Performance analysis across template variations\n- `src/analysis/visualization_utils.py`: Shared plotting utilities for consistent visualization\n- `src/analysis/report_generator.py`: HTML report generation for easy sharing of results\n\nOutput structure:\n- `results/token_analysis/figures/`: All PNG/PDF visualizations\n- `results/token_analysis/reports/`: HTML reports\n- `results/token_analysis/data/`: Processed CSV/JSON data\n\nEnsure all scripts have proper command-line interfaces, documentation, and error handling.",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 6,
@@ -258,7 +258,7 @@
             6
           ],
           "details": "Create the necessary directory structure for analysis scripts and results output:\n\n1. Create the following directories:\n   - `src/analysis/` for all analysis scripts\n   - `results/token_analysis/figures/` for visualizations\n   - `results/token_analysis/reports/` for HTML reports\n   - `results/token_analysis/data/` for processed analysis data\n\n2. Set up script templates with proper imports, documentation, and command-line interfaces:\n   - `src/analysis/template_analysis.py`\n   - `src/analysis/template_performance.py`\n   - `src/analysis/visualization_utils.py`\n   - `src/analysis/report_generator.py`\n\n3. Implement basic functionality in each script:\n   - Command-line argument parsing\n   - Configuration loading\n   - Logging setup\n   - Error handling\n   - Basic documentation\n\n4. Create unit tests for each script to verify basic functionality\n\n5. Update documentation to reflect the new script-based analysis approach",
-          "status": "pending"
+          "status": "done"
         }
       ]
     },
