@@ -1,0 +1,322 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Jupyter Notebook Guidelines (DEPRECATED)
+
+⚠️ **IMPORTANT: Jupyter Notebooks are being phased out in favor of Python scripts**
+
+See [python_scripts.mdc](mdc:.cursor/rules/python_scripts.mdc) for current development guidelines.
+
+## Migration Guide
+
+### Converting Notebooks to Scripts
+
+1. **Script Structure**
+   - Convert notebook cells to proper Python script structure
+   - Add proper imports at the top
+   - Implement command-line interface
+   - Add main() function and guard
+
+2. **Visualization**
+   - Replace interactive plots with static figure generation
+   - Save plots to results directory
+   - Generate HTML reports for analysis results
+
+3. **Data Loading**
+   - Move data loading to proper functions
+   - Add error handling
+   - Use configuration files for paths
+
+4. **Documentation**
+   - Convert markdown cells to docstrings
+   - Add function-level documentation
+   - Create README files
+
+### Example Migration
+
+From notebook:
+```python
+# Analysis cell
+data = pd.read_csv('data.csv')
+plt.plot(data['x'], data['y'])
+plt.show()
+```
+
+To script:
+```python
+def analyze_data(data_path, output_dir):
+    """Analyze data and save results."""
+    try:
+        data = pd.read_csv(data_path)
+        plt.figure()
+        plt.plot(data['x'], data['y'])
+        plt.savefig(f"{output_dir}/analysis_plot.png")
+        plt.close()
+    except Exception as e:
+        logger.error(f"Error analyzing data: {e}")
+        raise
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--data', required=True)
+    parser.add_argument('--output', required=True)
+    args = parser.parse_args()
+
+    analyze_data(args.data, args.output)
+```
+
+### Benefits of Migration
+
+1. **Version Control**
+   - Better diff tracking
+   - Easier code review
+   - No notebook metadata conflicts
+
+2. **Reproducibility**
+   - Deterministic execution
+   - Clear dependencies
+   - No hidden state
+
+3. **Testing**
+   - Easier to write tests
+   - Better integration with CI/CD
+   - More reliable execution
+
+4. **Maintenance**
+   - Clearer code structure
+   - Better error handling
+   - Proper logging
+
+5. **Collaboration**
+   - Standard Python development practices
+   - No notebook-specific issues
+   - Better code reuse
+
+## Legacy Notebook Handling
+
+If you must work with existing notebooks:
+
+1. **Convert to Script**
+   ```bash
+   jupyter nbconvert --to script notebook.ipynb
+   ```
+
+2. **Clean Up Script**
+   - Remove magic commands
+   - Organize into functions
+   - Add proper error handling
+   - Implement CLI
+
+3. **Update Dependencies**
+   - Move to requirements.txt
+   - Remove notebook-specific dependencies
+   - Update import statements
+
+4. **Update Documentation**
+   - Convert notebook markdown to docstrings
+   - Add function documentation
+   - Create proper README
+
+## **Core Principles**
+
+- **One Cell, One Purpose**: Each cell should do exactly one thing
+  - Define a single function/class
+  - Execute one piece of analysis
+  - Present one visualization
+  - Contain one section of documentation
+
+- **Reproducibility First**
+  - All notebooks must run with "Run All"
+  - Document all dependencies clearly
+  - Use consistent package versions
+  - Handle data loading robustly
+
+- **Clean State Management**
+  - Keep global state minimal and explicit
+  - Use pure functions for transformations
+  - Avoid in-place mutations
+  - Create new variables for transformed data
+
+## **Notebook Structure**
+
+### Required Sections
+
+1. **Title and Description**
+   ```python
+   # Title
+
+   Brief description of notebook purpose and outcomes
+   Key points covered:
+   - Point 1
+   - Point 2
+   ```
+
+2. **Setup Cell**
+   ```python
+   import sys
+   from pathlib import Path
+   import pandas as pd
+   import numpy as np
+   import matplotlib.pyplot as plt
+   import seaborn as sns
+   from IPython.display import display
+
+   # Add project root to path
+   project_root = Path.cwd().parent
+   sys.path.append(str(project_root))
+
+   # Configure plotting
+   plt.style.use('seaborn')
+   plt.rcParams['figure.figsize'] = [12, 8]
+   plt.rcParams['figure.dpi'] = 100
+   ```
+
+3. **Data Loading**
+   ```python
+   # Load data with clear error handling
+   try:
+       data = pd.read_csv(...)
+   except FileNotFoundError as e:
+       print(f"Error loading data: {e}")
+       raise
+   ```
+
+### Section Organization
+
+- Use markdown headings consistently
+- Include section descriptions
+- Number sections for clarity
+- Keep related cells together
+
+## **Code Style**
+
+### Cell Structure
+```python
+# 1. Imports at top
+import numpy as np
+
+# 2. Function/class definitions
+def process_data(df):
+    """Docstring explaining purpose"""
+    return df.copy()  # No in-place mutations
+
+# 3. Assertions/tests
+test_df = pd.DataFrame({"a": [1,2,3]})
+result = process_data(test_df)
+assert len(result) == len(test_df)
+
+# 4. Main execution
+processed = process_data(main_df)
+```
+
+### Best Practices
+
+- Use `%%capture` for noisy operations
+- Include assertions after function definitions
+- Add comments for complex operations
+- Use display() for controlled output
+
+## **Visualization Guidelines**
+
+- Save plots with consistent naming:
+  ```python
+  plt.savefig(project_root / 'results' / 'analysis' / 'plot_name.png')
+  ```
+- Always include titles and labels
+- Use consistent color schemes
+- Close figures after saving:
+  ```python
+  plt.close()
+  ```
+
+## **Common Pitfalls**
+
+- ❌ DON'T mix multiple operations in one cell
+- ❌ DON'T modify data in-place
+- ❌ DON'T leave noisy output uncaptured
+- ❌ DON'T skip error handling for data loading
+
+- ✅ DO use consistent variable names
+- ✅ DO include validation checks
+- ✅ DO document data transformations
+- ✅ DO close resources properly
+
+## **Editing Guidelines**
+
+When editing notebooks:
+
+1. **Always preserve metadata**
+   ```json
+   {
+     "metadata": {
+       "kernelspec": {
+         "display_name": "Python 3",
+         "language": "python",
+         "name": "python3"
+       }
+     }
+   }
+   ```
+
+2. **Maintain cell structure**
+   - Keep cell IDs intact
+   - Preserve cell type markers
+   - Don't mix cell types
+
+3. **Edit in chunks**
+   - Update related cells together
+   - Preserve cell dependencies
+   - Test after each change
+
+4. **Version Control**
+   - Clear outputs before committing
+   - Use nbconvert for clean diffs
+   - Keep cell boundaries stable
+
+## **Testing Requirements**
+
+1. **Cell-level Testing**
+   ```python
+   def process_data(df):
+       result = df.copy()
+       # Processing logic
+       return result
+
+   # Test immediately after definition
+   test_data = pd.DataFrame({"test": [1,2,3]})
+   assert process_data(test_data) is not test_data  # No in-place mutation
+   ```
+
+2. **Integration Testing**
+   - Test data loading
+   - Verify visualizations
+   - Check output formats
+
+## **Setup Instructions**
+
+1. Create virtual environment:
+   ```bash
+   python -m venv .venv
+   source .venv/bin/activate  # or .venv\Scripts\activate on Windows
+   ```
+
+2. Install dependencies:
+   ```bash
+   pip install jupyter pandas numpy matplotlib seaborn
+   ```
+
+3. Register environment with Jupyter:
+   ```bash
+   python -m ipykernel install --user --name=project_env
+   ```
+
+## **References**
+
+- Link to project documentation
+- Required package versions
+- Data source documentation
+- Related notebooks
+
+Remember to follow these guidelines when creating or editing notebooks to ensure consistency and maintainability across the project.

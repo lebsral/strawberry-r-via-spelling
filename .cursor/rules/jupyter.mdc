@@ -1,0 +1,194 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Jupyter Notebook Development Guidelines
+
+## Environment Setup
+
+- **Required Dependencies:**
+  ```python
+  # Add to requirements.txt or install with uv:
+  jupyter>=4.0.0
+  jupyterlab>=4.0.0
+  nbformat>=5.0.0
+  pandas>=2.0.0
+  matplotlib>=3.0.0
+  seaborn>=0.12.0
+  ipywidgets>=8.0.0
+  ```
+
+- **Installation Best Practices:**
+  ```bash
+  # ✅ DO: Use uv for faster, more reliable installation
+  uv pip install jupyter jupyterlab nbformat pandas matplotlib seaborn ipywidgets
+
+  # ❌ DON'T: Use regular pip install
+  pip install jupyter  # Slower and less reliable
+  ```
+
+## Notebook Creation
+
+- **Standard Directory Structure:**
+  ```
+  project_root/
+  ├── notebooks/          # All Jupyter notebooks
+  │   ├── analysis/      # Data analysis notebooks
+  │   ├── visualization/ # Visualization notebooks
+  │   └── exploration/  # Data exploration notebooks
+  ├── results/           # Notebook output artifacts
+  │   └── figures/      # Generated plots and visualizations
+  └── scripts/           # Notebook generation scripts
+  ```
+
+- **Notebook Generator Template:**
+  ```python
+  # ✅ DO: Use this template for notebook generation scripts
+  import nbformat as nbf
+  from pathlib import Path
+  import sys
+
+  def create_notebook(name, description):
+      nb = nbf.v4.new_notebook()
+
+      # Standard imports cell
+      imports = '''
+      import sys
+      from pathlib import Path
+      import pandas as pd
+      import numpy as np
+      import matplotlib.pyplot as plt
+      import seaborn as sns
+
+      # Add project root to path
+      project_root = Path.cwd().parent
+      sys.path.append(str(project_root))
+      '''
+
+      cells = [
+          nbf.v4.new_markdown_cell(f"# {name}\n\n{description}"),
+          nbf.v4.new_code_cell(imports.strip()),
+          nbf.v4.new_markdown_cell("## Data Loading"),
+          nbf.v4.new_code_cell("# Load your data here"),
+          nbf.v4.new_markdown_cell("## Analysis"),
+          nbf.v4.new_code_cell("# Your analysis code here")
+      ]
+
+      nb.cells.extend(cells)
+      return nb
+
+  if __name__ == '__main__':
+      # Create output directories if they don't exist
+      Path('notebooks').mkdir(exist_ok=True)
+      Path('results/figures').mkdir(parents=True, exist_ok=True)
+
+      # Create notebook
+      nb = create_notebook(
+          name="Analysis Notebook",
+          description="Description of your analysis"
+      )
+
+      # Save notebook
+      output_path = Path('notebooks/analysis_notebook.ipynb')
+      nbf.write(nb, output_path)
+      print(f"Created notebook: {output_path}")
+  ```
+
+## Best Practices
+
+- **Directory Creation:**
+  ```python
+  # ✅ DO: Always create required directories
+  Path('results/figures').mkdir(parents=True, exist_ok=True)
+
+  # ❌ DON'T: Assume directories exist
+  plt.savefig('results/figures/plot.png')  # May fail
+  ```
+
+- **Path Management:**
+  ```python
+  # ✅ DO: Use Path for cross-platform compatibility
+  from pathlib import Path
+  project_root = Path.cwd().parent
+  data_path = project_root / 'data' / 'processed'
+
+  # ❌ DON'T: Use string concatenation
+  data_path = project_root + '/data/processed'  # Platform-dependent
+  ```
+
+- **Notebook Structure:**
+  - Start with a markdown cell describing the notebook's purpose
+  - Follow with standard imports
+  - Include data loading section
+  - Organize analysis into clear sections
+  - End with conclusions/summary
+
+## Common Issues & Solutions
+
+- **Port Conflicts:**
+  ```python
+  # ✅ DO: Use jupyter lab --port-retries=50
+  # This allows finding an open port automatically
+
+  # ❌ DON'T: Use fixed port
+  # jupyter notebook --port=8888  # May fail if port is taken
+  ```
+
+- **Kernel Issues:**
+  ```python
+  # ✅ DO: Ensure kernel spec is installed
+  # python -m ipykernel install --user --name=project_env
+
+  # Check kernel list with:
+  # jupyter kernelspec list
+  ```
+
+## Visualization Standards
+
+- **Figure Output:**
+  ```python
+  # ✅ DO: Set standard figure parameters
+  plt.style.use('seaborn')
+  plt.rcParams['figure.figsize'] = [12, 8]
+  plt.rcParams['figure.dpi'] = 100
+
+  # Always save figures with tight layout
+  plt.tight_layout()
+  plt.savefig('results/figures/plot.png', bbox_inches='tight')
+  ```
+
+## Testing Notebooks
+
+- **Validation Script:**
+  ```python
+  # ✅ DO: Test notebook creation
+  def test_notebook_creation():
+      nb = create_notebook("Test", "Test description")
+      assert len(nb.cells) > 0
+      assert nb.cells[0].cell_type == "markdown"
+      assert "import" in nb.cells[1].source
+  ```
+
+## Required Initial Setup
+
+1. Create necessary directories:
+   ```bash
+   mkdir -p notebooks/{analysis,visualization,exploration}
+   mkdir -p results/figures
+   ```
+
+2. Install dependencies with uv:
+   ```bash
+   uv pip install jupyter jupyterlab nbformat pandas matplotlib seaborn ipywidgets
+   ```
+
+3. Configure Jupyter:
+   ```bash
+   jupyter notebook --generate-config
+   ```
+
+4. Start Jupyter:
+   ```bash
+   jupyter lab --port-retries=50
+   ```

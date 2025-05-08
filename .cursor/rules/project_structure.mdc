@@ -1,0 +1,273 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Project Structure Guidelines
+
+## Directory Structure
+
+```
+raspberry/
+├── src/                    # Source code
+│   ├── analysis/          # Analysis scripts
+│   │   ├── __init__.py
+│   │   ├── template_analysis.py
+│   │   ├── template_performance.py
+│   │   └── visualization_utils.py
+│   ├── data/              # Data processing
+│   │   ├── __init__.py
+│   │   ├── data_loader.py
+│   │   └── preprocessing.py
+│   ├── models/            # Model definitions
+│   │   ├── __init__.py
+│   │   └── architecture.py
+│   ├── training/          # Training scripts
+│   │   ├── __init__.py
+│   │   └── trainer.py
+│   ├── evaluation/        # Evaluation scripts
+│   │   ├── __init__.py
+│   │   └── evaluator.py
+│   └── utils/             # Shared utilities
+│       ├── __init__.py
+│       └── helpers.py
+├── configs/               # Configuration files
+│   ├── templates/
+│   └── default.yaml
+├── data/                  # Data files
+│   ├── processed/
+│   ├── raw/
+│   └── splits/
+├── docs/                  # Documentation
+│   ├── api/
+│   └── guides/
+├── results/               # Analysis results
+│   ├── figures/          # Generated plots
+│   ├── reports/          # HTML reports
+│   └── metrics/          # Performance data
+├── scripts/               # Utility scripts
+│   ├── setup.py
+│   └── generate_report.py
+├── tasks/                # Task definitions
+├── tests/                # Test files
+│   └── test_*.py
+├── .env                  # Environment variables
+├── .env.example          # Example environment file
+├── .gitignore           # Git ignore rules
+├── README.md            # Project documentation
+└── requirements.txt     # Python dependencies
+```
+
+## Key Components
+
+### Source Code (`src/`)
+
+- **analysis/**: Scripts for data analysis and visualization
+  - Template analysis
+  - Performance metrics
+  - Visualization utilities
+
+- **data/**: Data processing and loading
+  - Efficient data loaders
+  - Preprocessing functions
+  - Dataset management
+
+- **models/**: Model architecture and components
+  - Model definitions
+  - Layer implementations
+  - Configuration helpers
+
+- **training/**: Training infrastructure
+  - Training loops
+  - Optimization logic
+  - Checkpoint management
+
+- **evaluation/**: Evaluation scripts
+  - Performance metrics
+  - Analysis tools
+  - Reporting functions
+
+- **utils/**: Shared utilities
+  - Helper functions
+  - Common operations
+  - Logging setup
+
+### Configuration (`configs/`)
+
+- YAML configuration files
+- Template definitions
+- Model parameters
+- Training settings
+
+### Results (`results/`)
+
+- **figures/**: Generated visualizations
+  - Performance plots
+  - Distribution graphs
+  - Training curves
+
+- **reports/**: Analysis reports
+  - HTML summaries
+  - Performance metrics
+  - Experiment results
+
+- **metrics/**: Raw data
+  - CSV exports
+  - JSON metrics
+  - Log files
+
+### Documentation (`docs/`)
+
+- API documentation
+- Usage guides
+- Setup instructions
+- Architecture diagrams
+
+## File Naming Conventions
+
+1. **Python Files**
+   - Lowercase with underscores
+   - Descriptive names
+   - Example: `template_analysis.py`
+
+2. **Configuration Files**
+   - Lowercase with hyphens
+   - Clear purpose
+   - Example: `model-config.yaml`
+
+3. **Results**
+   - Include timestamp
+   - Descriptive prefix
+   - Example: `2024-03-20_performance_analysis.html`
+
+## Module Organization
+
+1. **Imports**
+   ```python
+   # Standard library
+   import os
+   import sys
+
+   # Third-party
+   import numpy as np
+   import torch
+
+   # Local
+   from src.utils import helpers
+   ```
+
+2. **Module Structure**
+   ```python
+   """Module docstring."""
+
+   # Imports
+
+   # Constants
+
+   # Classes
+
+   # Functions
+
+   # Main execution
+   if __name__ == "__main__":
+       main()
+   ```
+
+## Best Practices
+
+1. **Module Independence**
+   - Minimize cross-module dependencies
+   - Use clear interfaces
+   - Document dependencies
+
+2. **Configuration**
+   - Use YAML for config files
+   - Environment variables for secrets
+   - Command-line arguments for runtime options
+
+3. **Results Management**
+   - Organized directory structure
+   - Clear naming conventions
+   - Automatic cleanup of old files
+
+4. **Documentation**
+   - README in each directory
+   - Function/class documentation
+   - Usage examples
+
+## Version Control
+
+1. **Git Ignore**
+   ```gitignore
+   # Python
+   __pycache__/
+   *.pyc
+   .pytest_cache/
+
+   # Environment
+   .env
+   .venv/
+
+   # Results
+   results/
+   !results/.gitkeep
+
+   # IDE
+   .vscode/
+   .idea/
+   ```
+
+2. **Commit Organization**
+   - Logical commits
+   - Clear messages
+   - Related changes together
+
+## Dependencies
+
+1. **Virtual Environment**
+   ```bash
+   python -m venv .venv
+   source .venv/bin/activate
+   ```
+
+2. **Requirements**
+   ```
+   # requirements.txt
+   numpy>=1.20.0
+   torch>=2.0.0
+   matplotlib>=3.4.0
+   ```
+
+## Development Workflow
+
+1. **Setup**
+   ```bash
+   # Clone repository
+   git clone <repo>
+   cd <repo>
+
+   # Create environment
+   python -m venv .venv
+   source .venv/bin/activate
+
+   # Install dependencies
+   pip install -r requirements.txt
+   ```
+
+2. **Development**
+   - Work in feature branches
+   - Follow naming conventions
+   - Update documentation
+   - Generate results in appropriate directories
+
+3. **Results**
+   - Save to correct subdirectory
+   - Use descriptive filenames
+   - Include timestamp
+   - Generate HTML reports
+
+4. **Documentation**
+   - Update README files
+   - Document new functions
+   - Add usage examples
+   - Keep setup instructions current

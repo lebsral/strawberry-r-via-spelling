@@ -20,7 +20,7 @@
    - No separator between tokens
    - Arrows between tokens
    - Various punctuation and formatting
-4. Create a Jupyter notebook to visualize example prompts and responses
+4. Create Python scripts for analysis and visualization
 5. Implement efficient DataLoader with proper batching
 
 File Structure:
@@ -32,8 +32,11 @@ File Structure:
 - Data loader: `src/data/data_loader.py`
 - Formatted training data: `data/processed/training_data/`
 - Template variations: `data/processed/template_variations/`
-- Template analysis notebook: `notebooks/template_analysis.ipynb`
-- Performance visualization: `notebooks/template_performance.ipynb`
+- Analysis scripts: `src/analysis/template_analysis.py`
+- Performance analysis: `src/analysis/template_performance.py`
+- Visualization utilities: `src/analysis/visualization_utils.py`
+- Report generator: `src/analysis/report_generator.py`
+- Results output: `results/token_analysis/`
 - Template documentation: `docs/templates.md`
 - Data format specification: `docs/data_format.md`
 
@@ -124,14 +127,16 @@ def custom_collate_fn(batch):
 2. Confirm dataset contains all template variations specified in the PRD
 3. Check that examples use a mix of punctuation and formatting
 4. Ensure no template is over-represented
-5. Create and review example notebook showing proper formatting
+5. Test analysis scripts with sample data
 6. Test DataLoader with custom collation function
 7. Verify efficient batching with varied text lengths
 8. Validate that all files are created in the correct locations:
    - Check template files in `configs/templates/`
    - Verify processed data in `data/processed/training_data/`
-   - Ensure analysis notebooks are functional
+   - Ensure analysis scripts produce expected outputs in `results/token_analysis/`
 9. Test the complete pipeline from template processing to data loading
+10. Verify HTML reports are generated correctly
+11. Test command-line interfaces for analysis scripts
 
 # Subtasks:
 ## 1. Template Design and Categorization [done]
@@ -228,11 +233,53 @@ Implement efficient data loading mechanisms that minimize memory usage and proce
 ### Dependencies: 4.1, 4.3, 4.4
 ### Description: Analyze and visualize the effectiveness of different template variations on model performance
 ### Details:
-Develop tools to visualize how different template designs affect model training. Create metrics to quantify template effectiveness across different data types and tasks. Implement automated analysis to recommend optimal template configurations. Quality metrics should include visualization clarity, analysis accuracy, and recommendation relevance. Test by comparing model performance across different template variations and validating analysis results. Create analysis notebooks in `notebooks/template_analysis.ipynb` and `notebooks/template_performance.ipynb`.
+Develop Python scripts to analyze and visualize how different template designs affect model training. Create metrics to quantify template effectiveness across different data types and tasks. Implement automated analysis to recommend optimal template configurations. Quality metrics should include visualization clarity, analysis accuracy, and recommendation relevance. Test by comparing model performance across different template variations and validating analysis results.
+
+Implement the following scripts:
+- `src/analysis/template_analysis.py`: Main analysis script with command-line interface
+- `src/analysis/template_performance.py`: Performance analysis across template variations
+- `src/analysis/visualization_utils.py`: Shared plotting utilities for consistent visualization
+- `src/analysis/report_generator.py`: HTML report generation for easy sharing of results
+
+Output structure:
+- `results/token_analysis/figures/`: All PNG/PDF visualizations
+- `results/token_analysis/reports/`: HTML reports
+- `results/token_analysis/data/`: Processed CSV/JSON data
+
+Ensure all scripts have proper command-line interfaces, documentation, and error handling.
 
 ## 6. Documentation and File Structure Setup [done]
 ### Dependencies: None
 ### Description: Create and organize the file structure and documentation for template variations and data formatting
 ### Details:
 Set up the required directory structure for template files, implementation files, output files, and analysis files. Create comprehensive documentation in `docs/templates.md` and `docs/data_format.md` explaining the template system, data formats, and usage guidelines. Ensure all file paths are correctly referenced in the implementation code. Test by verifying that all directories exist and documentation is complete and accurate.
+
+## 7. Analysis Scripts and Results Structure Setup [pending]
+### Dependencies: 4.6
+### Description: Set up the Python script-based analysis system and results directory structure
+### Details:
+Create the necessary directory structure for analysis scripts and results output:
+
+1. Create the following directories:
+   - `src/analysis/` for all analysis scripts
+   - `results/token_analysis/figures/` for visualizations
+   - `results/token_analysis/reports/` for HTML reports
+   - `results/token_analysis/data/` for processed analysis data
+
+2. Set up script templates with proper imports, documentation, and command-line interfaces:
+   - `src/analysis/template_analysis.py`
+   - `src/analysis/template_performance.py`
+   - `src/analysis/visualization_utils.py`
+   - `src/analysis/report_generator.py`
+
+3. Implement basic functionality in each script:
+   - Command-line argument parsing
+   - Configuration loading
+   - Logging setup
+   - Error handling
+   - Basic documentation
+
+4. Create unit tests for each script to verify basic functionality
+
+5. Update documentation to reflect the new script-based analysis approach
 

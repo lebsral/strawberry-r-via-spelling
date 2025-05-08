@@ -6,7 +6,7 @@
 # Description: Evaluate the base GPT-2 model on letter count and position tasks to establish a performance baseline.
 # Details:
 1. Set up DsPy for multi-shot prompting
-2. Create a Jupyter notebook to evaluate the base GPT-2 model
+2. Create Python scripts to evaluate the base GPT-2 model
 3. Test on both primary metrics (letter count, letter position)
 4. Ensure output format is correct (single integer for character count or single letter for character position)
 5. Document the baseline performance for comparison
@@ -18,12 +18,14 @@ File Structure:
 - Letter count evaluator: `src/evaluation/letter_count.py`
 - Letter position evaluator: `src/evaluation/letter_position.py`
 - Common utilities: `src/evaluation/utils.py`
-- Results directory: `results/baseline_evaluation/`
-- Visualizations: `results/baseline_evaluation/figures/`
-- Raw metrics: `results/baseline_evaluation/metrics.json`
-- Detailed analysis: `results/baseline_evaluation/analysis.json`
-- Results analysis notebook: `notebooks/baseline_analysis.ipynb`
-- Performance visualization notebook: `notebooks/baseline_visualization.ipynb`
+- Visualization utilities: `src/evaluation/visualization.py`
+- Report generation: `src/evaluation/report.py`
+- Results directory: `results/evaluation/`
+- Visualizations: `results/evaluation/figures/`
+- HTML reports: `results/evaluation/reports/`
+- Processed data: `results/evaluation/data/`
+- Raw metrics: `results/evaluation/data/metrics.json`
+- Detailed analysis: `results/evaluation/data/analysis.json`
 
 Implementation:
 ```python
@@ -31,130 +33,169 @@ import torch
 from transformers import GPT2LMHeadModel, GPT2Tokenizer
 import dspy
 import wandb
-
-# Initialize W&B
-wandb.init(project="llm-spelling-finetuning", name="baseline-evaluation")
-
-# Load base model and tokenizer
-model_name = "gpt2"
-model = GPT2LMHeadModel.from_pretrained(model_name)
-model.eval()
-tokenizer = GPT2Tokenizer.from_pretrained(model_name)
-tokenizer.pad_token = tokenizer.eos_token
-
-# Load test dataset
-from datasets import load_dataset
-test_dataset = load_dataset("YOUR-USERNAME/llm-spelling-dataset", split="test")
-
-# Define generation function
-def generate_answer(model, tokenizer, question, max_length=10):
-    inputs = tokenizer(question, return_tensors="pt")
-    with torch.no_grad():
-        outputs = model.generate(
-            inputs.input_ids,
-            max_length=len(inputs.input_ids[0]) + max_length,
-            pad_token_id=tokenizer.eos_token_id,
-            do_sample=False
-        )
-    response = tokenizer.decode(outputs[0][len(inputs.input_ids[0]):], skip_special_tokens=True)
-    # Extract just the first token/character for letter position or first number for letter count
-    if "How many" in question:
-        # Extract first number
-        import re
-        numbers = re.findall(r'\d+', response)
-        return numbers[0] if numbers else response.strip()
-    else:
-        # Extract first character
-        return response.strip()[0] if response.strip() else ""
-
-# Evaluate on letter count questions
-def evaluate_letter_count(model, tokenizer, dataset):
-    correct = 0
-    total = 0
-    results = []
-    
-    for item in dataset:
-        if item["question_type"] != "letter_count":
-            continue
-            
-        prediction = generate_answer(model, tokenizer, item["question"])
-        is_correct = prediction == item["answer"]
-        
-        results.append({
-            "question": item["question"],
-            "expected": item["answer"],
-            "prediction": prediction,
-            "correct": is_correct
-        })
-        
-        correct += int(is_correct)
-        total += 1
-    
-    accuracy = correct / total if total > 0 else 0
-    print(f"Letter Count Accuracy: {accuracy:.4f} ({correct}/{total})")
-    
-    return accuracy, results
-
-# Evaluate on letter position questions
-def evaluate_letter_position(model, tokenizer, dataset):
-    correct = 0
-    total = 0
-    results = []
-    
-    for item in dataset:
-        if item["question_type"] != "letter_position":
-            continue
-            
-        prediction = generate_answer(model, tokenizer, item["question"])
-        is_correct = prediction.lower() == item["answer"].lower()
-        
-        results.append({
-            "question": item["question"],
-            "expected": item["answer"],
-            "prediction": prediction,
-            "correct": is_correct
-        })
-        
-        correct += int(is_correct)
-        total += 1
-    
-    accuracy = correct / total if total > 0 else 0
-    print(f"Letter Position Accuracy: {accuracy:.4f} ({correct}/{total})")
-    
-    return accuracy, results
-
-# Run evaluation
-count_accuracy, count_results = evaluate_letter_count(model, tokenizer, test_dataset)
-position_accuracy, position_results = evaluate_letter_position(model, tokenizer, test_dataset)
-
-# Log results to W&B
-wandb.log({
-    "letter_count_accuracy": count_accuracy,
-    "letter_position_accuracy": position_accuracy,
-    "count_examples": wandb.Table(dataframe=pd.DataFrame(count_results[:20])),
-    "position_examples": wandb.Table(dataframe=pd.DataFrame(position_results[:20]))
-})
-
-# Save results locally
+import argparse
+import os
 import json
-with open("results/baseline_evaluation/metrics.json", "w") as f:
-    json.dump({
+import pandas as pd
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="Evaluate baseline GPT-2 model on spelling tasks")
+    parser.add_argument("--model", type=str, default="gpt2", help="Model to evaluate")
+    parser.add_argument("--output_dir", type=str, default="results/evaluation", help="Directory to save results")
+    parser.add_argument("--log_wandb", action="store_true", help="Whether to log results to W&B")
+    return parser.parse_args()
+
+def main():
+    args = parse_args()
+    
+    # Create output directories
+    os.makedirs(f"{args.output_dir}/data", exist_ok=True)
+    os.makedirs(f"{args.output_dir}/figures", exist_ok=True)
+    os.makedirs(f"{args.output_dir}/reports", exist_ok=True)
+    
+    # Initialize W&B if requested
+    if args.log_wandb:
+        wandb.init(project="llm-spelling-finetuning", name="baseline-evaluation")
+    
+    # Load base model and tokenizer
+    model_name = args.model
+    model = GPT2LMHeadModel.from_pretrained(model_name)
+    model.eval()
+    tokenizer = GPT2Tokenizer.from_pretrained(model_name)
+    tokenizer.pad_token = tokenizer.eos_token
+    
+    # Load test dataset
+    from datasets import load_dataset
+    test_dataset = load_dataset("YOUR-USERNAME/llm-spelling-dataset", split="test")
+    
+    # Define generation function
+    def generate_answer(model, tokenizer, question, max_length=10):
+        inputs = tokenizer(question, return_tensors="pt")
+        with torch.no_grad():
+            outputs = model.generate(
+                inputs.input_ids,
+                max_length=len(inputs.input_ids[0]) + max_length,
+                pad_token_id=tokenizer.eos_token_id,
+                do_sample=False
+            )
+        response = tokenizer.decode(outputs[0][len(inputs.input_ids[0]):], skip_special_tokens=True)
+        # Extract just the first token/character for letter position or first number for letter count
+        if "How many" in question:
+            # Extract first number
+            import re
+            numbers = re.findall(r'\d+', response)
+            return numbers[0] if numbers else response.strip()
+        else:
+            # Extract first character
+            return response.strip()[0] if response.strip() else ""
+    
+    # Evaluate on letter count questions
+    def evaluate_letter_count(model, tokenizer, dataset):
+        correct = 0
+        total = 0
+        results = []
+        
+        for item in dataset:
+            if item["question_type"] != "letter_count":
+                continue
+                
+            prediction = generate_answer(model, tokenizer, item["question"])
+            is_correct = prediction == item["answer"]
+            
+            results.append({
+                "question": item["question"],
+                "expected": item["answer"],
+                "prediction": prediction,
+                "correct": is_correct
+            })
+            
+            correct += int(is_correct)
+            total += 1
+        
+        accuracy = correct / total if total > 0 else 0
+        print(f"Letter Count Accuracy: {accuracy:.4f} ({correct}/{total})")
+        
+        return accuracy, results
+    
+    # Evaluate on letter position questions
+    def evaluate_letter_position(model, tokenizer, dataset):
+        correct = 0
+        total = 0
+        results = []
+        
+        for item in dataset:
+            if item["question_type"] != "letter_position":
+                continue
+                
+            prediction = generate_answer(model, tokenizer, item["question"])
+            is_correct = prediction.lower() == item["answer"].lower()
+            
+            results.append({
+                "question": item["question"],
+                "expected": item["answer"],
+                "prediction": prediction,
+                "correct": is_correct
+            })
+            
+            correct += int(is_correct)
+            total += 1
+        
+        accuracy = correct / total if total > 0 else 0
+        print(f"Letter Position Accuracy: {accuracy:.4f} ({correct}/{total})")
+        
+        return accuracy, results
+    
+    # Run evaluation
+    count_accuracy, count_results = evaluate_letter_count(model, tokenizer, test_dataset)
+    position_accuracy, position_results = evaluate_letter_position(model, tokenizer, test_dataset)
+    
+    # Log results to W&B if requested
+    if args.log_wandb:
+        wandb.log({
+            "letter_count_accuracy": count_accuracy,
+            "letter_position_accuracy": position_accuracy,
+            "count_examples": wandb.Table(dataframe=pd.DataFrame(count_results[:20])),
+            "position_examples": wandb.Table(dataframe=pd.DataFrame(position_results[:20]))
+        })
+    
+    # Save results locally
+    metrics_data = {
         "letter_count_accuracy": count_accuracy,
         "letter_position_accuracy": position_accuracy,
         "count_results": count_results,
         "position_results": position_results
-    }, f, indent=2)
+    }
+    
+    with open(f"{args.output_dir}/data/metrics.json", "w") as f:
+        json.dump(metrics_data, f, indent=2)
+    
+    # Generate visualizations
+    from src.evaluation.visualization import create_accuracy_chart, create_error_analysis
+    create_accuracy_chart(metrics_data, f"{args.output_dir}/figures/accuracy.png")
+    create_error_analysis(metrics_data, f"{args.output_dir}/figures/error_analysis.png")
+    
+    # Generate HTML report
+    from src.evaluation.report import generate_html_report
+    generate_html_report(metrics_data, f"{args.output_dir}/reports/baseline_report.html")
+    
+    print(f"Evaluation complete. Results saved to {args.output_dir}")
+
+if __name__ == "__main__":
+    main()
 ```
 
 # Test Strategy:
-1. Verify the evaluation script runs without errors
-2. Confirm output format is correct (single integer for count, single letter for position)
-3. Check that results are properly logged to W&B
-4. Verify baseline performance metrics are saved to `results/baseline_evaluation/metrics.json`
-5. Create visualizations in `results/baseline_evaluation/figures/` comparing performance on different question types
-6. Analyze error patterns in baseline model predictions and document in `results/baseline_evaluation/analysis.json`
-7. Ensure documentation is complete in `docs/evaluation.md`, `docs/metrics.md`, and `docs/baseline_results.md`
-8. Validate that notebooks in `notebooks/` can load and visualize the evaluation results
+1. Verify the evaluation scripts run without errors
+2. Test command-line arguments for flexibility
+3. Confirm output format is correct (single integer for count, single letter for position)
+4. Check that results are properly logged to W&B when specified
+5. Verify baseline performance metrics are saved to `results/evaluation/data/metrics.json`
+6. Ensure visualizations are correctly generated in `results/evaluation/figures/`
+7. Validate HTML reports are generated in `results/evaluation/reports/`
+8. Test error handling for edge cases
+9. Analyze error patterns in baseline model predictions and document in `results/evaluation/data/analysis.json`
+10. Ensure documentation is complete in `docs/evaluation.md`, `docs/metrics.md`, and `docs/baseline_results.md`
+11. Verify that the Python scripts can be imported and used as modules by other components
 
 # Subtasks:
 ## 1. Evaluation Framework Setup with Metrics Definition [pending]
@@ -167,29 +208,41 @@ Create a comprehensive evaluation framework that includes: 1) Define key metrics
 ### Dependencies: 5.1
 ### Description: Implement specific evaluation components for assessing model performance on letter count questions.
 ### Details:
-Develop evaluation components for letter count questions including: 1) Create a dataset of letter count questions with ground truth answers; 2) Implement functions in `src/evaluation/letter_count.py` to process model predictions for letter count questions; 3) Calculate accuracy and precision metrics specifically for count-based questions; 4) Establish baseline performance expectations for this question type; 5) Create validation tests to ensure the evaluation implementation is working correctly. Store results in `results/baseline_evaluation/metrics.json`.
+Develop evaluation components for letter count questions including: 1) Create a dataset of letter count questions with ground truth answers; 2) Implement functions in `src/evaluation/letter_count.py` to process model predictions for letter count questions; 3) Calculate accuracy and precision metrics specifically for count-based questions; 4) Establish baseline performance expectations for this question type; 5) Create validation tests to ensure the evaluation implementation is working correctly. Store results in `results/evaluation/data/metrics.json`.
 
 ## 3. Letter Position Question Evaluation Implementation [pending]
 ### Dependencies: 5.1
 ### Description: Implement specific evaluation components for assessing model performance on letter position questions.
 ### Details:
-Develop evaluation components for letter position questions including: 1) Create a dataset of letter position questions with ground truth answers; 2) Implement functions in `src/evaluation/letter_position.py` to process model predictions for position-based questions; 3) Calculate accuracy and position-specific metrics (e.g., distance from correct position); 4) Establish baseline performance expectations for this question type; 5) Create validation tests to ensure the evaluation implementation is working correctly. Store results in `results/baseline_evaluation/metrics.json`.
+Develop evaluation components for letter position questions including: 1) Create a dataset of letter position questions with ground truth answers; 2) Implement functions in `src/evaluation/letter_position.py` to process model predictions for position-based questions; 3) Calculate accuracy and position-specific metrics (e.g., distance from correct position); 4) Establish baseline performance expectations for this question type; 5) Create validation tests to ensure the evaluation implementation is working correctly. Store results in `results/evaluation/data/metrics.json`.
 
 ## 4. Results Analysis and Visualization [pending]
 ### Dependencies: 5.2, 5.3
 ### Description: Analyze evaluation results across question types and create visualizations to communicate model performance.
 ### Details:
-Develop comprehensive analysis and visualization components including: 1) Aggregate results from both question types to assess overall model performance and store in `results/baseline_evaluation/analysis.json`; 2) Create comparative visualizations in `results/baseline_evaluation/figures/` showing performance across different metrics and question types; 3) Implement statistical analysis to identify performance patterns and areas for improvement; 4) Generate automated performance reports with key findings and recommendations in `docs/baseline_results.md`; 5) Create interactive notebooks `notebooks/baseline_analysis.ipynb` and `notebooks/baseline_visualization.ipynb` for exploring evaluation results in detail.
+Develop comprehensive analysis and visualization components including: 1) Aggregate results from both question types to assess overall model performance and store in `results/evaluation/data/analysis.json`; 2) Create comparative visualizations in `results/evaluation/figures/` showing performance across different metrics and question types; 3) Implement statistical analysis to identify performance patterns and areas for improvement; 4) Generate automated performance reports with key findings and recommendations in `docs/baseline_results.md`; 5) Create visualization utilities in `src/evaluation/visualization.py` for generating consistent plots and charts; 6) Implement HTML report generation in `src/evaluation/report.py` to create comprehensive evaluation reports.
 
 ## 5. Common Utilities Implementation [pending]
 ### Dependencies: 5.1
 ### Description: Implement shared utility functions for evaluation components
 ### Details:
-Create `src/evaluation/utils.py` with common functions needed across evaluation components including: 1) Data loading and preprocessing utilities; 2) Result formatting and standardization functions; 3) File I/O helpers for consistent saving and loading of results; 4) Metric calculation helpers; 5) Visualization utilities that can be used by both evaluation scripts and notebooks.
+Create `src/evaluation/utils.py` with common functions needed across evaluation components including: 1) Data loading and preprocessing utilities; 2) Result formatting and standardization functions; 3) File I/O helpers for consistent saving and loading of results; 4) Metric calculation helpers; 5) Command-line argument parsing utilities; 6) Configuration loading and validation functions.
 
 ## 6. Documentation Completion [pending]
 ### Dependencies: 5.1, 5.2, 5.3, 5.4
 ### Description: Complete all documentation for the evaluation framework and results
 ### Details:
 Ensure all documentation is complete and comprehensive: 1) Create `docs/evaluation.md` describing the overall evaluation methodology; 2) Create `docs/metrics.md` with detailed explanations of all metrics used; 3) Create `docs/baseline_results.md` with interpretation of baseline model performance; 4) Add inline documentation to all code files; 5) Create README files for each directory explaining its purpose and contents.
+
+## 7. Command-line Interface Implementation [pending]
+### Dependencies: 5.1, 5.2, 5.3
+### Description: Implement command-line interfaces for all evaluation scripts
+### Details:
+Create robust command-line interfaces for all evaluation scripts: 1) Implement argument parsing for all evaluation components; 2) Add options for model selection, output directories, and evaluation parameters; 3) Create help documentation for all CLI options; 4) Implement proper error handling and user feedback; 5) Create a main entry point script that can run the complete evaluation pipeline.
+
+## 8. HTML Report Generation [pending]
+### Dependencies: 5.4
+### Description: Implement HTML report generation for evaluation results
+### Details:
+Create a report generation module in `src/evaluation/report.py` that: 1) Takes evaluation results as input; 2) Generates comprehensive HTML reports with embedded visualizations; 3) Includes summary statistics and key findings; 4) Provides detailed breakdowns of model performance; 5) Highlights areas for improvement; 6) Saves reports to `results/evaluation/reports/`.
 

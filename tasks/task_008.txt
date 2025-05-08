@@ -33,6 +33,14 @@
   - Metrics tracking: `src/models/metrics.py`
   - Model utilities: `src/models/utils.py`
 
+- Deployment Components:
+  - Model export: `src/deployment/model_export.py`
+  - API implementation: `src/deployment/api.py`
+  - Performance monitoring: `src/deployment/monitoring.py`
+  - Load testing: `src/deployment/benchmark.py`
+  - Performance visualization: `src/deployment/visualization.py`
+  - Report generation: `src/deployment/report.py`
+
 - Configurations:
   - Training config: `configs/training/config.yaml`
   - Model config: `configs/models/model_config.yaml`
@@ -44,11 +52,11 @@
   - Training logs: `results/training_logs/`
   - Performance metrics: `results/metrics/`
   - Error analysis: `results/error_analysis/`
-
-- Notebooks:
-  - Training monitor: `notebooks/training_monitor.ipynb`
-  - Performance analysis: `notebooks/performance_analysis.ipynb`
-  - Error analysis: `notebooks/error_analysis.ipynb`
+  - Deployment results: `results/deployment/`
+    - Figures: `results/deployment/figures/`
+    - Reports: `results/deployment/reports/`
+    - Data: `results/deployment/data/`
+    - Models: `results/deployment/models/`
 
 - Documentation:
   - Training guide: `docs/training.md`
@@ -203,11 +211,18 @@ def run_experiments(config_paths):
 3. Check that checkpoints are saved correctly to `checkpoints/` directory
 4. Verify early stopping works as expected
 5. Test that the best model is loaded at the end of training
-6. Compare performance across different hyperparameter configurations using `notebooks/performance_analysis.ipynb`
+6. Compare performance across different hyperparameter configurations using Python scripts
 7. Ensure all experiment results are properly saved to `results/metrics/` and `results/training_logs/`
 8. Verify the environment is properly set up with GPU access before starting experiments
 9. Validate that all configuration files in `configs/` directory are properly loaded and applied
-10. Test error analysis functionality using `notebooks/error_analysis.ipynb`
+10. Test deployment scripts in `src/deployment/` directory:
+    - Verify model export functionality in `model_export.py`
+    - Test API implementation in `api.py`
+    - Validate monitoring capabilities in `monitoring.py`
+    - Check benchmark functionality in `benchmark.py`
+    - Test visualization generation in `visualization.py`
+    - Verify HTML report generation in `report.py`
+11. Ensure all deployment results are correctly saved to the appropriate directories in `results/deployment/`
 
 # Subtasks:
 ## 1. Training Script Implementation [pending]
@@ -243,11 +258,32 @@ Develop a hyperparameter experimentation system that: supports grid search and r
 ### Dependencies: 8.4
 ### Description: Build a comprehensive system to track, visualize and compare experiment results
 ### Details:
-Implement a results management system that: stores metrics for all experiments in `results/metrics/`, generates comparative visualizations across runs using `notebooks/performance_analysis.ipynb`, calculates statistical significance of improvements, exports results in standard formats, provides filtering and sorting capabilities, and integrates with external visualization tools if needed. Ensure all results are properly saved to persistent storage accessible after cloud GPU sessions end. Implement error analysis functionality in `notebooks/error_analysis.ipynb` to help understand model performance and limitations.
+Implement a results management system that: stores metrics for all experiments in `results/metrics/`, generates comparative visualizations using Python scripts, calculates statistical significance of improvements, exports results in standard formats, provides filtering and sorting capabilities, and integrates with external visualization tools if needed. Ensure all results are properly saved to persistent storage accessible after cloud GPU sessions end. Implement error analysis functionality in `src/deployment/visualization.py` and `src/deployment/report.py` to help understand model performance and limitations. Use the deployment scripts to generate HTML reports and visualizations that will be saved to `results/deployment/reports/` and `results/deployment/figures/` respectively.
 
 ## 6. Cloud Environment Setup Guide [pending]
 ### Dependencies: None
 ### Description: Create documentation for setting up the required cloud GPU environment
 ### Details:
 Develop a comprehensive guide in `docs/training.md` for setting up the training environment on Google Colab or lightning.ai, including: step-by-step instructions for accessing GPU resources, installing Unsloth and other dependencies, configuring W&B integration, handling file storage and persistence, and troubleshooting common issues. Include examples of notebook configurations that work well for this specific fine-tuning task. Create additional documentation in `docs/model.md` for model architecture details and in `docs/results.md` for analyzing training results.
+
+## 7. Deployment Scripts Implementation [pending]
+### Dependencies: 8.5
+### Description: Develop Python scripts for model deployment and performance analysis
+### Details:
+Create a suite of Python scripts in the `src/deployment/` directory to handle all aspects of model deployment and analysis:
+
+1. `model_export.py`: Implement model export and conversion functionality with command-line interface
+2. `api.py`: Create a FastAPI implementation for model serving
+3. `monitoring.py`: Develop performance monitoring capabilities
+4. `benchmark.py`: Implement load testing functionality
+5. `visualization.py`: Create performance visualization tools
+6. `report.py`: Develop HTML report generation
+
+Ensure all scripts have proper command-line interfaces for flexibility and can be run independently. Implement proper Python packaging with clear separation of concerns. All output from these scripts should be saved to the appropriate directories under `results/deployment/`:
+- Figures: `results/deployment/figures/`
+- Reports: `results/deployment/reports/`
+- Performance data: `results/deployment/data/`
+- Exported models: `results/deployment/models/`
+
+This approach will improve maintainability, version control, and integration with the rest of the codebase while maintaining all deployment capabilities.
 

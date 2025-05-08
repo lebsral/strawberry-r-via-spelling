@@ -3,10 +3,10 @@
 # Status: pending
 # Dependencies: 1, 5
 # Priority: medium
-# Description: Create a configuration system for hyperparameter experiments and set up experiment tracking with Weights & Biases.
+# Description: Create a configuration system for hyperparameter experiments and set up experiment tracking with Weights & Biases using Python scripts instead of notebooks.
 # Details:
 1. Create a configuration system for hyperparameter experiments
-2. Set up a Jupyter notebook for experiment tracking
+2. Set up Python scripts for experiment tracking
 3. Create a script that can run training with different hyperparameters
 4. Set up W&B for experiment tracking
 5. Define a clear set of metrics for comparing experiments
@@ -16,16 +16,20 @@ File Structure:
 - Model configs: `configs/hyperparameters/models/`
 - Training configs: `configs/hyperparameters/training/`
 - Search space definitions: `configs/hyperparameters/search_spaces/`
-- Config manager: `src/training/config_manager.py`
-- W&B integration: `src/training/wandb_logger.py`
-- Grid search: `src/training/grid_search.py`
-- Experiment runner: `src/training/experiment_runner.py`
-- Experiment results: `results/hyperparameter_tuning/`
-- Best configurations: `results/hyperparameter_tuning/best_configs/`
-- Performance plots: `results/hyperparameter_tuning/plots/`
-- Comparison reports: `results/hyperparameter_tuning/reports/`
-- Tuning analysis notebook: `notebooks/hyperparameter_analysis.ipynb`
-- Results comparison notebook: `notebooks/tuning_comparison.ipynb`
+
+Python Module Structure:
+- Config manager: `src/tuning/config.py`
+- W&B integration: `src/tuning/wandb_integration.py`
+- Grid search: `src/tuning/grid.py`
+- Experiment executor: `src/tuning/executor.py`
+- Visualization tools: `src/tuning/visualization.py`
+- Report generation: `src/tuning/report.py`
+
+Results Structure:
+- Experiment results: `results/tuning/data/`
+- Best configurations: `results/tuning/configs/`
+- Performance plots: `results/tuning/figures/`
+- HTML reports: `results/tuning/reports/`
 - Documentation: `docs/hyperparameter_tuning.md`, `docs/config_system.md`, `docs/tuning_results.md`
 
 Implementation:
@@ -34,6 +38,7 @@ import yaml
 import os
 from datetime import datetime
 import wandb
+import argparse
 
 def create_experiment_config(
     exp_name,
@@ -137,17 +142,46 @@ def create_wandb_sweep():
     
     sweep_id = wandb.sweep(sweep_config, project="llm-spelling-finetuning")
     return sweep_id
+
+# Command-line interface for experiment execution
+def main():
+    parser = argparse.ArgumentParser(description="Run hyperparameter tuning experiments")
+    parser.add_argument("--mode", choices=["grid", "sweep", "single"], default="single",
+                        help="Experiment mode: grid search, W&B sweep, or single experiment")
+    parser.add_argument("--name", type=str, default="experiment",
+                        help="Base name for the experiment")
+    parser.add_argument("--config", type=str, help="Path to a specific config file (for single mode)")
+    
+    args = parser.parse_args()
+    
+    if args.mode == "grid":
+        configs = create_grid_search_configs(args.name)
+        print(f"Created {len(configs)} configurations for grid search")
+    elif args.mode == "sweep":
+        sweep_id = create_wandb_sweep()
+        print(f"Created W&B sweep with ID: {sweep_id}")
+    elif args.mode == "single":
+        if args.config:
+            print(f"Using provided config: {args.config}")
+        else:
+            config_path = create_experiment_config(args.name)
+            print(f"Created single experiment config: {config_path}")
+
+if __name__ == "__main__":
+    main()
 ```
 
 # Test Strategy:
 1. Verify configuration system creates valid YAML files in the correct directories (`configs/hyperparameters/`)
-2. Confirm W&B experiment tracking is properly set up through `src/training/wandb_logger.py`
+2. Confirm W&B experiment tracking is properly set up through `src/tuning/wandb_integration.py`
 3. Test that the hyperparameter grid generates the expected number of configurations
 4. Verify W&B sweep configuration is valid
-5. Test the experiment notebooks: `notebooks/hyperparameter_analysis.ipynb` and `notebooks/tuning_comparison.ipynb`
+5. Test the command-line interfaces for all Python scripts
 6. Ensure metrics for comparing experiments are clearly defined
-7. Verify that results are properly saved to `results/hyperparameter_tuning/` directories
-8. Test the experiment runner to ensure it correctly uses configurations and logs results
+7. Verify that results are properly saved to `results/tuning/` directories
+8. Test the experiment executor to ensure it correctly uses configurations and logs results
+9. Verify HTML report generation produces valid and informative reports
+10. Test visualization tools to ensure they generate the expected figures
 
 # Subtasks:
 ## 1. Configuration System Design and Implementation [pending]
@@ -160,29 +194,35 @@ Create a configuration framework that supports defining, validating, and loading
 ### Dependencies: 6.1
 ### Description: Implement experiment tracking infrastructure with Weights & Biases integration
 ### Details:
-Set up W&B project structure for hyperparameter experiments. Implement logging mechanisms for metrics, hyperparameters, and model artifacts in `src/training/wandb_logger.py`. Create utilities for experiment initialization, updating, and finalization. Design a consistent naming convention for experiments. Implement automatic synchronization between local experiment state and W&B. Add support for experiment grouping and comparison within the W&B interface.
+Set up W&B project structure for hyperparameter experiments. Implement logging mechanisms for metrics, hyperparameters, and model artifacts in `src/tuning/wandb_integration.py`. Create utilities for experiment initialization, updating, and finalization. Design a consistent naming convention for experiments. Implement automatic synchronization between local experiment state and W&B. Add support for experiment grouping and comparison within the W&B interface.
 
 ## 3. Hyperparameter Grid Definition and Validation [pending]
 ### Dependencies: 6.1
 ### Description: Create a system for defining and validating hyperparameter search spaces
 ### Details:
-Implement a framework for defining hyperparameter search spaces including random, grid, and Bayesian optimization strategies in `src/training/grid_search.py`. Create validation mechanisms to ensure search spaces are properly defined. Support both continuous ranges and discrete value sets for different hyperparameter types. Implement utilities for sampling from defined search spaces. Add functionality to estimate the total number of trials based on the search space definition. Create interfaces for custom search space definitions. Store search space definitions in `configs/hyperparameters/search_spaces/`.
+Implement a framework for defining hyperparameter search spaces including random, grid, and Bayesian optimization strategies in `src/tuning/grid.py`. Create validation mechanisms to ensure search spaces are properly defined. Support both continuous ranges and discrete value sets for different hyperparameter types. Implement utilities for sampling from defined search spaces. Add functionality to estimate the total number of trials based on the search space definition. Create interfaces for custom search space definitions. Store search space definitions in `configs/hyperparameters/search_spaces/`.
 
 ## 4. Experiment Execution Framework [pending]
 ### Dependencies: 6.1, 6.2, 6.3
 ### Description: Build a framework for executing hyperparameter tuning experiments
 ### Details:
-Implement a job scheduler in `src/training/experiment_runner.py` for running multiple trials with different hyperparameter configurations. Create mechanisms for early stopping of underperforming trials. Design parallel execution capabilities to utilize available computational resources efficiently. Implement checkpointing and resumption of interrupted experiments. Add support for distributed training across multiple machines. Create a monitoring system for active experiments with real-time status updates. Save experiment results to `results/hyperparameter_tuning/` with best configurations in `results/hyperparameter_tuning/best_configs/`.
+Implement a job scheduler in `src/tuning/executor.py` for running multiple trials with different hyperparameter configurations. Create mechanisms for early stopping of underperforming trials. Design parallel execution capabilities to utilize available computational resources efficiently. Implement checkpointing and resumption of interrupted experiments. Add support for distributed training across multiple machines. Create a monitoring system for active experiments with real-time status updates. Save experiment results to `results/tuning/data/` with best configurations in `results/tuning/configs/`. Implement command-line interfaces for flexible experiment execution.
 
-## 5. Results Comparison and Visualization System [pending]
+## 5. Results Visualization and Reporting System [pending]
 ### Dependencies: 6.2, 6.4
-### Description: Develop tools for comparing and visualizing hyperparameter tuning results
+### Description: Develop tools for visualizing and reporting hyperparameter tuning results
 ### Details:
-Create visualization tools for comparing metrics across different hyperparameter configurations. Implement automated analysis to identify the most influential hyperparameters. Design interactive dashboards for exploring the hyperparameter search space in `notebooks/hyperparameter_analysis.ipynb` and `notebooks/tuning_comparison.ipynb`. Add functionality to export comparison reports to `results/hyperparameter_tuning/reports/`. Implement statistical analysis tools to evaluate the significance of performance differences. Create recommendation system for suggesting optimal hyperparameter configurations for future experiments. Generate performance plots in `results/hyperparameter_tuning/plots/`.
+Create visualization tools in `src/tuning/visualization.py` for comparing metrics across different hyperparameter configurations. Implement automated analysis to identify the most influential hyperparameters. Design HTML report generation in `src/tuning/report.py` for exploring the hyperparameter search space. Add functionality to export comparison reports to `results/tuning/reports/`. Implement statistical analysis tools to evaluate the significance of performance differences. Create recommendation system for suggesting optimal hyperparameter configurations for future experiments. Generate performance plots in `results/tuning/figures/`.
 
 ## 6. Documentation and User Guides [pending]
 ### Dependencies: 6.1, 6.2, 6.3, 6.4, 6.5
 ### Description: Create comprehensive documentation for the hyperparameter tuning system
 ### Details:
-Develop detailed documentation covering the hyperparameter tuning system in `docs/hyperparameter_tuning.md`. Create a configuration guide explaining the structure and usage of the configuration system in `docs/config_system.md`. Write a results analysis guide detailing how to interpret and utilize tuning results in `docs/tuning_results.md`. Include examples, best practices, and troubleshooting information in all documentation.
+Develop detailed documentation covering the hyperparameter tuning system in `docs/hyperparameter_tuning.md`. Create a configuration guide explaining the structure and usage of the configuration system in `docs/config_system.md`. Write a results analysis guide detailing how to interpret and utilize tuning results in `docs/tuning_results.md`. Include examples, best practices, and troubleshooting information in all documentation. Document command-line interfaces and provide usage examples for all scripts.
+
+## 7. Python Package Structure and Testing [pending]
+### Dependencies: 6.1, 6.2, 6.3, 6.4, 6.5
+### Description: Implement proper Python packaging and testing for the tuning infrastructure
+### Details:
+Organize the tuning code as a proper Python package with appropriate imports and dependencies. Create unit tests for each component of the tuning infrastructure. Implement integration tests to verify the end-to-end workflow. Set up continuous integration for automated testing. Create a requirements.txt or setup.py file to manage dependencies. Ensure compatibility with the rest of the codebase. Add type hints and docstrings for better code documentation.
 
