@@ -3,7 +3,7 @@
 # Status: pending
 # Dependencies: 6
 # Priority: high
-# Description: Set up Unsloth for optimized LoRA fine-tuning of the GPT-2 model with memory efficiency optimizations in a cloud GPU environment (Google Colab or Lightning.ai), using Python scripts instead of notebooks for better maintainability and version control.
+# Description: Set up Unsloth for optimized LoRA fine-tuning of the GPT-2 model with memory efficiency optimizations in a cloud GPU environment (Google Colab or Lightning.ai), using Python scripts instead of notebooks for better maintainability and version control. Configure the system to handle separate training (spelling variations) and evaluation (position/count) datasets.
 # Details:
 **NOTE: This task requires a cloud GPU environment. Do not attempt on local Mac.**
 
@@ -13,6 +13,8 @@
 4. Set up Flash Attention 2 if available on cloud GPU hardware
 5. Implement proper tokenization for instruction fine-tuning
 6. Configure GPU memory optimizations
+7. Set up separate handling for spelling training data and position/count evaluation data
+8. Implement efficient evaluation of position/count tasks during training
 
 File Structure:
 - Environment setup: `src/unsloth/environment.py`
@@ -21,12 +23,14 @@ File Structure:
 - Training setup: `src/unsloth/trainer.py`
 - Training monitoring: `src/unsloth/monitor.py`
 - HTML report generation: `src/unsloth/report.py`
+- Evaluation utilities: `src/unsloth/evaluation.py`
 
 Output Structure:
 - `results/unsloth/figures/` (All PNG/PDF visualizations)
 - `results/unsloth/reports/` (HTML reports)
 - `results/unsloth/data/` (Training metrics)
 - `results/unsloth/configs/` (Model configurations)
+- `results/unsloth/evaluation/` (Position/count evaluation results)
 
 Implementation:
 ```python
@@ -73,8 +77,8 @@ def load_unsloth_model(config):
     
     return model, tokenizer
 
-# Prepare dataset for Unsloth
-def prepare_unsloth_dataset(dataset):
+# Prepare spelling dataset for Unsloth
+def prepare_spelling_dataset(dataset, tokenizer):
     def formatting_prompts_func(examples):
         questions = examples["question"]
         answers = examples["answer"]
@@ -99,13 +103,40 @@ def prepare_unsloth_dataset(dataset):
     formatted_dataset = dataset.map(formatting_prompts_func, batched=True)
     return formatted_dataset
 
-# Set up Unsloth trainer
-def create_unsloth_trainer(model, tokenizer, train_dataset, val_dataset, config):
+# Prepare position/count dataset for evaluation
+def prepare_position_count_dataset(dataset, tokenizer):
+    def formatting_prompts_func(examples):
+        questions = examples["question"]
+        answers = examples["answer"]
+
+        # Special Unsloth prompt format for position/count tasks
+        prompts = [
+            f"<human>: {question}\n<assistant>: "
+            for question in questions
+        ]
+
+        # Format responses with EOS token
+        formatted_responses = [
+            f"{answer}{tokenizer.eos_token}"
+            for answer in answers
+        ]
+
+        return {
+            "prompt": prompts,
+            "completion": formatted_responses,
+            "task_type": examples.get("task_type", ["position_count"] * len(questions))
+        }
+    
+    formatted_dataset = dataset.map(formatting_prompts_func, batched=True)
+    return formatted_dataset
+
+# Set up Unsloth trainer with dual dataset support
+def create_unsloth_trainer(model, tokenizer, train_dataset, val_dataset, eval_dataset, config):
     trainer = FastLanguageModel.get_trainer(
         model=model,
         tokenizer=tokenizer,
         train_dataset=train_dataset,
-        eval_dataset=val_dataset,
+        eval_dataset=val_dataset,  # Spelling validation dataset
         args=FastLanguageModel.get_train_args(
             output_dir=f"./spelling-lora-{config['experiment_name']}",
             per_device_train_batch_size=config["training_config"]["per_device_train_batch_size"],
@@ -127,7 +158,37 @@ def create_unsloth_trainer(model, tokenizer, train_dataset, val_dataset, config)
         data_collator=FastLanguageModel.get_data_collator(tokenizer=tokenizer),
     )
     
+    # Add position/count evaluation dataset as a custom attribute
+    trainer.position_count_dataset = eval_dataset
+    
+    # Add custom evaluation callback for position/count tasks
+    class PositionCountEvaluationCallback(TrainerCallback):
+        def on_evaluate(self, args, state, control, **kwargs):
+            # Run evaluation on position/count dataset
+            metrics = evaluate_position_count(trainer.model, trainer.tokenizer, 
+                                             trainer.position_count_dataset, 
+                                             config["evaluation_config"])
+            # Log metrics to wandb
+            wandb.log({f"position_count_{k}": v for k, v in metrics.items()}, 
+                      step=state.global_step)
+    
+    trainer.add_callback(PositionCountEvaluationCallback())
+    
     return trainer
+
+# Evaluate model on position/count tasks
+def evaluate_position_count(model, tokenizer, dataset, config):
+    # Set up metrics
+    metrics = {
+        "position_accuracy": 0.0,
+        "count_accuracy": 0.0,
+        "overall_accuracy": 0.0
+    }
+    
+    # Implement evaluation logic for position/count tasks
+    # This would generate predictions and compare against ground truth
+    
+    return metrics
 
 # Main training function
 def train_with_unsloth(config_path):
@@ -144,15 +205,17 @@ def train_with_unsloth(config_path):
     # Load model and tokenizer
     model, tokenizer = load_unsloth_model(config)
     
-    # Load dataset
-    dataset = load_dataset("YOUR-USERNAME/llm-spelling-dataset")
+    # Load datasets
+    spelling_dataset = load_dataset("YOUR-USERNAME/llm-spelling-dataset")
+    position_count_dataset = load_dataset("YOUR-USERNAME/llm-position-count-dataset")
     
-    # Prepare dataset for Unsloth
-    train_dataset = prepare_unsloth_dataset(dataset["train"])
-    val_dataset = prepare_unsloth_dataset(dataset["validation"])
+    # Prepare datasets for Unsloth
+    train_dataset = prepare_spelling_dataset(spelling_dataset["train"], tokenizer)
+    val_dataset = prepare_spelling_dataset(spelling_dataset["validation"], tokenizer)
+    eval_dataset = prepare_position_count_dataset(position_count_dataset["validation"], tokenizer)
     
     # Create trainer
-    trainer = create_unsloth_trainer(model, tokenizer, train_dataset, val_dataset, config)
+    trainer = create_unsloth_trainer(model, tokenizer, train_dataset, val_dataset, eval_dataset, config)
     
     # Train model
     trainer.train()
@@ -160,14 +223,32 @@ def train_with_unsloth(config_path):
     # Save model
     trainer.save_model()
     
-    # Evaluate model
-    eval_results = trainer.evaluate()
-    wandb.log(eval_results)
+    # Final evaluation on both datasets
+    spelling_eval_results = trainer.evaluate()
+    position_count_eval_results = evaluate_position_count(model, tokenizer, eval_dataset, config)
+    
+    # Log final results
+    wandb.log({
+        **spelling_eval_results,
+        **{f"final_position_count_{k}": v for k, v in position_count_eval_results.items()}
+    })
+    
+    # Generate comprehensive report
+    generate_evaluation_report(spelling_eval_results, position_count_eval_results, config)
     
     # Close W&B
     wandb.finish()
     
-    return eval_results
+    return {
+        "spelling": spelling_eval_results,
+        "position_count": position_count_eval_results
+    }
+
+# Generate comprehensive evaluation report
+def generate_evaluation_report(spelling_results, position_count_results, config):
+    # Create HTML report with visualizations for both tasks
+    # Save to results/unsloth/reports/
+    pass
 ```
 
 # Test Strategy:
@@ -184,6 +265,11 @@ def train_with_unsloth(config_path):
 11. Test the integration between all Python modules
 12. Validate output directory structure and file generation
 13. Ensure proper error handling and logging in scripts
+14. Test loading and processing of both spelling and position/count datasets
+15. Verify that evaluation metrics for both tasks are correctly calculated and logged
+16. Test the transfer performance from spelling training to position/count evaluation
+17. Validate that memory usage remains optimized when handling both datasets
+18. Test the custom evaluation callback for position/count tasks
 
 # Subtasks:
 ## 1. Environment Setup with Optimizations [pending]
@@ -261,4 +347,32 @@ File locations:
 - Main CLI entry point: `src/unsloth/__main__.py`
 
 **NOTE: While development can be done locally, testing should be performed in a cloud GPU environment.**
+
+## 7. Dual Dataset Handling Implementation [pending]
+### Dependencies: 7.3
+### Description: Implement efficient handling of both spelling training data and position/count evaluation data
+### Details:
+Create separate data processing pipelines for spelling and position/count datasets. Implement efficient data loading and caching mechanisms for both datasets. Configure memory-efficient data handling during training and evaluation phases. Implement dataset-specific tokenization and formatting. Validate dual dataset handling with performance metrics.
+
+File location:
+- Dataset preparation: `src/unsloth/dataset.py`
+- Dual dataset handler: `src/unsloth/dual_dataset.py`
+
+**NOTE: This task requires a cloud GPU environment (Google Colab or Lightning.ai). Do not attempt on local Mac.**
+
+## 8. Position/Count Task Evaluation System [pending]
+### Dependencies: 7.4, 7.7
+### Description: Develop evaluation system for position/count tasks during spelling variation training
+### Details:
+Implement custom evaluation callback for position/count tasks. Create metrics calculation for position and count accuracy. Develop efficient evaluation pipeline that runs during training. Set up proper logging of transfer metrics. Implement visualization utilities for transfer performance. Create comprehensive reporting for both spelling and position/count performance.
+
+File locations:
+- Evaluation utilities: `src/unsloth/evaluation.py`
+- Training monitoring: `src/unsloth/monitor.py`
+
+Output locations:
+- `results/unsloth/evaluation/` (Position/count evaluation results)
+- `results/unsloth/figures/` (Transfer performance visualizations)
+
+**NOTE: This task requires a cloud GPU environment (Google Colab or Lightning.ai). Do not attempt on local Mac.**
 

@@ -3,18 +3,19 @@
 # Status: pending
 # Dependencies: 1, 5
 # Priority: medium
-# Description: Create a configuration system for hyperparameter experiments and set up experiment tracking with Weights & Biases using Python scripts instead of notebooks.
+# Description: Create a configuration system for hyperparameter experiments focused on spelling task performance and transfer learning, and set up experiment tracking with Weights & Biases using Python scripts instead of notebooks.
 # Details:
-1. Create a configuration system for hyperparameter experiments
-2. Set up Python scripts for experiment tracking
-3. Create a script that can run training with different hyperparameters
-4. Set up W&B for experiment tracking
-5. Define a clear set of metrics for comparing experiments
+1. Create a configuration system for hyperparameter experiments with focus on spelling tasks and transfer learning
+2. Set up Python scripts for experiment tracking with separate metrics for spelling and transfer learning
+3. Create a script that can run training with different hyperparameters optimized for transfer learning
+4. Set up W&B for experiment tracking with correlation analysis between spelling and position/count tasks
+5. Define a clear set of metrics for comparing experiments across both direct and transfer performance
 
 File Structure:
 - Base configs: `configs/hyperparameters/`
 - Model configs: `configs/hyperparameters/models/`
 - Training configs: `configs/hyperparameters/training/`
+- Evaluation configs: `configs/hyperparameters/evaluation/`
 - Search space definitions: `configs/hyperparameters/search_spaces/`
 
 Python Module Structure:
@@ -24,13 +25,15 @@ Python Module Structure:
 - Experiment executor: `src/tuning/executor.py`
 - Visualization tools: `src/tuning/visualization.py`
 - Report generation: `src/tuning/report.py`
+- Transfer learning analysis: `src/tuning/transfer_analysis.py`
 
 Results Structure:
 - Experiment results: `results/tuning/data/`
 - Best configurations: `results/tuning/configs/`
 - Performance plots: `results/tuning/figures/`
+- Transfer learning analysis: `results/tuning/transfer/`
 - HTML reports: `results/tuning/reports/`
-- Documentation: `docs/hyperparameter_tuning.md`, `docs/config_system.md`, `docs/tuning_results.md`
+- Documentation: `docs/hyperparameter_tuning.md`, `docs/config_system.md`, `docs/tuning_results.md`, `docs/transfer_learning.md`
 
 Implementation:
 ```python
@@ -51,8 +54,16 @@ def create_experiment_config(
     max_steps=1000,
     warmup_steps=100,
     target_modules=["q_proj", "k_proj", "v_proj", "o_proj"],
+    # Spelling-specific parameters
+    spelling_data_ratio=0.7,
+    spelling_augmentation=True,
+    spelling_difficulty="medium",
+    # Transfer learning parameters
+    transfer_eval_frequency=100,
+    position_task_weight=0.5,
+    count_task_weight=0.5,
 ):
-    """Create and save an experiment configuration."""
+    """Create and save an experiment configuration with spelling and transfer learning focus."""
     config = {
         "experiment_name": exp_name,
         "timestamp": datetime.now().strftime("%Y%m%d_%H%M%S"),
@@ -69,6 +80,16 @@ def create_experiment_config(
             "max_steps": max_steps,
             "warmup_steps": warmup_steps,
         },
+        "spelling_config": {
+            "data_ratio": spelling_data_ratio,
+            "augmentation": spelling_augmentation,
+            "difficulty": spelling_difficulty,
+        },
+        "transfer_config": {
+            "eval_frequency": transfer_eval_frequency,
+            "position_task_weight": position_task_weight,
+            "count_task_weight": count_task_weight,
+        },
     }
 
     # Create experiments directory if it doesn't exist
@@ -82,20 +103,28 @@ def create_experiment_config(
     print(f"Created experiment config: {config_path}")
     return config_path
 
-# Define hyperparameter grid
+# Define hyperparameter grid with spelling and transfer learning focus
 def create_hyperparameter_grid():
     grid = {
+        # LoRA parameters
         "lora_r": [4, 8, 16, 32],
         "lora_alpha": [8, 16, 32, 64],
+        # Training parameters
         "learning_rate": [1e-4, 2e-4, 5e-4, 1e-3],
         "batch_size": [4, 8, 16, 32],
         "grad_accum_steps": [1, 2, 4, 8],
-        "max_steps": [500, 1000, 2000, 5000]
+        "max_steps": [500, 1000, 2000, 5000],
+        # Spelling-specific parameters
+        "spelling_data_ratio": [0.5, 0.7, 0.9],
+        "spelling_difficulty": ["easy", "medium", "hard"],
+        # Transfer learning parameters
+        "position_task_weight": [0.3, 0.5, 0.7],
+        "count_task_weight": [0.3, 0.5, 0.7],
     }
     return grid
 
 # Create experiment configs for grid search
-def create_grid_search_configs(base_name="experiment"):
+def create_grid_search_configs(base_name="spelling_transfer_exp"):
     grid = create_hyperparameter_grid()
     configs = []
     
@@ -106,18 +135,16 @@ def create_grid_search_configs(base_name="experiment"):
     for param, values in grid.items():
         for value in values:
             # Skip the default value
-            if param == "lora_r" and value == 16:
-                continue
-            if param == "lora_alpha" and value == 32:
-                continue
-            if param == "learning_rate" and value == 2e-4:
-                continue
-            if param == "batch_size" and value == 8:
-                continue
-            if param == "grad_accum_steps" and value == 4:
-                continue
-            if param == "max_steps" and value == 1000:
-                continue
+            if param == "lora_r" and value == 16: continue
+            if param == "lora_alpha" and value == 32: continue
+            if param == "learning_rate" and value == 2e-4: continue
+            if param == "batch_size" and value == 8: continue
+            if param == "grad_accum_steps" and value == 4: continue
+            if param == "max_steps" and value == 1000: continue
+            if param == "spelling_data_ratio" and value == 0.7: continue
+            if param == "spelling_difficulty" and value == "medium": continue
+            if param == "position_task_weight" and value == 0.5: continue
+            if param == "count_task_weight" and value == 0.5: continue
                 
             kwargs = {param: value}
             config_path = create_experiment_config(f"{base_name}_{param}_{value}", **kwargs)
@@ -125,63 +152,99 @@ def create_grid_search_configs(base_name="experiment"):
     
     return configs
 
-# Initialize W&B sweep
+# Initialize W&B sweep with spelling and transfer learning metrics
 def create_wandb_sweep():
     sweep_config = {
         "method": "grid",
-        "metric": {"name": "validation_letter_position_accuracy", "goal": "maximize"},
+        "metric": {
+            "name": "transfer_learning_score",  # Combined metric for transfer learning effectiveness
+            "goal": "maximize"
+        },
         "parameters": {
+            # LoRA parameters
             "lora_r": {"values": [4, 8, 16, 32]},
             "lora_alpha": {"values": [8, 16, 32, 64]},
+            # Training parameters
             "learning_rate": {"values": [1e-4, 2e-4, 5e-4, 1e-3]},
             "batch_size": {"values": [4, 8, 16, 32]},
             "grad_accum_steps": {"values": [1, 2, 4, 8]},
-            "max_steps": {"values": [500, 1000, 2000, 5000]}
+            "max_steps": {"values": [500, 1000, 2000, 5000]},
+            # Spelling-specific parameters
+            "spelling_data_ratio": {"values": [0.5, 0.7, 0.9]},
+            "spelling_difficulty": {"values": ["easy", "medium", "hard"]},
+            # Transfer learning parameters
+            "position_task_weight": {"values": [0.3, 0.5, 0.7]},
+            "count_task_weight": {"values": [0.3, 0.5, 0.7]},
         }
     }
     
-    sweep_id = wandb.sweep(sweep_config, project="llm-spelling-finetuning")
+    sweep_id = wandb.sweep(sweep_config, project="llm-spelling-transfer-learning")
     return sweep_id
+
+# Calculate transfer learning score from spelling and transfer metrics
+def calculate_transfer_score(spelling_accuracy, position_accuracy, count_accuracy, position_weight=0.5, count_weight=0.5):
+    """Calculate a combined score that measures transfer learning effectiveness."""
+    transfer_score = position_weight * position_accuracy + count_weight * count_accuracy
+    # Correlation bonus: reward configurations where spelling improvement correlates with transfer task improvement
+    correlation_bonus = min(spelling_accuracy, (position_accuracy + count_accuracy) / 2) * 0.2
+    return transfer_score + correlation_bonus
 
 # Command-line interface for experiment execution
 def main():
-    parser = argparse.ArgumentParser(description="Run hyperparameter tuning experiments")
+    parser = argparse.ArgumentParser(description="Run hyperparameter tuning experiments for spelling and transfer learning")
     parser.add_argument("--mode", choices=["grid", "sweep", "single"], default="single",
                         help="Experiment mode: grid search, W&B sweep, or single experiment")
-    parser.add_argument("--name", type=str, default="experiment",
+    parser.add_argument("--name", type=str, default="spelling_transfer_exp",
                         help="Base name for the experiment")
     parser.add_argument("--config", type=str, help="Path to a specific config file (for single mode)")
+    parser.add_argument("--focus", choices=["spelling", "transfer", "balanced"], default="balanced",
+                        help="Focus of the experiment: spelling performance, transfer learning, or balanced")
     
     args = parser.parse_args()
     
+    # Adjust weights based on experiment focus
+    position_weight = 0.5
+    count_weight = 0.5
+    if args.focus == "spelling":
+        position_weight = 0.3
+        count_weight = 0.3
+    elif args.focus == "transfer":
+        position_weight = 0.6
+        count_weight = 0.6
+    
     if args.mode == "grid":
         configs = create_grid_search_configs(args.name)
-        print(f"Created {len(configs)} configurations for grid search")
+        print(f"Created {len(configs)} configurations for grid search with {args.focus} focus")
     elif args.mode == "sweep":
         sweep_id = create_wandb_sweep()
-        print(f"Created W&B sweep with ID: {sweep_id}")
+        print(f"Created W&B sweep with ID: {sweep_id} and {args.focus} focus")
     elif args.mode == "single":
         if args.config:
-            print(f"Using provided config: {args.config}")
+            print(f"Using provided config: {args.config} with {args.focus} focus")
         else:
-            config_path = create_experiment_config(args.name)
-            print(f"Created single experiment config: {config_path}")
+            config_path = create_experiment_config(
+                args.name, 
+                position_task_weight=position_weight,
+                count_task_weight=count_weight
+            )
+            print(f"Created single experiment config: {config_path} with {args.focus} focus")
 
 if __name__ == "__main__":
     main()
 ```
 
 # Test Strategy:
-1. Verify configuration system creates valid YAML files in the correct directories (`configs/hyperparameters/`)
-2. Confirm W&B experiment tracking is properly set up through `src/tuning/wandb_integration.py`
-3. Test that the hyperparameter grid generates the expected number of configurations
-4. Verify W&B sweep configuration is valid
-5. Test the command-line interfaces for all Python scripts
-6. Ensure metrics for comparing experiments are clearly defined
-7. Verify that results are properly saved to `results/tuning/` directories
-8. Test the experiment executor to ensure it correctly uses configurations and logs results
-9. Verify HTML report generation produces valid and informative reports
-10. Test visualization tools to ensure they generate the expected figures
+1. Verify configuration system creates valid YAML files with spelling and transfer learning parameters in the correct directories (`configs/hyperparameters/`)
+2. Confirm W&B experiment tracking properly separates spelling metrics from transfer learning metrics
+3. Test that the hyperparameter grid generates the expected number of configurations including spelling-specific parameters
+4. Verify W&B sweep configuration includes both spelling and transfer learning metrics
+5. Test the command-line interfaces for all Python scripts, especially the new `--focus` parameter
+6. Ensure metrics for comparing experiments clearly separate direct spelling performance from transfer learning effectiveness
+7. Verify that results are properly saved to `results/tuning/` directories including the new transfer learning analysis
+8. Test the experiment executor to ensure it correctly tracks both spelling performance and transfer learning metrics
+9. Verify HTML report generation produces valid reports that show correlations between spelling improvement and transfer learning
+10. Test visualization tools to ensure they generate figures showing relationships between spelling training and transfer learning performance
+11. Verify the transfer learning analysis module correctly calculates combined scores and identifies optimal training patterns
 
 # Subtasks:
 ## 1. Configuration System Design and Implementation [pending]
@@ -192,37 +255,43 @@ Create a configuration framework that supports defining, validating, and loading
 
 ## 2. Experiment Tracking Setup with W&B Integration [pending]
 ### Dependencies: 6.1
-### Description: Implement experiment tracking infrastructure with Weights & Biases integration
+### Description: Implement experiment tracking infrastructure with Weights & Biases integration focused on spelling and transfer learning metrics
 ### Details:
-Set up W&B project structure for hyperparameter experiments. Implement logging mechanisms for metrics, hyperparameters, and model artifacts in `src/tuning/wandb_integration.py`. Create utilities for experiment initialization, updating, and finalization. Design a consistent naming convention for experiments. Implement automatic synchronization between local experiment state and W&B. Add support for experiment grouping and comparison within the W&B interface.
+Set up W&B project structure for hyperparameter experiments with separate tracking for spelling and transfer learning metrics. Implement logging mechanisms for spelling training metrics, transfer learning metrics, and model artifacts in `src/tuning/wandb_integration.py`. Create utilities for experiment initialization, updating, and finalization. Design a consistent naming convention for experiments. Implement automatic synchronization between local experiment state and W&B. Add support for experiment grouping and comparison within the W&B interface. Create visualizations that show correlations between spelling improvement and position/count task performance.
 
 ## 3. Hyperparameter Grid Definition and Validation [pending]
 ### Dependencies: 6.1
-### Description: Create a system for defining and validating hyperparameter search spaces
+### Description: Create a system for defining and validating hyperparameter search spaces for spelling and transfer learning optimization
 ### Details:
-Implement a framework for defining hyperparameter search spaces including random, grid, and Bayesian optimization strategies in `src/tuning/grid.py`. Create validation mechanisms to ensure search spaces are properly defined. Support both continuous ranges and discrete value sets for different hyperparameter types. Implement utilities for sampling from defined search spaces. Add functionality to estimate the total number of trials based on the search space definition. Create interfaces for custom search space definitions. Store search space definitions in `configs/hyperparameters/search_spaces/`.
+Implement a framework for defining hyperparameter search spaces including random, grid, and Bayesian optimization strategies in `src/tuning/grid.py`. Create validation mechanisms to ensure search spaces are properly defined. Support both continuous ranges and discrete value sets for different hyperparameter types. Implement utilities for sampling from defined search spaces. Add functionality to estimate the total number of trials based on the search space definition. Create interfaces for custom search space definitions. Store search space definitions in `configs/hyperparameters/search_spaces/`. Include spelling-specific parameters (data ratio, augmentation, difficulty) and transfer learning parameters (task weights, evaluation frequency) in the search space.
 
 ## 4. Experiment Execution Framework [pending]
 ### Dependencies: 6.1, 6.2, 6.3
-### Description: Build a framework for executing hyperparameter tuning experiments
+### Description: Build a framework for executing hyperparameter tuning experiments optimized for transfer learning effectiveness
 ### Details:
-Implement a job scheduler in `src/tuning/executor.py` for running multiple trials with different hyperparameter configurations. Create mechanisms for early stopping of underperforming trials. Design parallel execution capabilities to utilize available computational resources efficiently. Implement checkpointing and resumption of interrupted experiments. Add support for distributed training across multiple machines. Create a monitoring system for active experiments with real-time status updates. Save experiment results to `results/tuning/data/` with best configurations in `results/tuning/configs/`. Implement command-line interfaces for flexible experiment execution.
+Implement a job scheduler in `src/tuning/executor.py` for running multiple trials with different hyperparameter configurations. Create mechanisms for early stopping of underperforming trials based on both spelling and transfer metrics. Design parallel execution capabilities to utilize available computational resources efficiently. Implement checkpointing and resumption of interrupted experiments. Add support for distributed training across multiple machines. Create a monitoring system for active experiments with real-time status updates for both spelling and transfer learning performance. Save experiment results to `results/tuning/data/` with best configurations in `results/tuning/configs/`. Implement command-line interfaces for flexible experiment execution with options to focus on spelling performance, transfer learning, or a balanced approach.
 
 ## 5. Results Visualization and Reporting System [pending]
 ### Dependencies: 6.2, 6.4
-### Description: Develop tools for visualizing and reporting hyperparameter tuning results
+### Description: Develop tools for visualizing and reporting hyperparameter tuning results with focus on transfer learning effectiveness
 ### Details:
-Create visualization tools in `src/tuning/visualization.py` for comparing metrics across different hyperparameter configurations. Implement automated analysis to identify the most influential hyperparameters. Design HTML report generation in `src/tuning/report.py` for exploring the hyperparameter search space. Add functionality to export comparison reports to `results/tuning/reports/`. Implement statistical analysis tools to evaluate the significance of performance differences. Create recommendation system for suggesting optimal hyperparameter configurations for future experiments. Generate performance plots in `results/tuning/figures/`.
+Create visualization tools in `src/tuning/visualization.py` for comparing metrics across different hyperparameter configurations, showing relationships between spelling performance and transfer learning. Implement automated analysis to identify the most influential hyperparameters for both spelling and transfer tasks. Design HTML report generation in `src/tuning/report.py` for exploring the hyperparameter search space and transfer learning patterns. Add functionality to export comparison reports to `results/tuning/reports/`. Implement statistical analysis tools to evaluate the significance of performance differences and correlations between spelling and transfer metrics. Create recommendation system for suggesting optimal hyperparameter configurations for future experiments based on transfer learning goals. Generate performance plots in `results/tuning/figures/` showing relationships between spelling training and transfer learning outcomes.
 
 ## 6. Documentation and User Guides [pending]
 ### Dependencies: 6.1, 6.2, 6.3, 6.4, 6.5
-### Description: Create comprehensive documentation for the hyperparameter tuning system
+### Description: Create comprehensive documentation for the hyperparameter tuning system with focus on transfer learning
 ### Details:
-Develop detailed documentation covering the hyperparameter tuning system in `docs/hyperparameter_tuning.md`. Create a configuration guide explaining the structure and usage of the configuration system in `docs/config_system.md`. Write a results analysis guide detailing how to interpret and utilize tuning results in `docs/tuning_results.md`. Include examples, best practices, and troubleshooting information in all documentation. Document command-line interfaces and provide usage examples for all scripts.
+Develop detailed documentation covering the hyperparameter tuning system in `docs/hyperparameter_tuning.md`. Create a configuration guide explaining the structure and usage of the configuration system in `docs/config_system.md`. Write a results analysis guide detailing how to interpret and utilize tuning results in `docs/tuning_results.md`. Create a transfer learning guide explaining how to optimize spelling training for better transfer to position/count tasks in `docs/transfer_learning.md`. Include examples, best practices, and troubleshooting information in all documentation. Document command-line interfaces and provide usage examples for all scripts, including the new focus options.
 
 ## 7. Python Package Structure and Testing [pending]
 ### Dependencies: 6.1, 6.2, 6.3, 6.4, 6.5
 ### Description: Implement proper Python packaging and testing for the tuning infrastructure
 ### Details:
 Organize the tuning code as a proper Python package with appropriate imports and dependencies. Create unit tests for each component of the tuning infrastructure. Implement integration tests to verify the end-to-end workflow. Set up continuous integration for automated testing. Create a requirements.txt or setup.py file to manage dependencies. Ensure compatibility with the rest of the codebase. Add type hints and docstrings for better code documentation.
+
+## 8. Transfer Learning Analysis Module [pending]
+### Dependencies: 6.2, 6.4, 6.5
+### Description: Develop a module for analyzing transfer learning effectiveness from spelling to position/count tasks
+### Details:
+Create a dedicated module `src/tuning/transfer_analysis.py` for analyzing the relationship between spelling training and transfer learning performance. Implement metrics that quantify transfer learning effectiveness across different hyperparameter configurations. Design visualization tools specifically for transfer learning analysis. Create correlation analysis between spelling performance improvements and position/count task improvements. Implement functions to identify which training patterns lead to better transfer learning. Add support for calculating combined scores that balance direct spelling performance with transfer learning effectiveness. Save transfer learning analysis results to `results/tuning/transfer/`.
 

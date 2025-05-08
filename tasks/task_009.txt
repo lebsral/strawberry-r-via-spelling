@@ -3,18 +3,23 @@
 # Status: pending
 # Dependencies: 8
 # Priority: medium
-# Description: Evaluate the fine-tuned models on the test set using multiple metrics and perform detailed error analysis.
+# Description: Evaluate the fine-tuned models on the test set using multiple metrics and perform detailed analysis of transfer learning effectiveness between spelling and position/count tasks.
 # Details:
-1. Evaluate the best model on the test set
+1. Evaluate the best model on the test set with separate pipelines for spelling and position/count tasks
 2. Implement comprehensive evaluation metrics:
+   - Direct Spelling Performance Metrics
    - Letter Count Accuracy
    - Letter Position Accuracy
    - Character-Level Accuracy
    - Levenshtein Distance
    - Token-Level Perplexity
-3. Perform detailed error analysis
-4. Create visualizations of the results
-5. Compare performance between base and fine-tuned models
+   - Transfer Learning Effectiveness Metrics
+   - Correlation Analysis between Spelling and Position/Count Performance
+3. Perform detailed error analysis for both task types
+4. Investigate transfer learning patterns and identify successful/unsuccessful transfer cases
+5. Analyze model's generalization capabilities
+6. Create visualizations of the results
+7. Compare performance between base and fine-tuned models
 
 NOTE: If evaluating Unsloth or GPU-fine-tuned models, use a cloud GPU environment (Google Colab or https://lightning.ai/lars/home). Local evaluation is only for CPU-compatible models.
 
@@ -22,6 +27,7 @@ File Structure:
 - Main evaluator: `src/evaluation/evaluator.py`
 - Metrics calculator: `src/evaluation/metrics.py`
 - Error analyzer: `src/evaluation/error_analysis.py`
+- Transfer learning analyzer: `src/evaluation/transfer_analysis.py`
 - Visualization utils: `src/evaluation/visualization.py`
 - Test data: `data/splits/test.json`
 - Challenge sets: `data/splits/challenge_sets/`
@@ -30,6 +36,7 @@ File Structure:
 - Evaluation results: `results/evaluation/`
 - Performance metrics: `results/evaluation/metrics/`
 - Error analysis: `results/evaluation/error_analysis/`
+- Transfer learning analysis: `results/evaluation/transfer_analysis/`
 - Visualizations: `results/evaluation/plots/`
 
 Implementation:
@@ -44,6 +51,7 @@ import Levenshtein
 from transformers import GPT2LMHeadModel, GPT2Tokenizer
 from datasets import load_dataset
 import wandb
+from scipy.stats import pearsonr, spearmanr
 
 # Load models for comparison
 def load_models(base_model_name, finetuned_model_path):
@@ -80,9 +88,12 @@ def generate_answer(model, tokenizer, question, max_length=10):
         import re
         numbers = re.findall(r'\d+', response)
         return numbers[0] if numbers else response.strip()
-    else:
+    elif "What is the letter" in question:
         # Extract first character
         return response.strip()[0] if response.strip() else ""
+    else:
+        # For spelling tasks, return the full response
+        return response.strip()
 
 # Calculate letter count accuracy
 def calc_letter_count_accuracy(model, tokenizer, test_dataset):
@@ -142,6 +153,35 @@ def calc_letter_position_accuracy(model, tokenizer, test_dataset):
     
     return accuracy, results
 
+# Calculate spelling accuracy
+def calc_spelling_accuracy(model, tokenizer, test_dataset):
+    correct = 0
+    total = 0
+    results = []
+    
+    for item in test_dataset:
+        if item["question_type"] != "spelling":
+            continue
+            
+        prediction = generate_answer(model, tokenizer, item["question"])
+        is_correct = prediction.lower() == item["answer"].lower()
+        
+        results.append({
+            "question": item["question"],
+            "expected": item["answer"],
+            "prediction": prediction,
+            "correct": is_correct,
+            "word": item["word"]
+        })
+        
+        correct += int(is_correct)
+        total += 1
+    
+    accuracy = correct / total if total > 0 else 0
+    print(f"Spelling Accuracy: {accuracy:.4f} ({correct}/{total})")
+    
+    return accuracy, results
+
 # Calculate character-level accuracy
 def calc_character_level_accuracy(model, tokenizer, test_dataset):
     total_char_accuracy = 0
@@ -149,7 +189,7 @@ def calc_character_level_accuracy(model, tokenizer, test_dataset):
     results = []
 
     for item in test_dataset:
-        if item["question_type"] not in ["letter_position", "letter_count"]:
+        if item["question_type"] not in ["letter_position", "letter_count", "spelling"]:
             continue
 
         prediction = generate_answer(model, tokenizer, item["question"])
@@ -169,7 +209,8 @@ def calc_character_level_accuracy(model, tokenizer, test_dataset):
             "expected": item["answer"],
             "prediction": prediction,
             "char_accuracy": char_accuracy,
-            "word": item["word"]
+            "word": item["word"],
+            "question_type": item["question_type"]
         })
         
         total_char_accuracy += char_accuracy
@@ -187,7 +228,7 @@ def calc_levenshtein_metrics(model, tokenizer, test_dataset):
     results = []
 
     for item in test_dataset:
-        if item["question_type"] not in ["letter_position", "letter_count"]:
+        if item["question_type"] not in ["letter_position", "letter_count", "spelling"]:
             continue
 
         prediction = generate_answer(model, tokenizer, item["question"])
@@ -204,7 +245,8 @@ def calc_levenshtein_metrics(model, tokenizer, test_dataset):
             "prediction": pred_text,
             "levenshtein_distance": distance,
             "normalized_distance": normalized_distance,
-            "word": item["word"]
+            "word": item["word"],
+            "question_type": item["question_type"]
         })
         
         total_distances += normalized_distance
@@ -214,6 +256,141 @@ def calc_levenshtein_metrics(model, tokenizer, test_dataset):
     print(f"Average Normalized Levenshtein Distance: {avg_distance:.4f}")
     
     return avg_distance, results
+
+# Analyze transfer learning effectiveness
+def analyze_transfer_learning(spelling_results, position_count_results):
+    # Create a dictionary to map words to their spelling performance
+    word_spelling_performance = {}
+    for result in spelling_results:
+        word = result["word"]
+        if word not in word_spelling_performance:
+            word_spelling_performance[word] = []
+        word_spelling_performance[word].append(result["correct"])
+    
+    # Calculate average spelling performance for each word
+    for word in word_spelling_performance:
+        word_spelling_performance[word] = sum(word_spelling_performance[word]) / len(word_spelling_performance[word])
+    
+    # Map position/count performance to corresponding spelling performance
+    transfer_data = []
+    for result in position_count_results:
+        word = result["word"]
+        if word in word_spelling_performance:
+            transfer_data.append({
+                "word": word,
+                "spelling_performance": word_spelling_performance[word],
+                "task_performance": 1 if result["correct"] else 0,
+                "question_type": result["question_type"]
+            })
+    
+    # Calculate correlation between spelling and position/count performance
+    spelling_scores = [item["spelling_performance"] for item in transfer_data]
+    task_scores = [item["task_performance"] for item in transfer_data]
+    
+    if len(spelling_scores) > 1:  # Need at least 2 points for correlation
+        pearson_corr, pearson_p = pearsonr(spelling_scores, task_scores)
+        spearman_corr, spearman_p = spearmanr(spelling_scores, task_scores)
+    else:
+        pearson_corr, pearson_p = 0, 1
+        spearman_corr, spearman_p = 0, 1
+    
+    # Separate by question type
+    position_data = [item for item in transfer_data if item["question_type"] == "letter_position"]
+    count_data = [item for item in transfer_data if item["question_type"] == "letter_count"]
+    
+    # Calculate type-specific correlations
+    position_spelling = [item["spelling_performance"] for item in position_data]
+    position_task = [item["task_performance"] for item in position_data]
+    
+    count_spelling = [item["spelling_performance"] for item in count_data]
+    count_task = [item["task_performance"] for item in count_data]
+    
+    if len(position_spelling) > 1:
+        position_pearson, position_p = pearsonr(position_spelling, position_task)
+    else:
+        position_pearson, position_p = 0, 1
+        
+    if len(count_spelling) > 1:
+        count_pearson, count_p = pearsonr(count_spelling, count_task)
+    else:
+        count_pearson, count_p = 0, 1
+    
+    # Identify successful and unsuccessful transfer cases
+    successful_transfer = [item for item in transfer_data if item["spelling_performance"] > 0.5 and item["task_performance"] == 1]
+    unsuccessful_transfer = [item for item in transfer_data if item["spelling_performance"] > 0.5 and item["task_performance"] == 0]
+    
+    # Group words by spelling patterns
+    pattern_performance = {}
+    for item in transfer_data:
+        word = item["word"]
+        # Identify patterns (this is a simplified example - expand as needed)
+        patterns = []
+        if 'ie' in word or 'ei' in word:
+            patterns.append('ie_ei_rule')
+        if word.endswith('e') and any(word.endswith(f'{c}e') for c in 'aeiou'):
+            patterns.append('silent_e')
+        if any(c*2 in word for c in 'abcdefghijklmnopqrstuvwxyz'):
+            patterns.append('double_letter')
+        
+        for pattern in patterns:
+            if pattern not in pattern_performance:
+                pattern_performance[pattern] = {
+                    "spelling": [], 
+                    "position": [],
+                    "count": []
+                }
+            
+            pattern_performance[pattern]["spelling"].append(item["spelling_performance"])
+            
+            if item["question_type"] == "letter_position":
+                pattern_performance[pattern]["position"].append(item["task_performance"])
+            elif item["question_type"] == "letter_count":
+                pattern_performance[pattern]["count"].append(item["task_performance"])
+    
+    # Calculate average performance by pattern
+    for pattern in pattern_performance:
+        if pattern_performance[pattern]["spelling"]:
+            pattern_performance[pattern]["avg_spelling"] = sum(pattern_performance[pattern]["spelling"]) / len(pattern_performance[pattern]["spelling"])
+        else:
+            pattern_performance[pattern]["avg_spelling"] = 0
+            
+        if pattern_performance[pattern]["position"]:
+            pattern_performance[pattern]["avg_position"] = sum(pattern_performance[pattern]["position"]) / len(pattern_performance[pattern]["position"])
+        else:
+            pattern_performance[pattern]["avg_position"] = 0
+            
+        if pattern_performance[pattern]["count"]:
+            pattern_performance[pattern]["avg_count"] = sum(pattern_performance[pattern]["count"]) / len(pattern_performance[pattern]["count"])
+        else:
+            pattern_performance[pattern]["avg_count"] = 0
+    
+    transfer_analysis = {
+        "overall_correlation": {
+            "pearson": pearson_corr,
+            "pearson_p_value": pearson_p,
+            "spearman": spearman_corr,
+            "spearman_p_value": spearman_p
+        },
+        "position_correlation": {
+            "pearson": position_pearson,
+            "p_value": position_p
+        },
+        "count_correlation": {
+            "pearson": count_pearson,
+            "p_value": count_p
+        },
+        "successful_transfer": {
+            "count": len(successful_transfer),
+            "examples": successful_transfer[:10]  # Limit to 10 examples
+        },
+        "unsuccessful_transfer": {
+            "count": len(unsuccessful_transfer),
+            "examples": unsuccessful_transfer[:10]  # Limit to 10 examples
+        },
+        "pattern_performance": pattern_performance
+    }
+    
+    return transfer_analysis, transfer_data
 
 # Perform error analysis
 def perform_error_analysis(results_dict):
@@ -270,38 +447,68 @@ def perform_error_analysis(results_dict):
     
     error_analysis["letter_position_errors"] = position_error_types
     
+    # Analyze spelling errors
+    spelling_errors = [r for r in results_dict["spelling"] if not r["correct"]]
+    
+    # Categorize spelling errors
+    spelling_error_types = {
+        "single_character_diff": 0,
+        "multiple_character_diff": 0,
+        "completely_wrong": 0,
+        "no_response": 0
+    }
+    
+    for error in spelling_errors:
+        if not error["prediction"].strip():
+            spelling_error_types["no_response"] += 1
+        else:
+            distance = Levenshtein.distance(error["prediction"].lower(), error["expected"].lower())
+            if distance == 1:
+                spelling_error_types["single_character_diff"] += 1
+            elif distance <= 3:
+                spelling_error_types["multiple_character_diff"] += 1
+            else:
+                spelling_error_types["completely_wrong"] += 1
+    
+    error_analysis["spelling_errors"] = spelling_error_types
+    
     # Analyze by word length
     word_length_performance = {}
     
-    for result in results_dict["letter_count"] + results_dict["letter_position"]:
+    for result in results_dict["letter_count"] + results_dict["letter_position"] + results_dict["spelling"]:
         word = result["word"]
         length = len(word)
+        task_type = "position_count" if result in results_dict["letter_count"] + results_dict["letter_position"] else "spelling"
         
         if length not in word_length_performance:
-            word_length_performance[length] = {"correct": 0, "total": 0}
+            word_length_performance[length] = {
+                "spelling": {"correct": 0, "total": 0},
+                "position_count": {"correct": 0, "total": 0}
+            }
         
-        word_length_performance[length]["total"] += 1
+        word_length_performance[length][task_type]["total"] += 1
         if result["correct"]:
-            word_length_performance[length]["correct"] += 1
+            word_length_performance[length][task_type]["correct"] += 1
     
     # Calculate accuracy by word length
     for length, stats in word_length_performance.items():
-        stats["accuracy"] = stats["correct"] / stats["total"] if stats["total"] > 0 else 0
+        for task_type in ["spelling", "position_count"]:
+            stats[task_type]["accuracy"] = stats[task_type]["correct"] / stats[task_type]["total"] if stats[task_type]["total"] > 0 else 0
     
     error_analysis["word_length_performance"] = word_length_performance
     
     return error_analysis
 
-# Create performance dashboard
-def create_performance_dashboard(base_results, finetuned_results, error_analysis):
+# Create performance dashboard with transfer learning analysis
+def create_performance_dashboard(base_results, finetuned_results, error_analysis, transfer_analysis):
     # Set up figure
-    fig = plt.figure(figsize=(18, 12))
+    fig = plt.figure(figsize=(20, 16))
     
     # 1. Accuracy comparison across metrics
-    ax1 = fig.add_subplot(2, 3, 1)
-    metrics = ['letter_count_accuracy', 'letter_position_accuracy', 'character_level_accuracy']
-    base_values = [base_results[m] for m in metrics]
-    finetuned_values = [finetuned_results[m] for m in metrics]
+    ax1 = fig.add_subplot(3, 3, 1)
+    metrics = ['spelling_accuracy', 'letter_count_accuracy', 'letter_position_accuracy', 'character_level_accuracy']
+    base_values = [base_results.get(m, 0) for m in metrics]
+    finetuned_values = [finetuned_results.get(m, 0) for m in metrics]
     
     x = np.arange(len(metrics))
     width = 0.35
@@ -316,7 +523,7 @@ def create_performance_dashboard(base_results, finetuned_results, error_analysis
     ax1.legend()
     
     # 2. Error analysis for letter count
-    ax2 = fig.add_subplot(2, 3, 2)
+    ax2 = fig.add_subplot(3, 3, 2)
     error_types = error_analysis["letter_count_errors"]
     ax2.bar(error_types.keys(), error_types.values())
     ax2.set_title('Letter Count Error Types')
@@ -324,40 +531,111 @@ def create_performance_dashboard(base_results, finetuned_results, error_analysis
     plt.setp(ax2.get_xticklabels(), rotation=45, ha="right")
     
     # 3. Error analysis for letter position
-    ax3 = fig.add_subplot(2, 3, 3)
+    ax3 = fig.add_subplot(3, 3, 3)
     position_error_types = error_analysis["letter_position_errors"]
     ax3.bar(position_error_types.keys(), position_error_types.values())
     ax3.set_title('Letter Position Error Types')
     ax3.set_ylabel('Count')
     plt.setp(ax3.get_xticklabels(), rotation=45, ha="right")
     
-    # 4. Performance by word length
-    ax4 = fig.add_subplot(2, 3, 4)
+    # 4. Error analysis for spelling
+    ax4 = fig.add_subplot(3, 3, 4)
+    spelling_error_types = error_analysis["spelling_errors"]
+    ax4.bar(spelling_error_types.keys(), spelling_error_types.values())
+    ax4.set_title('Spelling Error Types')
+    ax4.set_ylabel('Count')
+    plt.setp(ax4.get_xticklabels(), rotation=45, ha="right")
+    
+    # 5. Performance by word length
+    ax5 = fig.add_subplot(3, 3, 5)
     word_length_perf = error_analysis["word_length_performance"]
     lengths = sorted(word_length_perf.keys())
-    accuracies = [word_length_perf[l]["accuracy"] for l in lengths]
     
-    ax4.plot(lengths, accuracies, marker='o')
-    ax4.set_title('Performance by Word Length')
-    ax4.set_xlabel('Word Length')
-    ax4.set_ylabel('Accuracy')
+    spelling_accuracies = [word_length_perf[l]["spelling"]["accuracy"] for l in lengths]
+    position_count_accuracies = [word_length_perf[l]["position_count"]["accuracy"] for l in lengths]
     
-    # 5. Levenshtein distance comparison
-    ax5 = fig.add_subplot(2, 3, 5)
-    ax5.bar(['Base Model', 'Fine-tuned Model'], 
-            [base_results['levenshtein_distance'], finetuned_results['levenshtein_distance']])
-    ax5.set_title('Normalized Levenshtein Distance')
-    ax5.set_ylabel('Distance (lower is better)')
+    ax5.plot(lengths, spelling_accuracies, marker='o', label='Spelling')
+    ax5.plot(lengths, position_count_accuracies, marker='s', label='Position/Count')
+    ax5.set_title('Performance by Word Length')
+    ax5.set_xlabel('Word Length')
+    ax5.set_ylabel('Accuracy')
+    ax5.legend()
+    
+    # 6. Transfer learning correlation
+    ax6 = fig.add_subplot(3, 3, 6)
+    if 'transfer_data' in transfer_analysis:
+        transfer_data = transfer_analysis['transfer_data']
+        spelling_scores = [item["spelling_performance"] for item in transfer_data]
+        task_scores = [item["task_performance"] for item in transfer_data]
+        
+        ax6.scatter(spelling_scores, task_scores, alpha=0.5)
+        ax6.set_title(f'Transfer Learning Correlation\nPearson r={transfer_analysis["overall_correlation"]["pearson"]:.2f}')
+        ax6.set_xlabel('Spelling Performance')
+        ax6.set_ylabel('Position/Count Performance')
+        
+        # Add trend line
+        if len(spelling_scores) > 1:
+            z = np.polyfit(spelling_scores, task_scores, 1)
+            p = np.poly1d(z)
+            ax6.plot(sorted(spelling_scores), p(sorted(spelling_scores)), "r--")
+    else:
+        ax6.text(0.5, 0.5, 'Insufficient data for correlation analysis', 
+                horizontalalignment='center', verticalalignment='center')
+    
+    # 7. Pattern performance comparison
+    ax7 = fig.add_subplot(3, 3, 7)
+    if 'pattern_performance' in transfer_analysis and transfer_analysis['pattern_performance']:
+        patterns = list(transfer_analysis['pattern_performance'].keys())
+        spelling_perf = [transfer_analysis['pattern_performance'][p]['avg_spelling'] for p in patterns]
+        position_perf = [transfer_analysis['pattern_performance'][p]['avg_position'] for p in patterns]
+        count_perf = [transfer_analysis['pattern_performance'][p]['avg_count'] for p in patterns]
+        
+        x = np.arange(len(patterns))
+        width = 0.25
+        
+        ax7.bar(x - width, spelling_perf, width, label='Spelling')
+        ax7.bar(x, position_perf, width, label='Position')
+        ax7.bar(x + width, count_perf, width, label='Count')
+        
+        ax7.set_title('Performance by Spelling Pattern')
+        ax7.set_xticks(x)
+        ax7.set_xticklabels(patterns)
+        ax7.set_ylabel('Accuracy')
+        ax7.legend()
+        plt.setp(ax7.get_xticklabels(), rotation=45, ha="right")
+    else:
+        ax7.text(0.5, 0.5, 'No pattern data available', 
+                horizontalalignment='center', verticalalignment='center')
+    
+    # 8. Levenshtein distance comparison
+    ax8 = fig.add_subplot(3, 3, 8)
+    ax8.bar(['Base Model', 'Fine-tuned Model'], 
+            [base_results.get('levenshtein_distance', 0), finetuned_results.get('levenshtein_distance', 0)])
+    ax8.set_title('Normalized Levenshtein Distance')
+    ax8.set_ylabel('Distance (lower is better)')
+    
+    # 9. Transfer success/failure counts
+    ax9 = fig.add_subplot(3, 3, 9)
+    if 'successful_transfer' in transfer_analysis and 'unsuccessful_transfer' in transfer_analysis:
+        success_count = transfer_analysis['successful_transfer']['count']
+        failure_count = transfer_analysis['unsuccessful_transfer']['count']
+        
+        ax9.bar(['Successful Transfer', 'Unsuccessful Transfer'], [success_count, failure_count])
+        ax9.set_title('Transfer Learning Success/Failure')
+        ax9.set_ylabel('Count')
+    else:
+        ax9.text(0.5, 0.5, 'No transfer success/failure data available', 
+                horizontalalignment='center', verticalalignment='center')
     
     plt.tight_layout()
-    plt.savefig('results/evaluation/plots/evaluation_dashboard.png', dpi=300)
+    plt.savefig('results/evaluation/plots/transfer_learning_dashboard.png', dpi=300)
     
     return fig
 
 # Main evaluation function
 def evaluate_models(base_model_name, finetuned_model_path):
     # Initialize W&B
-    wandb.init(project="llm-spelling-finetuning", name="final_evaluation")
+    wandb.init(project="llm-spelling-finetuning", name="transfer_learning_evaluation")
     
     # Load test dataset
     test_dataset = load_dataset("YOUR-USERNAME/llm-spelling-dataset", split="test")
@@ -373,12 +651,14 @@ def evaluate_models(base_model_name, finetuned_model_path):
     base_results = {}
     
     print("Evaluating base model...")
+    base_results["spelling_accuracy"], base_spelling_results = calc_spelling_accuracy(base_model, base_tokenizer, test_dataset)
     base_results["letter_count_accuracy"], base_count_results = calc_letter_count_accuracy(base_model, base_tokenizer, test_dataset)
     base_results["letter_position_accuracy"], base_position_results = calc_letter_position_accuracy(base_model, base_tokenizer, test_dataset)
     base_results["character_level_accuracy"], base_char_results = calc_character_level_accuracy(base_model, base_tokenizer, test_dataset)
     base_results["levenshtein_distance"], base_levenshtein_results = calc_levenshtein_metrics(base_model, base_tokenizer, test_dataset)
     
     base_detailed_results = {
+        "spelling": base_spelling_results,
         "letter_count": base_count_results,
         "letter_position": base_position_results,
         "character_level": base_char_results,
@@ -390,12 +670,14 @@ def evaluate_models(base_model_name, finetuned_model_path):
     finetuned_results = {}
     
     print("\nEvaluating fine-tuned model...")
+    finetuned_results["spelling_accuracy"], finetuned_spelling_results = calc_spelling_accuracy(finetuned_model, finetuned_tokenizer, test_dataset)
     finetuned_results["letter_count_accuracy"], finetuned_count_results = calc_letter_count_accuracy(finetuned_model, finetuned_tokenizer, test_dataset)
     finetuned_results["letter_position_accuracy"], finetuned_position_results = calc_letter_position_accuracy(finetuned_model, finetuned_tokenizer, test_dataset)
     finetuned_results["character_level_accuracy"], finetuned_char_results = calc_character_level_accuracy(finetuned_model, finetuned_tokenizer, test_dataset)
     finetuned_results["levenshtein_distance"], finetuned_levenshtein_results = calc_levenshtein_metrics(finetuned_model, finetuned_tokenizer, test_dataset)
     
     finetuned_detailed_results = {
+        "spelling": finetuned_spelling_results,
         "letter_count": finetuned_count_results,
         "letter_position": finetuned_position_results,
         "character_level": finetuned_char_results,
@@ -405,14 +687,22 @@ def evaluate_models(base_model_name, finetuned_model_path):
     # Perform error analysis
     error_analysis = perform_error_analysis(finetuned_detailed_results)
     
+    # Analyze transfer learning effectiveness
+    transfer_analysis, transfer_data = analyze_transfer_learning(
+        finetuned_detailed_results["spelling"],
+        finetuned_detailed_results["letter_count"] + finetuned_detailed_results["letter_position"]
+    )
+    transfer_analysis["transfer_data"] = transfer_data
+    
     # Create performance dashboard
-    dashboard = create_performance_dashboard(base_results, finetuned_results, error_analysis)
+    dashboard = create_performance_dashboard(base_results, finetuned_results, error_analysis, transfer_analysis)
     
     # Log results to W&B
     wandb.log({
         "base_model": base_results,
         "finetuned_model": finetuned_results,
         "error_analysis": error_analysis,
+        "transfer_learning": transfer_analysis,
         "evaluation_dashboard": wandb.Image(dashboard)
     })
     
@@ -425,7 +715,8 @@ def evaluate_models(base_model_name, finetuned_model_path):
         "finetuned_model": {
             "metrics": finetuned_results,
             "detailed_results": finetuned_detailed_results,
-            "error_analysis": error_analysis
+            "error_analysis": error_analysis,
+            "transfer_learning": transfer_analysis
         }
     }
     
@@ -433,6 +724,8 @@ def evaluate_models(base_model_name, finetuned_model_path):
     import os
     os.makedirs('results/evaluation/metrics', exist_ok=True)
     os.makedirs('results/evaluation/error_analysis', exist_ok=True)
+    os.makedirs('results/evaluation/transfer_analysis', exist_ok=True)
+    os.makedirs('results/evaluation/plots', exist_ok=True)
     
     # Save results to appropriate locations
     with open("results/evaluation/metrics/final_evaluation_results.json", "w") as f:
@@ -440,6 +733,9 @@ def evaluate_models(base_model_name, finetuned_model_path):
     
     with open("results/evaluation/error_analysis/error_patterns.json", "w") as f:
         json.dump(error_analysis, f, indent=2)
+        
+    with open("results/evaluation/transfer_analysis/transfer_learning_analysis.json", "w") as f:
+        json.dump(transfer_analysis, f, indent=2)
     
     # Close W&B
     wandb.finish()
@@ -448,19 +744,22 @@ def evaluate_models(base_model_name, finetuned_model_path):
 ```
 
 # Test Strategy:
-1. Verify all evaluation metrics are calculated correctly
-2. Confirm error analysis provides meaningful insights
-3. Check that visualizations are clear and informative
-4. Verify results are properly logged to W&B
-5. Confirm performance comparison between base and fine-tuned models
-6. Test with different model checkpoints to ensure consistent evaluation
-7. Verify final evaluation results are saved locally in the correct directories:
+1. Verify all evaluation metrics are calculated correctly for both spelling and position/count tasks
+2. Confirm error analysis provides meaningful insights for both task types
+3. Validate transfer learning analysis metrics and correlations
+4. Check that visualizations clearly show the relationship between spelling and position/count performance
+5. Verify results are properly logged to W&B with transfer learning metrics
+6. Confirm performance comparison between base and fine-tuned models across all task types
+7. Test with different model checkpoints to ensure consistent evaluation
+8. Verify final evaluation results are saved locally in the correct directories:
    - `results/evaluation/metrics/`
    - `results/evaluation/error_analysis/`
+   - `results/evaluation/transfer_analysis/`
    - `results/evaluation/plots/`
-8. For Unsloth-fine-tuned models, ensure evaluation is performed in a cloud GPU environment
-9. Verify that all test datasets are properly loaded from `data/splits/test.json` and challenge sets
-10. Check that the evaluation notebooks in `notebooks/` can successfully load and analyze the results
+9. For Unsloth-fine-tuned models, ensure evaluation is performed in a cloud GPU environment
+10. Verify that all test datasets are properly loaded from `data/splits/test.json` and challenge sets
+11. Check that the evaluation notebooks in `notebooks/` can successfully load and analyze the transfer learning results
+12. Validate the pattern analysis to ensure it correctly identifies which spelling patterns lead to better position/count performance
 
 # Subtasks:
 ## 1. Multi-metric evaluation framework implementation [pending]
@@ -532,4 +831,20 @@ Develop the following notebooks:
 - `notebooks/model_comparison.ipynb`: Comparative analysis between base and fine-tuned models
 
 Ensure notebooks can load results from the standardized file locations. Implement interactive visualizations and filtering capabilities. Add markdown documentation explaining the analysis methodology and interpretation of results.
+
+## 9. Transfer learning analysis implementation [pending]
+### Dependencies: 9.1, 9.3
+### Description: Develop and implement analysis tools to measure transfer learning effectiveness between spelling and position/count tasks
+### Details:
+Create a transfer learning analysis module in `src/evaluation/transfer_analysis.py`. Implement correlation metrics between spelling performance and position/count task performance. Develop methods to identify which spelling patterns lead to better position/count performance. Create visualizations showing the relationship between spelling ability and position/count task success. Implement statistical tests to validate transfer learning effectiveness. Design analysis tools to identify successful and unsuccessful transfer cases.
+
+Ensure results are saved to `results/evaluation/transfer_analysis/` directory and properly visualized in the dashboard.
+
+## 10. Separate evaluation pipelines for task types [pending]
+### Dependencies: 9.1
+### Description: Implement separate but coordinated evaluation pipelines for spelling tasks and position/count tasks
+### Details:
+Refactor the evaluation framework to handle spelling tasks and position/count tasks separately. Ensure metrics are calculated appropriately for each task type. Implement task-specific error analysis for each pipeline. Create mechanisms to track and correlate performance between the two task types. Design the system to identify which aspects of spelling knowledge transfer to position/count tasks. Ensure all results can be combined for comprehensive reporting and visualization.
+
+Update the main evaluator in `src/evaluation/evaluator.py` to coordinate between the separate pipelines.
 

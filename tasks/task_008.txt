@@ -3,7 +3,7 @@
 # Status: pending
 # Dependencies: 4, 6, 7
 # Priority: high
-# Description: Implement the training loop and run experiments with different hyperparameters to find the optimal configuration using cloud GPU environments.
+# Description: Implement the training loop and run experiments with different hyperparameters to find the optimal configuration for effective transfer learning using cloud GPU environments.
 # Details:
 **IMPORTANT NOTE: This task requires a cloud GPU environment for Unsloth-based fine-tuning. Do not attempt on local Mac.**
 
@@ -11,14 +11,22 @@
 2. Implement the training loop using Unsloth on Google Colab or https://lightning.ai/lars/home
 3. Set up checkpoint saving and loading system (`src/training/checkpointing.py`)
 4. Implement early stopping based on validation metrics
-5. Run experiments with different hyperparameters:
+5. Run experiments with different hyperparameters focused on transfer learning effectiveness:
    - LoRA rank (r): [4, 8, 16, 32]
    - LoRA alpha: [8, 16, 32, 64]
    - Learning rate: [1e-4, 2e-4, 5e-4, 1e-3]
    - Batch size: [4, 8, 16, 32]
    - Gradient accumulation steps: [1, 2, 4, 8]
    - Training steps: [500, 1000, 2000, 5000]
-6. Track all experiments in W&B
+6. Track all experiments in W&B with both spelling metrics and transfer metrics
+7. Analyze correlation between spelling improvement and transfer performance
+8. Identify training patterns that lead to better transfer learning
+
+**Transfer Learning Focus:**
+- Primary training on spelling variation tasks
+- Monitor transfer learning effectiveness to position/count tasks
+- Track correlation between spelling performance and transfer capabilities
+- Identify which training approaches generalize better across task types
 
 **File Structure:**
 - Training Infrastructure:
@@ -26,12 +34,14 @@
   - Training utilities: `src/training/utils.py`
   - Data loaders: `src/training/data_loaders.py`
   - Model checkpointing: `src/training/checkpointing.py`
+  - Transfer metrics: `src/training/transfer_metrics.py`
 
 - Model Components:
   - Model architecture: `src/models/spelling_model.py`
   - Loss functions: `src/models/losses.py`
   - Metrics tracking: `src/models/metrics.py`
   - Model utilities: `src/models/utils.py`
+  - Transfer evaluation: `src/models/transfer_eval.py`
 
 - Deployment Components:
   - Model export: `src/deployment/model_export.py`
@@ -40,18 +50,21 @@
   - Load testing: `src/deployment/benchmark.py`
   - Performance visualization: `src/deployment/visualization.py`
   - Report generation: `src/deployment/report.py`
+  - Transfer analysis: `src/deployment/transfer_analysis.py`
 
 - Configurations:
   - Training config: `configs/training/config.yaml`
   - Model config: `configs/models/model_config.yaml`
   - Optimizer config: `configs/training/optimizer.yaml`
   - Scheduler config: `configs/training/scheduler.yaml`
+  - Transfer config: `configs/training/transfer_config.yaml`
 
 - Results and Checkpoints:
   - Model checkpoints: `checkpoints/`
   - Training logs: `results/training_logs/`
   - Performance metrics: `results/metrics/`
   - Error analysis: `results/error_analysis/`
+  - Transfer analysis: `results/transfer_analysis/`
   - Deployment results: `results/deployment/`
     - Figures: `results/deployment/figures/`
     - Reports: `results/deployment/reports/`
@@ -62,6 +75,7 @@
   - Training guide: `docs/training.md`
   - Model architecture: `docs/model.md`
   - Results analysis: `docs/results.md`
+  - Transfer learning analysis: `docs/transfer_learning.md`
 
 Implementation:
 ```python
@@ -69,9 +83,11 @@ import os
 import yaml
 import torch
 import wandb
+import numpy as np
 from unsloth import FastLanguageModel
 from datasets import load_dataset
 from transformers import TrainingArguments, Trainer, EarlyStoppingCallback
+from sklearn.metrics import accuracy_score, precision_recall_fscore_support
 
 # Main experiment runner
 def run_experiment(config_path):
@@ -107,8 +123,10 @@ def run_experiment(config_path):
         random_state=42
     )
     
-    # Load dataset
-    dataset = load_dataset("YOUR-USERNAME/llm-spelling-dataset")
+    # Load datasets - both spelling and transfer task datasets
+    spelling_dataset = load_dataset("YOUR-USERNAME/llm-spelling-dataset")
+    position_dataset = load_dataset("YOUR-USERNAME/llm-position-dataset")
+    count_dataset = load_dataset("YOUR-USERNAME/llm-count-dataset")
     
     # Format dataset for instruction fine-tuning
     def formatting_func(examples):
@@ -120,8 +138,12 @@ def run_experiment(config_path):
         
         return {"prompt": prompts, "completion": completions}
     
-    train_dataset = dataset["train"].map(formatting_func, batched=True)
-    eval_dataset = dataset["validation"].map(formatting_func, batched=True)
+    train_dataset = spelling_dataset["train"].map(formatting_func, batched=True)
+    eval_dataset = spelling_dataset["validation"].map(formatting_func, batched=True)
+    
+    # Format transfer task datasets for evaluation
+    position_eval_dataset = position_dataset["validation"].map(formatting_func, batched=True)
+    count_eval_dataset = count_dataset["validation"].map(formatting_func, batched=True)
     
     # Set up output directory
     output_dir = f"./results/{config['experiment_name']}_{config['timestamp']}"
@@ -150,6 +172,26 @@ def run_experiment(config_path):
         report_to="wandb"
     )
     
+    # Define compute metrics function for transfer learning evaluation
+    def compute_metrics(eval_pred):
+        predictions, labels = eval_pred
+        predictions = np.argmax(predictions, axis=2)
+        
+        # Only consider non-padding tokens
+        mask = labels != -100
+        labels = labels[mask]
+        predictions = predictions[mask]
+        
+        accuracy = accuracy_score(labels, predictions)
+        precision, recall, f1, _ = precision_recall_fscore_support(labels, predictions, average='weighted')
+        
+        return {
+            "accuracy": accuracy,
+            "precision": precision,
+            "recall": recall,
+            "f1": f1
+        }
+    
     # Create trainer with early stopping
     trainer = FastLanguageModel.get_trainer(
         model=model,
@@ -158,6 +200,7 @@ def run_experiment(config_path):
         train_dataset=train_dataset,
         eval_dataset=eval_dataset,
         data_collator=FastLanguageModel.get_data_collator(tokenizer),
+        compute_metrics=compute_metrics,
         callbacks=[EarlyStoppingCallback(early_stopping_patience=3)]
     )
     
@@ -167,20 +210,45 @@ def run_experiment(config_path):
     # Save final model
     trainer.save_model(f"{output_dir}/final")
     
-    # Evaluate on validation set
-    eval_results = trainer.evaluate()
+    # Evaluate on spelling validation set
+    spelling_eval_results = trainer.evaluate()
     
-    # Log final results
-    wandb.log(eval_results)
+    # Evaluate on transfer task datasets
+    position_eval_results = trainer.evaluate(eval_dataset=position_eval_dataset)
+    count_eval_results = trainer.evaluate(eval_dataset=count_eval_dataset)
+    
+    # Calculate transfer metrics
+    transfer_metrics = {
+        "position_transfer_score": position_eval_results["eval_accuracy"],
+        "count_transfer_score": count_eval_results["eval_accuracy"],
+        "avg_transfer_score": (position_eval_results["eval_accuracy"] + count_eval_results["eval_accuracy"]) / 2,
+        "spelling_to_position_ratio": spelling_eval_results["eval_accuracy"] / position_eval_results["eval_accuracy"] if position_eval_results["eval_accuracy"] > 0 else 0,
+        "spelling_to_count_ratio": spelling_eval_results["eval_accuracy"] / count_eval_results["eval_accuracy"] if count_eval_results["eval_accuracy"] > 0 else 0
+    }
+    
+    # Log all results
+    wandb.log({
+        **spelling_eval_results,
+        "position_eval_results": position_eval_results,
+        "count_eval_results": count_eval_results,
+        **transfer_metrics
+    })
     
     # Save evaluation results
+    all_results = {
+        "spelling_eval_results": spelling_eval_results,
+        "position_eval_results": position_eval_results,
+        "count_eval_results": count_eval_results,
+        "transfer_metrics": transfer_metrics
+    }
+    
     with open(f"{output_dir}/eval_results.yaml", "w") as f:
-        yaml.dump(eval_results, f)
+        yaml.dump(all_results, f)
     
     # Close wandb run
     wandb.finish()
     
-    return output_dir, eval_results
+    return output_dir, all_results
 
 # Run multiple experiments
 def run_experiments(config_paths):
@@ -198,16 +266,75 @@ def run_experiments(config_paths):
             "eval_results": eval_results
         }
     
+    # Analyze transfer learning effectiveness across experiments
+    analyze_transfer_effectiveness(results)
+    
     # Save all results
     with open("experiment_results_summary.yaml", "w") as f:
         yaml.dump(results, f)
     
     return results
+
+# Analyze transfer learning effectiveness
+def analyze_transfer_effectiveness(results):
+    """Analyze which training patterns lead to better transfer learning"""
+    # Extract key metrics for analysis
+    experiment_metrics = []
+    for exp_name, exp_data in results.items():
+        with open(f"{exp_data['output_dir']}/config.yaml", "r") as f:
+            config = yaml.safe_load(f)
+        
+        metrics = {
+            "experiment_name": exp_name,
+            "lora_rank": config["lora_config"]["r"],
+            "lora_alpha": config["lora_config"]["alpha"],
+            "learning_rate": config["training_config"]["learning_rate"],
+            "batch_size": config["training_config"]["per_device_train_batch_size"],
+            "grad_accum_steps": config["training_config"]["gradient_accumulation_steps"],
+            "training_steps": config["training_config"]["max_steps"],
+            "spelling_accuracy": exp_data["eval_results"]["spelling_eval_results"]["eval_accuracy"],
+            "position_accuracy": exp_data["eval_results"]["position_eval_results"]["eval_accuracy"],
+            "count_accuracy": exp_data["eval_results"]["count_eval_results"]["eval_accuracy"],
+            "avg_transfer_score": exp_data["eval_results"]["transfer_metrics"]["avg_transfer_score"]
+        }
+        experiment_metrics.append(metrics)
+    
+    # Calculate correlations between spelling performance and transfer tasks
+    import pandas as pd
+    df = pd.DataFrame(experiment_metrics)
+    correlation = df[["spelling_accuracy", "position_accuracy", "count_accuracy", "avg_transfer_score"]].corr()
+    
+    # Identify top performing configurations for transfer learning
+    df_sorted = df.sort_values(by="avg_transfer_score", ascending=False)
+    top_configs = df_sorted.head(5)
+    
+    # Save analysis results
+    os.makedirs("results/transfer_analysis", exist_ok=True)
+    correlation.to_csv("results/transfer_analysis/metric_correlations.csv")
+    top_configs.to_csv("results/transfer_analysis/top_transfer_configs.csv")
+    
+    # Generate visualization of transfer learning effectiveness
+    import matplotlib.pyplot as plt
+    plt.figure(figsize=(10, 6))
+    plt.scatter(df["spelling_accuracy"], df["avg_transfer_score"])
+    plt.xlabel("Spelling Task Accuracy")
+    plt.ylabel("Average Transfer Task Accuracy")
+    plt.title("Correlation between Spelling Performance and Transfer Learning")
+    plt.savefig("results/transfer_analysis/spelling_vs_transfer.png")
+    
+    # Log findings to wandb
+    wandb.init(project="llm-spelling-finetuning", name="transfer_analysis", reinit=True)
+    wandb.log({
+        "correlation_matrix": wandb.Table(dataframe=correlation),
+        "top_transfer_configs": wandb.Table(dataframe=top_configs),
+        "spelling_vs_transfer_plot": wandb.Image("results/transfer_analysis/spelling_vs_transfer.png")
+    })
+    wandb.finish()
 ```
 
 # Test Strategy:
 1. Verify training script (`src/training/train.py`) runs without errors on Google Colab or lightning.ai
-2. Confirm experiments are properly tracked in W&B
+2. Confirm experiments are properly tracked in W&B with both spelling and transfer metrics
 3. Check that checkpoints are saved correctly to `checkpoints/` directory
 4. Verify early stopping works as expected
 5. Test that the best model is loaded at the end of training
@@ -215,14 +342,19 @@ def run_experiments(config_paths):
 7. Ensure all experiment results are properly saved to `results/metrics/` and `results/training_logs/`
 8. Verify the environment is properly set up with GPU access before starting experiments
 9. Validate that all configuration files in `configs/` directory are properly loaded and applied
-10. Test deployment scripts in `src/deployment/` directory:
+10. Test transfer learning evaluation on position and count tasks
+11. Verify correlation analysis between spelling performance and transfer capabilities
+12. Test the transfer analysis visualization generation
+13. Validate the identification of optimal training patterns for transfer learning
+14. Test deployment scripts in `src/deployment/` directory:
     - Verify model export functionality in `model_export.py`
     - Test API implementation in `api.py`
     - Validate monitoring capabilities in `monitoring.py`
     - Check benchmark functionality in `benchmark.py`
     - Test visualization generation in `visualization.py`
     - Verify HTML report generation in `report.py`
-11. Ensure all deployment results are correctly saved to the appropriate directories in `results/deployment/`
+    - Test transfer analysis in `transfer_analysis.py`
+15. Ensure all deployment and analysis results are correctly saved to the appropriate directories
 
 # Subtasks:
 ## 1. Training Script Implementation [pending]
@@ -286,4 +418,16 @@ Ensure all scripts have proper command-line interfaces for flexibility and can b
 - Exported models: `results/deployment/models/`
 
 This approach will improve maintainability, version control, and integration with the rest of the codebase while maintaining all deployment capabilities.
+
+## 8. Transfer Learning Evaluation System [pending]
+### Dependencies: 8.1, 8.4
+### Description: Implement a system to evaluate transfer learning effectiveness across different tasks
+### Details:
+Develop a transfer learning evaluation system in `src/training/transfer_metrics.py` and `src/models/transfer_eval.py` that: evaluates models trained on spelling tasks against position and count tasks, calculates transfer metrics and correlation scores, identifies which training patterns lead to better transfer, visualizes the relationship between spelling performance and transfer capabilities, and generates comprehensive reports on transfer learning effectiveness. The system should integrate with the existing experimentation framework and results tracking system. All transfer analysis results should be saved to `results/transfer_analysis/` directory.
+
+## 9. Transfer Learning Documentation [pending]
+### Dependencies: 8.8
+### Description: Create comprehensive documentation on transfer learning analysis and findings
+### Details:
+Develop detailed documentation in `docs/transfer_learning.md` that explains: the transfer learning evaluation methodology, metrics used to assess transfer effectiveness, analysis of correlation between spelling performance and transfer capabilities, identification of optimal training patterns for transfer learning, visualization of key findings, and recommendations for maximizing transfer learning effectiveness. Include examples and case studies from the experiments to illustrate important concepts and findings.
 
