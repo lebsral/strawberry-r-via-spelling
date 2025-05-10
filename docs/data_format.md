@@ -264,3 +264,6 @@ All data formats in this project are designed for compatibility with the Qwen3-4
 - Only position and character count are used for evaluation.
 - Spelling is never used as an evaluation metric.
 - **Qwen3-4B is always used in non-thinking mode.**
+
+**Task 15 (Qwen3-4B compatibility migration) is complete. All code, data, and documentation have been audited and updated to enforce non-thinking mode. All subtasks are done or cancelled as appropriate.**
+**CI/CD safeguards for thinking mode are not implemented and not planned. Enforcement is via code and documentation only.**

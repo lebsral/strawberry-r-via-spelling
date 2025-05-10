@@ -1803,7 +1803,7 @@
       "id": 15,
       "title": "Convert Existing Work and Datasets for Qwen3-4B Compatibility",
       "description": "Update training data format, evaluation framework, and scripts to ensure compatibility with Qwen3-4B, including support for its tokenizer and non-thinking mode only, while validating the integrity of the original experiment.",
-      "status": "pending",
+      "status": "done",
       "dependencies": [
         14
       ],
@@ -1839,7 +1839,7 @@
             1
           ],
           "details": "Update data loading, preprocessing, and inference scripts to use the latest Qwen3-4B APIs with enable_thinking=False explicitly set. Remove any code that processes or generates <think> blocks or thinking mode outputs. Ensure compatibility with the model's configuration and tokenizer requirements.",
-          "status": "pending",
+          "status": "done",
           "testStrategy": "Execute end-to-end training and inference pipelines using the updated scripts and confirm successful runs without compatibility errors. Verify that enable_thinking=False is consistently applied throughout all code."
         },
         {
@@ -1851,7 +1851,7 @@
             3
           ],
           "details": "Design and run comparative experiments using both the original and converted setups, analyzing key metrics to confirm that experimental goals and data integrity are preserved when using Qwen3-4B in non-thinking mode only.",
-          "status": "pending",
+          "status": "done",
           "testStrategy": "Statistically compare pre- and post-conversion results, documenting any discrepancies and verifying that performance and evaluation outcomes remain consistent when using non-thinking mode."
         },
         {
@@ -1862,7 +1862,7 @@
             4
           ],
           "details": "Document new data formats, evaluation procedures, script changes, and best practices for working with Qwen3-4B in non-thinking mode only. Explicitly state that project policy requires enable_thinking=False for all Qwen3-4B usage. Include handling of English-only data and ensure no references to thinking mode remain in documentation.",
-          "status": "pending",
+          "status": "done",
           "testStrategy": "Review documentation for completeness and clarity, ensuring it explicitly states the non-thinking mode requirement. Solicit feedback from team members to ensure usability for future updates."
         },
         {
@@ -1874,7 +1874,7 @@
             3
           ],
           "details": "Add validation checks in model initialization and inference code to ensure enable_thinking is always set to False. Create CI/CD tests that verify no thinking mode code exists in the codebase. Consider adding runtime assertions that will fail if thinking mode is detected.",
-          "status": "pending",
+          "status": "done",
           "testStrategy": "Create test cases that attempt to enable thinking mode and verify they fail appropriately. Run static code analysis to detect any remaining references to thinking mode or <think> blocks."
         }
       ]

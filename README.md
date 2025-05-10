@@ -13,6 +13,8 @@ This project explores whether training a language model (LLM) on spelling tasks 
 - Only the English token subset (~50k tokens, see `english_tokens.json`) is used for all experiments.
 - Model configuration uses specific sampling parameters: Temperature=0.6, TopP=0.95, TopK=20, MinP=0 (for non-thinking mode).
 - All scripts, data, and evaluation are Qwen3-4B-specific.
+- **Task 15 (Qwen3-4B compatibility migration) is complete. All code, data, and documentation have been audited and updated to enforce non-thinking mode. All subtasks are done or cancelled as appropriate.**
+- **CI/CD safeguards for thinking mode are not implemented and not planned. Enforcement is via code and documentation only.**
 - **Project policy audit (2024-06-11):** The entire codebase, documentation, and configuration were audited. All code, configs, and docs strictly enforce non-thinking mode. No references to thinking mode remain except as explicit prohibitions. See `/docs/analysis.md`, `/docs/templates.md`, `/docs/data_format.md`, and `/docs/token_extraction.md` for details.
 
 ## Task 14.1: Qwen3-4B Model Setup (Status: DONE)
@@ -357,18 +359,4 @@ Both scripts use shared visualization utilities from `src/analysis/visualization
 - `.env.example` — Environment variable template
 - `.env` — Local environment (not committed)
 - `README.md` — Project documentation
-- `docs/token_extraction.md` — Qwen3-4B token extraction and English-only subset documentation
-- `docs/analysis.md` — Analysis tools and mode-specific evaluation
-
-## Contribution Guidelines
-
-- Follow the Taskmaster workflow for all new features or changes.
-- **Project policy: Qwen3-4B must always be used in non-thinking mode (enable_thinking=False). Any attempt to use thinking mode is prohibited and will raise an error.**
-- Add new tasks or subtasks as needed using Taskmaster commands.
-- Update this README as the project evolves.
-- Use clear commit messages and document any changes to onboarding or environment setup.
-- Reference code style and best practices as needed.
-
-## Contact
-
-For questions or contributions, open an issue or contact the project maintainer.
+- `
