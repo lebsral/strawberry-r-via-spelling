@@ -1,6 +1,6 @@
 # Task ID: 16
 # Title: Update Environment Setup Scripts and Onboarding Docs for Qwen3-4B and Token Extraction
-# Status: pending
+# Status: done
 # Dependencies: 1
 # Priority: high
 # Description: Revise all environment setup scripts and onboarding documentation to ensure compatibility with Qwen3-4B and the new English-only token extraction process, including updated installation instructions for transformers (>=4.51.0) and usage guidance for new token extraction scripts. Clearly distinguish between local (Mac/Apple Silicon) and cloud-based workflows.
@@ -105,7 +105,7 @@ Create step-by-step instructions for installing Ollama, configuring it for the p
 ### Details:
 Update all documentation related to the transformers library usage, focusing on data preparation workflows and token extraction scripts. Include code examples, expected inputs/outputs, and guidance on handling different data formats. Ensure compatibility with the latest transformers version and Qwen3-4B model.
 
-## 5. Create cloud workflow guidance documentation [pending]
+## 5. Create cloud workflow guidance documentation [done]
 ### Dependencies: 16.1, 16.3, 16.4
 ### Description: Develop clear documentation distinguishing between local and cloud workflows with specific guidance for cloud environments
 ### Details:

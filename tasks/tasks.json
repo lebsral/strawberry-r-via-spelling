@@ -1883,7 +1883,7 @@
       "id": 16,
       "title": "Update Environment Setup Scripts and Onboarding Docs for Qwen3-4B and Token Extraction",
       "description": "Revise all environment setup scripts and onboarding documentation to ensure compatibility with Qwen3-4B and the new English-only token extraction process, including updated installation instructions for transformers (>=4.51.0) and usage guidance for new token extraction scripts. Clearly distinguish between local (Mac/Apple Silicon) and cloud-based workflows.",
-      "status": "pending",
+      "status": "done",
       "dependencies": [
         1
       ],
@@ -1939,7 +1939,7 @@
             4
           ],
           "details": "Create documentation that clearly separates local development workflows from cloud-based production workflows. Include cloud setup instructions, environment variables, security considerations, and cost management. Document the differences in configuration, performance expectations, and recommended practices for each environment.",
-          "status": "pending"
+          "status": "done"
         }
       ]
     },
