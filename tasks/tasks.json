@@ -1991,7 +1991,7 @@
       "description": "Regenerate the training, validation, and test datasets using the Qwen3-4B English-only token subset, ensuring compatibility with the new tokenizer and updating all metadata and data structures to match the revised format.",
       "details": "Leverage the updated token extraction pipeline from Task 17 to process all raw data and regenerate the training, validation, and test splits exclusively using the Qwen3-4B English-only token subset. For each split, re-tokenize all examples with the Qwen3-4B tokenizer (as available via Hugging Face Transformers) and verify that every example is fully compatible—i.e., all tokens are present in the English-only subset, and no legacy or out-of-vocabulary tokens remain. Update all dataset metadata (e.g., token counts, vocabulary statistics, data format descriptors) to reflect the new tokenization. Ensure that the data structures, file formats, and split boundaries strictly follow the updated requirements, and that all downstream consumers of the data are notified of the changes. Document any edge cases or data exclusions resulting from incompatibility with the new tokenizer.",
       "testStrategy": "1. For each dataset split, confirm that all examples are tokenized exclusively with the Qwen3-4B English-only token subset and that no out-of-vocabulary or legacy tokens are present. 2. Validate that the number of examples and split boundaries match the intended design and that no data leakage occurs between splits. 3. Check that all metadata fields (e.g., token counts, vocabulary lists, format descriptors) are accurate and up-to-date. 4. Run automated compatibility tests to ensure all downstream scripts and pipelines can load and process the new datasets without errors. 5. Manually inspect a sample of examples from each split to confirm correct tokenization and data structure. 6. Document and review any data exclusions or format changes with the team before final sign-off.",
-      "status": "pending",
+      "status": "done",
       "dependencies": [
         3,
         17
@@ -2003,8 +2003,8 @@
           "title": "Regenerate Dataset Splits with New Token Subset",
           "description": "Process the dataset with the new tokenizer subset and create appropriate train/test/validation splits",
           "dependencies": [],
-          "details": "Use the train_test_split() function to create appropriate dataset splits with the new tokenization. Consider using a 80/10/10 split for train/validation/test or adjust based on project requirements. Ensure proper shuffling of data before splitting. For large datasets, consider using sharding techniques to manage memory efficiently.",
-          "status": "pending"
+          "details": "Use the train_test_split() function to create appropriate dataset splits with the new tokenization. Consider using a 80/10/10 split for train/validation/test or adjust based on project requirements. Ensure proper shuffling of data before splitting. For large datasets, consider using sharding techniques to manage memory efficiently.\n<info added on 2025-05-10T16:56:48.346Z>\nThe dataset split should be task-specific rather than percentage-based. Create the following splits:\n\n1. Training Set:\n   - Include only spelling examples of tokens generated from the data\n   - Use the Qwen3-4B English-only token subset for tokenization\n   - Ensure comprehensive coverage of the token vocabulary\n\n2. Validation Set:\n   - Include exclusively questions about character count and character position\n   - Do not include any spelling examples\n   - Create diverse examples covering different character counting scenarios\n\n3. Test Set:\n   - Similar to validation set, focus only on character count and character position questions\n   - Ensure no overlap with validation set examples\n   - Include edge cases to thoroughly test model capabilities\n\nFor each split, document the following:\n- Number of examples in each category\n- Distribution of question types\n- Validation process to ensure split criteria are met\n- Any preprocessing steps specific to each split\n\nImplement validation checks to confirm that no spelling examples leak into evaluation/test sets, and that character-based questions are properly formatted for model evaluation.\n</info added on 2025-05-10T16:56:48.346Z>\n<info added on 2025-05-10T16:59:34.629Z>\nCreate task-specific dataset splits using the Qwen3-4B English-only token subset. The splits should be organized as follows:\n\n- Training set: Only spelling examples of tokens generated from the data, using the Qwen3-4B English-only token subset. Ensure comprehensive coverage of the token vocabulary.\n- Validation set: Only questions about character count and character position. No spelling examples. Create diverse examples covering different character counting scenarios.\n- Test set: Same as validation, but ensure no overlap with validation set. Include edge cases.\n- For each split, document: number of examples, distribution of question types, validation process, and any preprocessing steps.\n- Implement validation checks to confirm no spelling examples leak into eval/test, and that character-based questions are properly formatted for model evaluation.\n</info added on 2025-05-10T16:59:34.629Z>",
+          "status": "done"
         },
         {
           "id": 2,
@@ -2014,7 +2014,7 @@
             1
           ],
           "details": "Compare token distributions between old and new datasets. Verify schema consistency across all splits. Check for potential data leakage between splits. Validate that tokenization is consistent and properly cached to avoid redundant processing. Run basic model inference tests to ensure compatibility with existing models.",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 3,
@@ -2024,7 +2024,7 @@
             2
           ],
           "details": "Update pipeline configurations to use the new dataset splits. Modify any hardcoded references to the old dataset structure. Update documentation with new dataset statistics and tokenization details. Communicate changes to all stakeholders, including information about potential impacts on model performance. Create examples showing how to properly load and use the new dataset splits.",
-          "status": "pending"
+          "status": "done"
         }
       ]
     },

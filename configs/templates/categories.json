@@ -61,18 +61,47 @@
   },
   "structured": {
     "token_based": [
-      "word: {word}\nletters: {letters}",
-      "input: {word}\nspelling: {letters}",
-      "target: {word}\nsequence: {letters}",
-      "text: {word}\ncharacters: {letters}",
-      "prompt: {word}\nresponse: {letters}"
+      "word: '{word}'\nletters: '{letters}'",
+      "input: '{word}'\nspelling: '{letters}'",
+      "target: '{word}'\nsequence: '{letters}'",
+      "text: '{word}'\ncharacters: '{letters}'",
+      "prompt: '{word}'\nresponse: '{letters}'"
     ],
     "json_like": [
-      "{\"word\": \"{word}\", \"letters\": \"{letters}\"}",
-      "{\"target\": \"{word}\", \"spelling\": \"{letters}\"}",
-      "{\"input\": \"{word}\", \"sequence\": \"{letters}\"}",
-      "{\"text\": \"{word}\", \"chars\": \"{letters}\"}",
-      "{\"prompt\": \"{word}\", \"tokens\": \"{letters}\"}"
+      "{{'word': '{word}', 'letters': '{letters}'}}",
+      "{{'target': '{word}', 'spelling': '{letters}'}}",
+      "{{'input': '{word}', 'sequence': '{letters}'}}",
+      "{{'text': '{word}', 'chars': '{letters}'}}",
+      "{{'prompt': '{word}', 'tokens': '{letters}'}}"
+    ]
+  },
+  "char_count_question": {
+    "simple": [
+      "How many characters are in '{word}'?",
+      "Count the number of characters in '{word}'.",
+      "What is the length of '{word}'?",
+      "How long is the word '{word}'?",
+      "Give the character count for '{word}'.",
+      "What is the total number of letters in '{word}'?"
+    ],
+    "count_letter": [
+      "How many {letter}'s are in '{word}'?",
+      "Count the number of {letter}'s in '{word}'.",
+      "What is the count of {letter} in '{word}'?",
+      "How many times does {letter} appear in '{word}'?"
+    ]
+  },
+  "char_position_question": {
+    "simple": [
+      "Which character is at position {n} in '{word}'?",
+      "What is the {ordinal_word} letter of the word '{word}'?",
+      "Tell me the letter at position {n} in '{word}'.",
+      "What is the letter at position {n} in '{word}'?",
+      "Which letter is at the {ordinal_word} position in '{word}'?",
+      "What is the {n}th character in '{word}'?",
+      "In '{word}', what letter is number {n}?",
+      "Which letter is {ordinal_word} in '{word}'?",
+      "What letter comes {ordinal_word} in '{word}'?"
     ]
   }
 }

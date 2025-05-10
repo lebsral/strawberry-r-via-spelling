@@ -290,3 +290,125 @@ All data formats in this project are designed for compatibility with the Qwen3-4
 
 **Task 15 (Qwen3-4B compatibility migration) is complete. All code, data, and documentation have been audited and updated to enforce non-thinking mode. All subtasks are done or cancelled as appropriate.**
 **CI/CD safeguards for thinking mode are not implemented and not planned. Enforcement is via code and documentation only.**
+
+## Dataset Split Structure (Qwen3-4B English-Only)
+
+The dataset is split into three files, each with a specific purpose and example type:
+
+### 1. Training Set: Spelling Examples
+- **File:** `data/processed/train_spelling.json`
+- **Purpose:** Used for model training. Contains only spelling examples.
+- **Template categories:** `spelling_first`, `word_first`, `structured`
+- **Example entry:**
+  ```json
+  {
+    "input": "The word 'coins' is spelled c, o, i, n, s.",
+    "output": "coins",
+    "template_category": "word_first",
+    "template_style": "simple",
+    "separator_style": "comma"
+  }
+  ```
+
+### 2. Validation Set: Character Count & Position Questions
+- **File:** `data/processed/val_char_questions.json`
+- **Purpose:** Used for evaluation. Contains only character count and character position questions. No spelling examples.
+- **Template categories:** `char_count_question`, `char_position_question`
+- **Example entries:**
+  ```json
+  {
+    "input": "How many characters are in 'banana'?",
+    "output": "6",
+    "template_category": "char_count_question",
+    "template_style": "simple",
+    "separator_style": null
+  }
+  {
+    "input": "What is the 3th character in 'banana'?",
+    "output": "n",
+    "template_category": "char_position_question",
+    "template_style": "simple",
+    "separator_style": null
+  }
+  ```
+
+### 3. Test Set: Character Count & Position Questions
+- **File:** `data/processed/test_char_questions.json`
+- **Purpose:** Used for final evaluation. Same structure as validation set, but with a disjoint set of tokens.
+- **Template categories:** `char_count_question`, `char_position_question`
+- **Example entries:** (see above)
+
+### Regenerating the Splits
+
+To regenerate all splits, run:
+
+```sh
+PYTHONPATH=. python scripts/generate_dataset_splits.py
+```
+
+This will overwrite the three files above with new splits based on the current token list and templates.
+
+### Notes
+- There is no overlap between validation and test tokens.
+- Each split is a JSON file with a top-level `examples` key containing a list of example objects.
+- See `configs/templates/categories.json` for the full set of templates used.
+
+## Multi-Token Validation/Test Splits
+
+To create more challenging evaluation sets, we generate additional validation and test splits using multi-token words from the [dwyl/english-words](https://github.com/dwyl/english-words) `words_alpha.txt` list.
+
+### Source and Filtering
+- **Source:** `data/raw/words_alpha.txt`
+- **Filtering criteria:**
+  - The word must tokenize to at least 2 tokens using the Qwen3-4B tokenizer.
+  - At least one token must be at least 2 characters long (excluding any special tokenization markers).
+
+### Generation Process
+- Randomly sample 10,000 words for each split (validation and test).
+- For each word, generate character count and character position questions using the same logic as the main splits.
+- Validate that all words in the output meet the criteria.
+
+### Output Files
+- `data/processed/val_char_questions_multi_token.json`
+- `data/processed/test_char_questions_multi_token.json`
+
+### Example Entry
+```json
+{
+  "input": "Which character is at position 2 in 'abandonment'?",
+  "output": "b",
+  "template_category": "char_position_question",
+  "template_style": null,
+  "separator_style": null
+}
+```
+
+### Notes
+- These splits are for evaluation only and are not used for training.
+- The process is fully reproducible using the script `scripts/generate_dataset_splits.py`.
+- The source file `words_alpha.txt` should be kept in `data/raw/` for reproducibility.
+
+## Spelling Example Separator Rules (Updated 2024-06-12)
+
+- Spelling examples in `train_spelling.json` always use exactly one separator between each letter, chosen randomly per example from:
+  - space (`c o i n s`)
+  - comma+space (`c, o, i, n, s`)
+  - dash (`c-o-i-n-s`)
+  - ellipsis (`c...o...i...n...s`)
+  - arrow (`c->o->i->n->s`)
+- For commas, the separator is `, ` (comma and single space). For other separators, no extra spaces are used.
+- No double or mixed separators are allowed. No run-together letters.
+- The separator style is recorded in the metadata for each example as `separator_style`.
+- All tokens are lowercased and filtered to only those present in `words_alpha.txt`.
+- The script enforces these rules and regeneration is always consistent with the latest code.
+
+### Example entry (train_spelling.json):
+```json
+{
+  "input": "The word 'coins' is spelled c, o, i, n, s.",
+  "output": "coins",
+  "template_category": "word_first",
+  "template_style": "simple",
+  "separator_style": "comma"
+}
+```

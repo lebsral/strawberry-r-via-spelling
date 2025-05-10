@@ -1,6 +1,6 @@
 # Task ID: 18
 # Title: Recreate All Dataset Splits Using Qwen3-4B English-Only Token Subset
-# Status: pending
+# Status: done
 # Dependencies: 3, 17
 # Priority: high
 # Description: Regenerate the training, validation, and test datasets using the Qwen3-4B English-only token subset, ensuring compatibility with the new tokenizer and updating all metadata and data structures to match the revised format.
@@ -11,19 +11,54 @@ Leverage the updated token extraction pipeline from Task 17 to process all raw d
 1. For each dataset split, confirm that all examples are tokenized exclusively with the Qwen3-4B English-only token subset and that no out-of-vocabulary or legacy tokens are present. 2. Validate that the number of examples and split boundaries match the intended design and that no data leakage occurs between splits. 3. Check that all metadata fields (e.g., token counts, vocabulary lists, format descriptors) are accurate and up-to-date. 4. Run automated compatibility tests to ensure all downstream scripts and pipelines can load and process the new datasets without errors. 5. Manually inspect a sample of examples from each split to confirm correct tokenization and data structure. 6. Document and review any data exclusions or format changes with the team before final sign-off.
 
 # Subtasks:
-## 1. Regenerate Dataset Splits with New Token Subset [pending]
+## 1. Regenerate Dataset Splits with New Token Subset [done]
 ### Dependencies: None
 ### Description: Process the dataset with the new tokenizer subset and create appropriate train/test/validation splits
 ### Details:
 Use the train_test_split() function to create appropriate dataset splits with the new tokenization. Consider using a 80/10/10 split for train/validation/test or adjust based on project requirements. Ensure proper shuffling of data before splitting. For large datasets, consider using sharding techniques to manage memory efficiently.
+<info added on 2025-05-10T16:56:48.346Z>
+The dataset split should be task-specific rather than percentage-based. Create the following splits:
 
-## 2. Validate Dataset Compatibility and Metadata [pending]
+1. Training Set:
+   - Include only spelling examples of tokens generated from the data
+   - Use the Qwen3-4B English-only token subset for tokenization
+   - Ensure comprehensive coverage of the token vocabulary
+
+2. Validation Set:
+   - Include exclusively questions about character count and character position
+   - Do not include any spelling examples
+   - Create diverse examples covering different character counting scenarios
+
+3. Test Set:
+   - Similar to validation set, focus only on character count and character position questions
+   - Ensure no overlap with validation set examples
+   - Include edge cases to thoroughly test model capabilities
+
+For each split, document the following:
+- Number of examples in each category
+- Distribution of question types
+- Validation process to ensure split criteria are met
+- Any preprocessing steps specific to each split
+
+Implement validation checks to confirm that no spelling examples leak into evaluation/test sets, and that character-based questions are properly formatted for model evaluation.
+</info added on 2025-05-10T16:56:48.346Z>
+<info added on 2025-05-10T16:59:34.629Z>
+Create task-specific dataset splits using the Qwen3-4B English-only token subset. The splits should be organized as follows:
+
+- Training set: Only spelling examples of tokens generated from the data, using the Qwen3-4B English-only token subset. Ensure comprehensive coverage of the token vocabulary.
+- Validation set: Only questions about character count and character position. No spelling examples. Create diverse examples covering different character counting scenarios.
+- Test set: Same as validation, but ensure no overlap with validation set. Include edge cases.
+- For each split, document: number of examples, distribution of question types, validation process, and any preprocessing steps.
+- Implement validation checks to confirm no spelling examples leak into eval/test, and that character-based questions are properly formatted for model evaluation.
+</info added on 2025-05-10T16:59:34.629Z>
+
+## 2. Validate Dataset Compatibility and Metadata [done]
 ### Dependencies: 18.1
 ### Description: Verify the regenerated dataset splits maintain compatibility with models and contain correct metadata
 ### Details:
 Compare token distributions between old and new datasets. Verify schema consistency across all splits. Check for potential data leakage between splits. Validate that tokenization is consistent and properly cached to avoid redundant processing. Run basic model inference tests to ensure compatibility with existing models.
 
-## 3. Update Downstream Consumers and Documentation [pending]
+## 3. Update Downstream Consumers and Documentation [done]
 ### Dependencies: 18.2
 ### Description: Communicate changes and update all systems that consume the dataset
 ### Details:

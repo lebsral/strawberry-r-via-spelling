@@ -213,3 +213,52 @@ When creating or modifying templates, ensure they meet these criteria:
 - Only position and character count are used for evaluation.
 - Spelling is never used as an evaluation metric.
 - **Qwen3-4B is always used in non-thinking mode.**
+
+## New Template Categories for Dataset Splits
+
+With the Qwen3-4B migration, two new template categories have been added to support character count and character position questions:
+
+- **char_count_question**: Used for validation and test sets. Example templates:
+  - "How many characters are in '{word}'?"
+  - "Count the number of characters in '{word}'."
+  - "What is the length of '{word}'?"
+- **char_position_question**: Used for validation and test sets. Example templates:
+  - "What is the {n}th character in '{word}'?"
+  - "Which character is at position {n} in '{word}'?"
+  - "In '{word}', what letter is number {n}?"
+
+These categories are defined in `configs/templates/categories.json` and are used exclusively for generating validation and test examples. The training set continues to use only spelling-related categories (`spelling_first`, `word_first`, `structured`).
+
+### How these templates are used
+
+- The orchestration script `scripts/generate_dataset_splits.py` generates all splits:
+  - **Training:** Spelling examples only (one per spelling category per token)
+  - **Validation/Test:** Character count and character position questions only (no spelling)
+- The script ensures no overlap between validation and test tokens.
+
+See `/docs/data_format.md` for the structure of each split file and example entries.
+
+## Multi-Token Evaluation Splits
+
+The template system supports generating character count and character position questions for multi-token words, as used in the multi-token validation and test splits. The same template categories and logic are applied as for the main splits.
+
+- See `/docs/data_format.md` for details on the filtering, generation, and structure of these splits.
+- These splits are generated using the same orchestration script and template pool, ensuring consistency in evaluation.
+
+## Spelling Template Separator Rules (Updated 2024-06-12)
+
+- Spelling templates always use exactly one separator between each letter, randomly chosen per example from:
+  - space (`c o i n s`)
+  - comma+space (`c, o, i, n, s`)
+  - dash (`c-o-i-n-s`)
+  - ellipsis (`c...o...i...n...s`)
+  - arrow (`c->o->i->n->s`)
+- For commas, the separator is `, ` (comma and single space). For other separators, no extra spaces are used.
+- No double or mixed separators are allowed. No run-together letters.
+- The separator style is recorded in the metadata for each example as `separator_style`.
+- All tokens are lowercased and filtered to only those present in `words_alpha.txt`.
+- The script enforces these rules and regeneration is always consistent with the latest code.
+
+### Example template output:
+- Template: `The word '{word}' is spelled {letters}.`
+- Output: `The word 'coins' is spelled c, o, i, n, s.`

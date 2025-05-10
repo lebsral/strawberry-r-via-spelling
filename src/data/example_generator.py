@@ -165,29 +165,50 @@ class ExampleGenerator:
         # Get template
         template = self._get_random_template(category, style)
 
-        # Generate separated letters
-        if separator_style is None:
-            self.token_separator = TokenSeparator.get_random_separator()
+        # Only apply separator logic for spelling categories
+        spelling_categories = ["spelling_first", "word_first", "structured"]
+        if category in spelling_categories:
+            allowed_styles = [
+                SeparatorStyle.SPACE,
+                SeparatorStyle.COMMA,
+                SeparatorStyle.DASH,
+                SeparatorStyle.DOTS,
+                SeparatorStyle.ARROW
+            ]
+            style_choice = random.choice(allowed_styles)
+            # Custom separator formatting
+            if style_choice == SeparatorStyle.SPACE:
+                sep = " "
+            elif style_choice == SeparatorStyle.COMMA:
+                sep = ", "
+            elif style_choice == SeparatorStyle.DASH:
+                sep = "-"
+            elif style_choice == SeparatorStyle.DOTS:
+                sep = "..."
+            elif style_choice == SeparatorStyle.ARROW:
+                sep = "->"
+            else:
+                sep = " "
+            letters = sep.join(list(word.lower()))
+            sep_style = style_choice.value
         else:
-            self.token_separator = TokenSeparator(SeparatorConfig.from_style(separator_style))
-
-        # Convert word to list of letters and separate them
-        letters = list(word.lower())  # Convert to lowercase for consistency
-        separated_letters = self.token_separator.separate_tokens(letters)
+            # For non-spelling categories, fallback to default separator logic
+            letters = " ".join(list(word.lower()))
+            sep_style = "space"
 
         # Handle JSON-like templates specially
         if template.startswith("{\"") and template.endswith("\"}"):
             # Create a proper JSON object
             template_data = {
                 "word": word,
-                "letters": separated_letters
+                "letters": letters
             }
             formatted_text = json.dumps(template_data)
         else:
             # Format normal template
             format_kwargs = {
                 "word": word,
-                "letters": separated_letters
+                "letters": letters
             }
             formatted_text = template.format(**format_kwargs)
 
@@ -197,7 +218,7 @@ class ExampleGenerator:
             "output": word,
             "template_category": category,
             "template_style": style,
-            "separator_style": self.token_separator.config.style.value
+            "separator_style": sep_style
         }
 
     def generate_examples(
@@ -269,3 +290,80 @@ class ExampleGenerator:
             json.dump({"examples": examples}, f, indent=2)
 
         return output_file
+
+    def generate_char_count_example(self, word: str, style: Optional[str] = None) -> Dict[str, str]:
+        """
+        Generate a character count question example for the given word.
+        Args:
+            word: The word to generate a question for
+            style: Optional style within the category to use
+        Returns:
+            Dictionary containing the generated example and metadata
+        """
+        template = self._get_random_template("char_count_question", "simple")
+        input_text = template.format(word=word)
+        output = str(len(word))
+        return {"input": input_text, "output": output, "category": "char_count_question", "subtype": "simple", "word": word}
+
+    def _ordinal(self, n: int) -> str:
+        """Return the ordinal string for an integer (e.g., 1 -> '1st')."""
+        if 10 <= n % 100 <= 20:
+            suffix = 'th'
+        else:
+            suffix = {1: 'st', 2: 'nd', 3: 'rd'}.get(n % 10, 'th')
+        return f"{n}{suffix}"
+
+    def _ordinal_word(self, n: int) -> str:
+        """Return the spelled-out ordinal word for an integer (e.g., 1 -> 'first')."""
+        words = {
+            1: 'first', 2: 'second', 3: 'third', 4: 'fourth', 5: 'fifth',
+            6: 'sixth', 7: 'seventh', 8: 'eighth', 9: 'ninth', 10: 'tenth',
+            11: 'eleventh', 12: 'twelfth', 13: 'thirteenth', 14: 'fourteenth', 15: 'fifteenth',
+            16: 'sixteenth', 17: 'seventeenth', 18: 'eighteenth', 19: 'nineteenth', 20: 'twentieth'
+        }
+        return words.get(n, f"{n}th")
+
+    def generate_count_letter_example(self, word: str, style: Optional[str] = None) -> Dict[str, str]:
+        """
+        Generate a question about counting a specific letter in the word.
+        Args:
+            word: The word to generate a question for
+            style: Optional style within the category to use
+        Returns:
+            Dictionary containing the generated example and metadata
+        """
+        # Pick a letter that occurs at least once in the word
+        unique_letters = list(set(word))
+        letter = random.choice(unique_letters)
+        template = self._get_random_template("char_count_question", "count_letter")
+        input_text = template.format(word=word, letter=letter)
+        output = str(word.count(letter))
+        return {"input": input_text, "output": output, "category": "char_count_question", "subtype": "count_letter", "letter": letter, "word": word}
+
+    def generate_char_position_examples(self, word: str, positions: Optional[List[int]] = None, style: Optional[str] = None) -> List[Dict[str, str]]:
+        """
+        Generate character position question examples for the given word.
+        Args:
+            word: The word to generate questions for
+            positions: List of positions (1-based)
+            style: Optional style within the category to use
+        Returns:
+            List of dictionaries containing generated examples and metadata
+        """
+        if positions is None:
+            positions = list(range(1, len(word) + 1))
+        examples = []
+        for n in positions:
+            template = self._get_random_template("char_position_question", style)
+            # Detect which variables are present in the template
+            variables = {}
+            if "{n}" in template:
+                variables["n"] = n
+            if "{ordinal}" in template:
+                variables["ordinal"] = self._ordinal(n)
+            if "{ordinal_word}" in template:
+                variables["ordinal_word"] = self._ordinal_word(n)
+            input_text = template.format(word=word, **variables)
+            output = word[n - 1] if 1 <= n <= len(word) else ""
+            examples.append({"input": input_text, "output": output, "category": "char_position_question", "position": n, "word": word})
+        return examples

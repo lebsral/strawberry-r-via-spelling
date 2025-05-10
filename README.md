@@ -451,3 +451,49 @@ Both scripts use shared visualization utilities from `src/analysis/visualization
 - `.env.example` — Environment variable template
 - `.env` — Local environment (not committed)
 - `README.md` — Project documentation
+
+## Dataset Split Generation (Qwen3-4B English-Only)
+
+This project uses a task-specific dataset split for all experiments:
+
+- **Training set:** Spelling examples only, generated using the Qwen3-4B English-only token subset. Uses only the `spelling_first`, `word_first`, and `structured` template categories.
+- **Validation set:** Character count and character position questions only. No spelling examples. Uses the new `char_count_question` and `char_position_question` template categories.
+- **Test set:** Same as validation, but with a disjoint set of tokens. No overlap with validation set.
+
+### How splits are generated
+
+Run the orchestration script:
+
+```sh
+PYTHONPATH=. python scripts/generate_dataset_splits.py
+```
+
+This will:
+- Load the canonical token list from `data/processed/english_tokens.json`
+- Generate spelling examples for all tokens (training set)
+- Randomly split tokens into validation and test sets (no overlap)
+- Generate character count and character position questions for validation and test
+- Save the splits as:
+  - `data/processed/train_spelling.json`
+  - `data/processed/val_char_questions.json`
+  - `data/processed/test_char_questions.json`
+
+### Template categories
+
+- Spelling: `spelling_first`, `word_first`, `structured`
+- Character count: `char_count_question`
+- Character position: `char_position_question`
+
+### Output summary
+
+- Training: 3 spelling examples per token (one per spelling category)
+- Validation/Test: 1 character count + 2 character position questions per token
+- No overlap between validation and test tokens
+
+See `/docs/data_format.md` for the JSON structure of each split.
+
+## Documentation Links (Updated for 2024-06-12)
+
+- [Data Format and Splits](docs/data_format.md): Full details on all dataset splits, spelling separator conventions, token filtering, and example entries.
+- [Template System](docs/templates.md): Template categories, structure, and how templates are used for spelling and evaluation splits, including separator logic.
+- [Analysis Tools](docs/analysis.md): How to use the new splits for robust evaluation, including separator conventions and token filtering.
