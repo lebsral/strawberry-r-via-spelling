@@ -101,6 +101,7 @@ networkx==3.4.2
 notebook==7.4.2
 notebook-shim==0.2.4
 numpy==2.2.5
+ollama==0.4.8
 openai==1.77.0
 optuna==4.3.0
 overrides==7.7.0

@@ -1,5 +1,7 @@
 # Template System Documentation (Qwen3-4B)
 
+> **Note:** As of Task 14.1 (DONE), all template-based data generation uses the Qwen3-4B **tokenizer** only. The full model is only loaded for inference/evaluation. Scripts and imports must follow the `src/` layout (see `.cursor/rules/module_imports.mdc`). This is now the project standard.
+
 ## Overview
 
 All template generation and token separation strategies in this project are designed for compatibility with the Qwen3-4B tokenizer and the English-only token subset. This ensures that all generated examples are valid for the model and experiment.

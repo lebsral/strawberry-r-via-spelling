@@ -3,12 +3,12 @@
 # Status: pending
 # Dependencies: 4, 18
 # Priority: high
-# Description: Audit all template-generated training data to ensure strict compatibility with the Qwen3-4B English-only token subset, updating templates, separators, and formatting scripts as necessary. Regenerate non-compliant data and revise documentation to reflect all changes.
+# Description: Audit all template-generated training data to ensure strict compatibility with the Qwen3-4B English-only token subset, updating templates, separators, and formatting scripts as necessary. Regenerate non-compliant data and revise documentation to reflect all changes, clearly distinguishing between local data processing and cloud-based training workflows.
 # Details:
-Begin by auditing all existing template-generated training data, focusing on tokenization compatibility with the Qwen3-4B English-only token subset as established in Task 18. Review and update all data generation templates, separator styles, and formatting scripts to ensure they produce outputs that exclusively use valid English tokens recognized by the Qwen3-4B tokenizer. For any data that fails validation, regenerate it using the updated templates and scripts. Ensure that all formatting (including separators, prompt structures, and metadata) adheres to the new requirements. Update internal documentation to describe the revised templates, formatting conventions, and validation procedures. Coordinate with the teams responsible for dataset splits and downstream consumers to ensure seamless integration of the updated data.
+Begin by auditing all existing template-generated training data, focusing on tokenization compatibility with the Qwen3-4B English-only token subset as established in Task 18. Review and update all data generation templates, separator styles, and formatting scripts to ensure they produce outputs that exclusively use valid English tokens recognized by the Qwen3-4B tokenizer. For any data that fails validation, regenerate it using the updated templates and scripts. Ensure that all formatting (including separators, prompt structures, and metadata) adheres to the new requirements. All template generation and validation should be performed locally using Hugging Face transformers and the Qwen3-4B tokenizer. Update internal documentation to describe the revised templates, formatting conventions, and validation procedures, with clear distinction between local data processing workflows and cloud-based training workflows. Explicitly document that fine-tuning and LoRA optimizations are cloud-only operations (Colab/Lightning), and that Unsloth or xformers should not be used in local environments. Coordinate with the teams responsible for dataset splits and downstream consumers to ensure seamless integration of the updated data.
 
 # Test Strategy:
-1. Run automated tokenization checks on all template-generated data to confirm exclusive use of Qwen3-4B English-only tokens. 2. Manually inspect a representative sample of data for correct template application, separator usage, and formatting. 3. Verify that all scripts and templates have been updated and are producing compliant outputs. 4. Confirm that all previously non-compliant data has been regenerated and replaced. 5. Review updated documentation for completeness and clarity. 6. Ensure downstream data consumers can ingest and process the revised datasets without errors.
+1. Run automated tokenization checks on all template-generated data to confirm exclusive use of Qwen3-4B English-only tokens using local Hugging Face transformers. 2. Manually inspect a representative sample of data for correct template application, separator usage, and formatting. 3. Verify that all scripts and templates have been updated and are producing compliant outputs. 4. Confirm that all previously non-compliant data has been regenerated and replaced. 5. Review updated documentation for completeness and clarity, especially regarding the separation between local data processing and cloud-based training workflows. 6. Ensure downstream data consumers can ingest and process the revised datasets without errors. 7. Validate that documentation clearly indicates which operations should be performed locally versus in cloud environments.
 
 # Subtasks:
 ## 1. Audit and Update Templates/Scripts for Tokenizer Compatibility [pending]
@@ -28,4 +28,16 @@ After updating the templates/scripts, identify all instances of non-compliant da
 ### Description: Update all relevant documentation and notify or adjust downstream systems and integrations to reflect the changes in data generation and tokenization processes.
 ### Details:
 Revise user guides, technical documentation, and integration instructions to reflect the new processes. Communicate changes to stakeholders and ensure downstream systems are tested and updated as needed to handle the revised data formats.
+
+## 4. Document Local vs. Cloud Workflow Separation [pending]
+### Dependencies: 19.1
+### Description: Create clear documentation distinguishing between local data processing and cloud-based training workflows.
+### Details:
+Document that all template generation and validation can be performed locally using Hugging Face transformers and the Qwen3-4B tokenizer. Explicitly note that fine-tuning and LoRA optimizations are cloud-only operations (Colab/Lightning), and that Unsloth or xformers should not be used in local environments. Create workflow diagrams showing the separation between local and cloud processes for data generation, validation, and training.
+
+## 5. Implement Local Validation Tools Using HF Transformers [pending]
+### Dependencies: 19.1
+### Description: Develop and document local validation tools using Hugging Face transformers to verify token compatibility.
+### Details:
+Create scripts that leverage the Hugging Face transformers library to locally validate that all generated data uses only tokens from the Qwen3-4B English-only subset. Document the installation and usage of these tools, ensuring they can be run in standard local environments without cloud-specific optimizations like Unsloth or xformers.
 

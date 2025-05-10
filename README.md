@@ -7,9 +7,20 @@ This project explores whether training a language model (LLM) on spelling tasks 
 ## Qwen3-4B Migration
 
 - The project now uses the Qwen3-4B model, which supports both thinking and non-thinking modes.
+- **Tokenizer-only workflows are the default for all data preparation and token extraction tasks.**
+- The full model is only loaded for inference or evaluation, not for data prep.
+- Scripts and imports are enforced to follow the `src/` layout, and a Cursor rule prevents import errors (see `.cursor/rules/module_imports.mdc`).
 - Only the English token subset (~50k tokens) is used for all experiments.
 - Model configuration uses specific sampling parameters: Temperature=0.6, TopP=0.95, TopK=20, MinP=0 (for thinking mode).
 - All scripts, data, and evaluation are Qwen3-4B-specific.
+
+## Task 14.1: Qwen3-4B Model Setup (Status: DONE)
+
+- The Qwen3-4B model and tokenizer are set up using the Hugging Face `transformers` library.
+- Tokenizer loading is used for all data and token extraction workflows.
+- Model loading is only performed for inference/evaluation.
+- Scripts are compatible with Mac (Apple Silicon) and follow the correct import/module pattern.
+- See `.cursor/rules/module_imports.mdc` for enforced import rules.
 
 ## Goals
 

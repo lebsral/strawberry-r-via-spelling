@@ -2,6 +2,13 @@
 
 This document describes the analysis tools available in the project for understanding template patterns and performance metrics.
 
+## Updated Workflow (Post-Task 14.1)
+
+- All analysis scripts use the Qwen3-4B **tokenizer** by default for data and template analysis.
+- The **full model** is only loaded for inference or evaluation, not for data prep or analysis.
+- Scripts and imports must follow the `src/` layout. See `.cursor/rules/module_imports.mdc` for enforced import rules.
+- This is the project standard after Task 14.1 (DONE).
+
 ## Overview
 
 All analysis scripts and evaluation tools in this project are designed for the Qwen3-4B model, using only the English-only token subset. Analyses must account for both thinking and non-thinking modes, as well as the specific sampling parameters required for Qwen3-4B.

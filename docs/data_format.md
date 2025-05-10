@@ -250,3 +250,7 @@ All data formats in this project are designed for compatibility with the Qwen3-4
 ## References
 - See `docs/token_extraction.md` for extraction methodology.
 - See `docs/analysis.md` for evaluation details.
+
+# Data Format Specifications
+
+> **Note:** As of Task 14.1 (DONE), all data generation and token extraction use the Qwen3-4B **tokenizer** only. The full model is only loaded for inference/evaluation. Scripts and imports must follow the `src/` layout (see `.cursor/rules/module_imports.mdc`). This is now the project standard.

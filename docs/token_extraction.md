@@ -1,4 +1,11 @@
-# Qwen3-4B Token Extraction and English-Only Subset
+# Qwen3-4B Token Extraction
+
+## Current Workflow (Post-Task 14.1)
+
+- The Qwen3-4B **tokenizer** is loaded by default for all data preparation, token extraction, and analysis tasks.
+- The **full model** is only loaded for inference or evaluation, not for data prep.
+- Scripts and imports must follow the `src/` layout. See `.cursor/rules/module_imports.mdc` for enforced import rules.
+- This setup is now the project standard (Task 14.1: DONE).
 
 ## Overview
 

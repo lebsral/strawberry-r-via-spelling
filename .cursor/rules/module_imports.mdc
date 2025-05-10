@@ -1,0 +1,38 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+- **Always run scripts in a src/ layout using the `-m` flag from the project root, or ensure the project root is on `sys.path` or `PYTHONPATH`.**
+  - **DO:**
+    - Run scripts as modules:
+      ```sh
+      python -m scripts.my_script
+      ```
+    - Or set `PYTHONPATH`:
+      ```sh
+      PYTHONPATH=. python scripts/my_script.py
+      ```
+    - Or add this to the top of your script:
+      ```python
+      import sys, os
+      sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+      ```
+  - **DON'T:**
+    - Run scripts directly without fixing the import path:
+      ```sh
+      python scripts/my_script.py  # ❌ Will cause ModuleNotFoundError: No module named 'src'
+      ```
+
+- **Main Points in Bold**
+  - **Always use absolute imports (e.g., `from src.models...`) in scripts and modules.**
+  - **Document the correct invocation method in your README and onboarding docs.**
+  - **Add sys.path or use -m for all scripts in scripts/ that import from src/.**
+
+- **Examples and Explanations**
+  - See [test_qwen3_loading.py](mdc:scripts/test_qwen3_loading.py) for a correct example.
+  - See [README.md](mdc:README.md) for documentation of the correct workflow.
+
+- **Rule Maintenance**
+  - Update this rule if the project structure changes or if new import patterns are adopted.
+  - Reference this rule in all new script templates and onboarding materials.

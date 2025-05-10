@@ -20,11 +20,271 @@
 - Review updated documentation for clarity and completeness, and perform code review to ensure maintainability and adherence to project standards.
 
 # Subtasks:
-## 1. Set up Qwen3-4B model with transformers library [pending]
+## 1. Set up Qwen3-4B model with transformers library [done]
 ### Dependencies: None
 ### Description: Configure the development environment with the latest transformers library (>=4.51.0) and implement basic model loading for Qwen3-4B to ensure compatibility.
 ### Details:
 Install or update transformers to version 4.51.0 or higher to avoid the 'KeyError: qwen3' error. Create a basic implementation to load the Qwen3-4B model using AutoModelForCausalLM and AutoTokenizer from the Hugging Face transformers library. Configure proper device mapping and torch_dtype settings for optimal performance. Test basic model loading and simple inference to verify setup.
+<info added on 2025-05-10T09:22:09.195Z>
+## Environment Setup
+- Install or update transformers to version 4.51.0 or higher: `pip install --upgrade transformers>=4.51.0`
+- Verify installation with: `import transformers; print(transformers.__version__)`
+- Install any additional dependencies: `torch`, `accelerate` if needed
+
+## Implementation Plan
+1. Create implementation file at `src/models/qwen3_loader.py`
+2. Use the following code structure:
+```python
+from transformers import AutoModelForCausalLM, AutoTokenizer
+import torch
+
+def load_qwen3_model():
+    model_id = "Qwen/Qwen3-4B"
+    # Determine optimal device (MPS for Apple Silicon, CUDA for NVIDIA, CPU fallback)
+    device = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
+    print(f"Using device: {device}")
+    
+    # Load tokenizer
+    tokenizer = AutoTokenizer.from_pretrained(model_id)
+    
+    # Load model with appropriate dtype
+    dtype = torch.float16 if device in ["cuda", "mps"] else torch.float32
+    model = AutoModelForCausalLM.from_pretrained(
+        model_id, 
+        torch_dtype=dtype,
+        device_map=device
+    )
+    
+    return model, tokenizer, device
+
+def test_inference(model, tokenizer, device):
+    prompt = "Hello, world!"
+    inputs = tokenizer(prompt, return_tensors="pt").to(device)
+    
+    # Generate text
+    outputs = model.generate(**inputs, max_new_tokens=20)
+    generated_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
+    
+    print(f"Input: {prompt}")
+    print(f"Output: {generated_text}")
+    return generated_text
+```
+
+3. Create a test script at `scripts/test_qwen3_loading.py`:
+```python
+from src.models.qwen3_loader import load_qwen3_model, test_inference
+
+if __name__ == "__main__":
+    print("Loading Qwen3-4B model...")
+    model, tokenizer, device = load_qwen3_model()
+    print("Model loaded successfully!")
+    
+    print("\nTesting basic inference...")
+    test_inference(model, tokenizer, device)
+```
+
+## Potential Challenges
+- Memory requirements: Qwen3-4B may require 8GB+ RAM
+- If MPS/CUDA fails, fallback to CPU with `device_map="auto"` and `low_cpu_mem_usage=True`
+- May need to use quantization for memory-constrained environments
+
+## Success Criteria
+- Model loads without errors
+- Basic text generation works with a simple prompt
+- Code is modular and reusable for the next subtask (token filtering)
+</info added on 2025-05-10T09:22:09.195Z>
+<info added on 2025-05-10T09:41:51.958Z>
+Install or update transformers to version 4.51.0 or higher to avoid the 'KeyError: qwen3' error. Create a basic implementation to load the Qwen3-4B model using AutoModelForCausalLM and AutoTokenizer from the Hugging Face transformers library. Configure proper device mapping and torch_dtype settings for optimal performance. Test basic model loading and simple inference to verify setup.
+
+<info added on 2025-05-10T09:22:09.195Z>
+## Environment Setup
+- Install or update transformers to version 4.51.0 or higher: `pip install --upgrade transformers>=4.51.0`
+- Verify installation with: `import transformers; print(transformers.__version__)`
+- Install any additional dependencies: `torch`, `accelerate` if needed
+
+## Implementation Plan
+1. Create implementation file at `src/models/qwen3_loader.py`
+2. Use the following code structure:
+```python
+from transformers import AutoModelForCausalLM, AutoTokenizer
+import torch
+
+def load_qwen3_model():
+    model_id = "Qwen/Qwen3-4B"
+    # Determine optimal device (MPS for Apple Silicon, CUDA for NVIDIA, CPU fallback)
+    device = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
+    print(f"Using device: {device}")
+    
+    # Load tokenizer
+    tokenizer = AutoTokenizer.from_pretrained(model_id)
+    
+    # Load model with appropriate dtype
+    dtype = torch.float16 if device in ["cuda", "mps"] else torch.float32
+    model = AutoModelForCausalLM.from_pretrained(
+        model_id, 
+        torch_dtype=dtype,
+        device_map=device
+    )
+    
+    return model, tokenizer, device
+
+def test_inference(model, tokenizer, device):
+    prompt = "Hello, world!"
+    inputs = tokenizer(prompt, return_tensors="pt").to(device)
+    
+    # Generate text
+    outputs = model.generate(**inputs, max_new_tokens=20)
+    generated_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
+    
+    print(f"Input: {prompt}")
+    print(f"Output: {generated_text}")
+    return generated_text
+```
+
+3. Create a test script at `scripts/test_qwen3_loading.py`:
+```python
+from src.models.qwen3_loader import load_qwen3_model, test_inference
+
+if __name__ == "__main__":
+    print("Loading Qwen3-4B model...")
+    model, tokenizer, device = load_qwen3_model()
+    print("Model loaded successfully!")
+    
+    print("\nTesting basic inference...")
+    test_inference(model, tokenizer, device)
+```
+
+## Potential Challenges
+- Memory requirements: Qwen3-4B may require 8GB+ RAM
+- If MPS/CUDA fails, fallback to CPU with `device_map="auto"` and `low_cpu_mem_usage=True`
+- May need to use quantization for memory-constrained environments
+
+## Success Criteria
+- Model loads without errors
+- Basic text generation works with a simple prompt
+- Code is modular and reusable for the next subtask (token filtering)
+</info added on 2025-05-10T09:22:09.195Z>
+
+## Multi-Environment Implementation Strategy
+
+For this project, we'll use different environments for different stages of the workflow:
+
+1. **Local Development & Data Preparation**: Use Hugging Face transformers
+   - Model ID: 'Qwen/Qwen3-4B'
+   - Use for all data preparation, tokenization analysis, and validation
+   - Ideal for token extraction and filtering work in the next subtask
+   - Provides full access to tokenizer internals needed for English token filtering
+
+2. **Quantized Inference**: Use Ollama
+   - Model: 'qwen:4b'
+   - Implement using the Ollama Python API
+   - Example code:
+   ```python
+   import ollama
+   
+   response = ollama.chat(model='qwen:4b', 
+                         messages=[{'role': 'user', 'content': 'Hello, world!'}])
+   print(response['message']['content'])
+   ```
+   - Advantages: Lower memory footprint, faster inference on consumer hardware
+
+3. **Fine-tuning**: Use Unsloth
+   - Environment: Google Colab or Lightning.ai (NOT on Mac)
+   - Provides optimized fine-tuning for Qwen models
+   - Warning: Do not attempt to install or use Unsloth or xformers on Mac systems
+
+4. **Implementation Notes**:
+   - Create separate modules for each environment
+   - Use factory pattern to abstract model interactions
+   - Document environment-specific requirements in README.md
+   - Create environment-specific setup scripts for each workflow
+</info added on 2025-05-10T09:41:51.958Z>
+<info added on 2025-05-10T10:03:45.695Z>
+## Tokenizer-Only Approach for Data Tasks
+
+For data preparation and token extraction tasks, we should only load the Qwen3-4B tokenizer without loading the full model. This approach significantly improves efficiency since:
+
+1. The tokenizer is much smaller (~100MB) compared to the full model (~8GB)
+2. Tokenization operations run faster without model overhead
+3. Memory requirements are drastically reduced
+4. Token analysis can be performed entirely with the tokenizer
+
+### Updated Implementation Structure
+
+1. Create a separate tokenizer-only loader function in `src/models/qwen3_loader.py`:
+
+```python
+def load_qwen3_tokenizer_only():
+    model_id = "Qwen/Qwen3-4B"
+    tokenizer = AutoTokenizer.from_pretrained(model_id)
+    return tokenizer
+
+def load_qwen3_model_and_tokenizer():
+    """Only use this function for evaluation or prompt testing"""
+    model_id = "Qwen/Qwen3-4B"
+    # Determine optimal device (MPS for Apple Silicon, CUDA for NVIDIA, CPU fallback)
+    device = "cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu"
+    print(f"Using device: {device}")
+    
+    # Load tokenizer
+    tokenizer = AutoTokenizer.from_pretrained(model_id)
+    
+    # Load model with appropriate dtype
+    dtype = torch.float16 if device in ["cuda", "mps"] else torch.float32
+    model = AutoModelForCausalLM.from_pretrained(
+        model_id, 
+        torch_dtype=dtype,
+        device_map=device
+    )
+    
+    return model, tokenizer, device
+```
+
+2. Update the test script to demonstrate both approaches:
+
+```python
+from src.models.qwen3_loader import load_qwen3_tokenizer_only, load_qwen3_model_and_tokenizer, test_inference
+
+if __name__ == "__main__":
+    # For data preparation tasks (token extraction, analysis)
+    print("Loading Qwen3-4B tokenizer only...")
+    tokenizer = load_qwen3_tokenizer_only()
+    print("Tokenizer loaded successfully!")
+    
+    # Example tokenization
+    text = "Hello, world!"
+    tokens = tokenizer.encode(text)
+    decoded = tokenizer.decode(tokens)
+    print(f"Tokenized '{text}' to {tokens}")
+    print(f"Decoded back to: '{decoded}'")
+    
+    # Only for evaluation/testing (comment out when not needed)
+    print("\nLoading full Qwen3-4B model (only needed for inference)...")
+    model, full_tokenizer, device = load_qwen3_model_and_tokenizer()
+    print("Model loaded successfully!")
+    print("\nTesting basic inference...")
+    test_inference(model, full_tokenizer, device)
+```
+
+### Documentation Updates
+
+Add the following to project documentation:
+
+- For all data preparation, token extraction, and analysis tasks, use ONLY the tokenizer
+- Full model loading should be restricted to:
+  - Final evaluation of filtered token sets
+  - Testing prompt generation with filtered vocabulary
+  - Benchmarking model performance with modified tokenizer
+
+### Memory and Performance Benefits
+
+- Tokenizer-only: ~100-200MB RAM usage
+- Full model: 8GB+ RAM usage
+- Tokenization speed: 5-10x faster without model loaded
+- Startup time: Near-instant for tokenizer vs. 30+ seconds for model
+
+This approach will be particularly important for the next subtask "Analyze and extract English-only tokens from Qwen3-4B tokenizer" which requires extensive tokenizer operations but no model inference.
+</info added on 2025-05-10T10:03:45.695Z>
 
 ## 2. Analyze and extract English-only tokens from Qwen3-4B tokenizer [pending]
 ### Dependencies: 14.1

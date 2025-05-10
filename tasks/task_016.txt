@@ -3,9 +3,47 @@
 # Status: pending
 # Dependencies: 1
 # Priority: high
-# Description: Revise all environment setup scripts and onboarding documentation to ensure compatibility with Qwen3-4B and the new English-only token extraction process, including updated installation instructions for transformers (>=4.51.0) and usage guidance for new token extraction scripts.
+# Description: Revise all environment setup scripts and onboarding documentation to ensure compatibility with Qwen3-4B and the new English-only token extraction process, including updated installation instructions for transformers (>=4.51.0) and usage guidance for new token extraction scripts. Clearly distinguish between local (Mac/Apple Silicon) and cloud-based workflows.
 # Details:
-Review all existing environment setup scripts (e.g., shell scripts, Python setup files) and onboarding documentation to ensure they reference and support Qwen3-4B as the default model. Update instructions to include installation or upgrade steps for the transformers library (version 4.51.0 or higher), specifying any required flags or compatibility notes. Integrate clear, step-by-step guidance for using the new English-only token extraction scripts, including prerequisites, example commands, and troubleshooting tips. Reference the new workflow and model requirements throughout, ensuring that all documentation is consistent and unambiguous. Coordinate with the team to verify that all changes align with the latest project standards and dependencies established in Task 1.
+Review all existing environment setup scripts (e.g., shell scripts, Python setup files) and onboarding documentation to ensure they reference and support Qwen3-4B as the default model. Update instructions to include installation or upgrade steps for the transformers library (version 4.51.0 or higher), specifying any required flags or compatibility notes. 
+
+Clearly document the split between local and cloud workflows:
+- Local Mac (Apple Silicon) setup: Specify that only Mac-compatible packages should be installed. Explicitly note that Unsloth and xformers should NOT be installed locally. Include instructions to use `uv pip install ollama` for the Ollama Python API. Document using Hugging Face transformers for data preparation and tokenization.
+- Cloud workflow: Clarify that all fine-tuning and Unsloth steps should be performed in cloud environments only (Google Colab or Lightning).
+
+Add explicit instructions for using Ollama for local quantized inference and transformers for data preparation. Integrate clear, step-by-step guidance for using the new English-only token extraction scripts, including prerequisites, example commands, and troubleshooting tips. Reference the new workflow and model requirements throughout, ensuring that all documentation is consistent and unambiguous. Coordinate with the team to verify that all changes align with the latest project standards and dependencies established in Task 1.
 
 # Test Strategy:
-Verify that a new developer can follow the updated scripts and documentation to set up a working environment from scratch, successfully install or upgrade transformers to >=4.51.0, and run the new token extraction scripts with Qwen3-4B. Confirm that all references to model requirements and workflows are accurate and that no outdated instructions remain. Solicit feedback from at least one team member not involved in the update to ensure clarity and completeness.
+Verify that a new developer can follow the updated scripts and documentation to set up a working environment from scratch on both local Mac (Apple Silicon) and cloud environments. Test that developers can successfully install transformers (>=4.51.0) and Ollama locally, and run the new token extraction scripts with Qwen3-4B. Verify that the documentation clearly distinguishes which operations should be performed locally versus in the cloud. Confirm that all references to model requirements and workflows are accurate and that no outdated instructions remain. Test the local quantized inference workflow with Ollama. Solicit feedback from at least one team member not involved in the update to ensure clarity and completeness.
+
+# Subtasks:
+## 16.1. undefined [pending]
+### Dependencies: None
+### Description: Update README and onboarding docs to clearly document the split between local and cloud workflows
+### Details:
+
+
+## 16.2. undefined [pending]
+### Dependencies: None
+### Description: Create specific installation instructions for Mac/Apple Silicon that exclude Unsloth and xformers
+### Details:
+
+
+## 16.3. undefined [pending]
+### Dependencies: None
+### Description: Add instructions for installing and using Ollama for local quantized inference
+### Details:
+
+
+## 16.4. undefined [pending]
+### Dependencies: None
+### Description: Update documentation for using transformers for local data preparation and tokenization
+### Details:
+
+
+## 16.5. undefined [pending]
+### Dependencies: None
+### Description: Create clear guidance on which operations should be performed in cloud environments only
+### Details:
+
+
