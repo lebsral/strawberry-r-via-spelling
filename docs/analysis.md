@@ -1,5 +1,28 @@
 # Analysis Tools Documentation
 
+> **Environment Workflow Notice:**
+> - **Analysis scripts can be run locally (Mac/Apple Silicon) or in the cloud.**
+> - **Unsloth and xformers are cloud-only**: Never install or use these packages locally. They require CUDA GPUs and are not compatible with Mac/Apple Silicon.
+> - **Ollama is for local quantized inference only**: Only install and use Ollama on Mac/Apple Silicon for local inference. Do not use Ollama in the cloud.
+> - For full workflow details and troubleshooting, see the [README](../README.md#cloud-workflow-google-colab-lightning-etc) and [Local vs. Cloud Workflow Comparison](../README.md#3-local-vs-cloud-workflow-comparison).
+>
+> **Example (Local):**
+> ```sh
+> uv pip install transformers ollama
+> python -m src.analysis.template_analysis --data-dir data/processed --output-dir results/token_analysis --batch-size 32
+> ollama run qwen3-4b:quantized --input data/processed/template_variations/examples.json
+> ```
+>
+> **Example (Cloud):**
+> ```sh
+> pip install transformers unsloth xformers
+> python -m src.analysis.template_analysis --data-dir data/processed --output-dir results/token_analysis --batch-size 32
+> ```
+>
+> **Troubleshooting:**
+> - If you see errors about CUDA, xformers, or Unsloth on Mac, you are trying to run a cloud-only step locally. Switch to a cloud environment.
+> - If you see errors about Ollama in the cloud, remove it and use only for local inference.
+
 This document describes the analysis tools available in the project for understanding template patterns and performance metrics.
 
 **Clarification:** Spelling data is used for training, but evaluation is strictly limited to character position and character count tasks. Spelling is never used as an evaluation metric. All evaluation metrics, scripts, and documentation must focus exclusively on position and count.

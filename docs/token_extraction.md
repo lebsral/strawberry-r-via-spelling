@@ -1,5 +1,28 @@
 # Qwen3-4B Token Extraction and English-Only Subset
 
+> **Environment Workflow Notice:**
+> - **Token extraction and data preparation can be performed locally (Mac/Apple Silicon) or in the cloud.**
+> - **Unsloth and xformers are cloud-only**: Never install or use these packages locally. They require CUDA GPUs and are not compatible with Mac/Apple Silicon.
+> - **Ollama is for local quantized inference only**: Only install and use Ollama on Mac/Apple Silicon for local inference. Do not use Ollama in the cloud.
+> - For full workflow details and troubleshooting, see the [README](../README.md#cloud-workflow-google-colab-lightning-etc) and [Local vs. Cloud Workflow Comparison](../README.md#3-local-vs-cloud-workflow-comparison).
+>
+> **Example (Local):**
+> ```sh
+> uv pip install transformers ollama
+> python scripts/token_extraction.py --model Qwen3-4B --input data/raw/words.txt --output data/processed/tokens.json
+> ollama run qwen3-4b:quantized --input data/processed/tokens.json
+> ```
+>
+> **Example (Cloud):**
+> ```sh
+> pip install transformers unsloth xformers
+> python scripts/token_extraction.py --model Qwen3-4B --input data/raw/words.txt --output data/processed/tokens.json
+> ```
+>
+> **Troubleshooting:**
+> - If you see errors about CUDA, xformers, or Unsloth on Mac, you are trying to run a cloud-only step locally. Switch to a cloud environment.
+> - If you see errors about Ollama in the cloud, remove it and use only for local inference.
+
 **Project Policy:** Qwen3-4B is always used in non-thinking mode (enable_thinking=False) for all token extraction and evaluation. Thinking mode is strictly prohibited and enforced in code. Any attempt to use thinking mode will raise an error.
 
 **Task 15 (Qwen3-4B compatibility migration) is complete. All code, data, and documentation have been audited and updated to enforce non-thinking mode. All subtasks are done or cancelled as appropriate.**

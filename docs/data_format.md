@@ -1,5 +1,28 @@
 # Data Format Documentation
 
+> **Environment Workflow Notice:**
+> - **Data preparation, batching, and example generation can be performed locally (Mac/Apple Silicon) or in the cloud.**
+> - **Unsloth and xformers are cloud-only**: Never install or use these packages locally. They require CUDA GPUs and are not compatible with Mac/Apple Silicon.
+> - **Ollama is for local quantized inference only**: Only install and use Ollama on Mac/Apple Silicon for local inference. Do not use Ollama in the cloud.
+> - For full workflow details and troubleshooting, see the [README](../README.md#cloud-workflow-google-colab-lightning-etc) and [Local vs. Cloud Workflow Comparison](../README.md#3-local-vs-cloud-workflow-comparison).
+>
+> **Example (Local):**
+> ```sh
+> uv pip install transformers ollama
+> python scripts/data_prep.py --input data/raw/words.txt --output data/processed/template_variations/examples.json
+> ollama run qwen3-4b:quantized --input data/processed/template_variations/examples.json
+> ```
+>
+> **Example (Cloud):**
+> ```sh
+> pip install transformers unsloth xformers
+> python scripts/data_prep.py --input data/raw/words.txt --output data/processed/template_variations/examples.json
+> ```
+>
+> **Troubleshooting:**
+> - If you see errors about CUDA, xformers, or Unsloth on Mac, you are trying to run a cloud-only step locally. Switch to a cloud environment.
+> - If you see errors about Ollama in the cloud, remove it and use only for local inference.
+
 ## Overview
 This document describes the data formats used in the project for training examples, templates, and configuration files.
 

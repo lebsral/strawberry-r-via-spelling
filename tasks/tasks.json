@@ -1892,28 +1892,53 @@
       "testStrategy": "Verify that a new developer can follow the updated scripts and documentation to set up a working environment from scratch on both local Mac (Apple Silicon) and cloud environments. Test that developers can successfully install transformers (>=4.51.0) and Ollama locally, and run the new token extraction scripts with Qwen3-4B. Verify that the documentation clearly distinguishes which operations should be performed locally versus in the cloud. Confirm that all references to model requirements and workflows are accurate and that no outdated instructions remain. Test the local quantized inference workflow with Ollama. Solicit feedback from at least one team member not involved in the update to ensure clarity and completeness.",
       "subtasks": [
         {
-          "id": "16.1",
-          "description": "Update README and onboarding docs to clearly document the split between local and cloud workflows",
+          "id": 1,
+          "title": "Update README and main onboarding documentation",
+          "description": "Revise the main README.md and onboarding documentation to reflect current environment setup requirements for Qwen3-4B compatibility",
+          "dependencies": [],
+          "details": "Review and update the main project documentation to ensure it accurately describes the current setup process, prerequisites, and environment configuration. Include clear sections on project purpose, high-level architecture, and getting started steps. Ensure all links are valid and documentation reflects the current state of the project.\n<info added on 2025-05-10T14:07:49.788Z>\nReview and update the main project documentation to ensure it accurately describes the current setup process, prerequisites, and environment configuration. Include clear sections on project purpose, high-level architecture, and getting started steps. Ensure all links are valid and documentation reflects the current state of the project.\n\nThe documentation update should focus on creating a clear distinction between local (Mac/Apple Silicon) workflows and cloud workflows. This includes:\n\n1. Review all existing documentation:\n   - README.md in the project root\n   - All onboarding documentation in the docs/ directory\n   - Any setup scripts in the scripts/ directory\n\n2. Create or update the following sections:\n   - \"Local (Mac/Apple Silicon) Workflow\" - focusing on data preparation using transformers and inference with Ollama\n   - \"Cloud Workflow\" - covering fine-tuning, Unsloth, xformers, and training processes\n   - Add a comparison table or bullet list clearly showing which steps should be performed locally vs. in the cloud\n\n3. Add explicit warnings about environment-specific dependencies:\n   - Highlight that Unsloth and xformers are cloud-only and should never be installed locally\n   - Provide clear installation instructions for local environment: `uv pip install ollama`, transformers for data preparation\n   - Document cloud-specific setup for training with Qwen3-4B\n\n4. Include practical examples:\n   - Example commands for each environment\n   - Troubleshooting section addressing common mistakes (especially attempting to install cloud-only packages locally)\n   - References to the updated requirements from Task 16\n\n5. Ensure consistency across all documentation:\n   - Remove or update any outdated instructions\n   - Verify that all documentation presents a unified approach to the local/cloud workflow split\n   - Make the distinction between environments unambiguous for new users\n</info added on 2025-05-10T14:07:49.788Z>",
+          "status": "in-progress"
+        },
+        {
+          "id": 2,
+          "title": "Create Mac/Apple Silicon specific installation instructions",
+          "description": "Develop detailed installation instructions specifically for Mac users with Apple Silicon processors",
+          "dependencies": [
+            1
+          ],
+          "details": "Document the specific steps, packages, and configurations needed for Apple Silicon Macs. Include troubleshooting for common issues, performance optimization tips, and any workarounds needed for compatibility. Test the instructions on an M1/M2 machine if possible to verify accuracy.",
           "status": "pending"
         },
         {
-          "id": "16.2",
-          "description": "Create specific installation instructions for Mac/Apple Silicon that exclude Unsloth and xformers",
+          "id": 3,
+          "title": "Document Ollama integration for local inference",
+          "description": "Add comprehensive documentation on setting up and using Ollama for local model inference",
+          "dependencies": [
+            1
+          ],
+          "details": "Create step-by-step instructions for installing Ollama, configuring it for the project, and running local inference. Include examples of common commands, performance expectations, resource requirements, and troubleshooting tips. Document how to verify successful setup and integration with the project.",
           "status": "pending"
         },
         {
-          "id": "16.3",
-          "description": "Add instructions for installing and using Ollama for local quantized inference",
+          "id": 4,
+          "title": "Update transformers documentation for data preparation",
+          "description": "Revise documentation related to using transformers library for data preparation and token extraction scripts",
+          "dependencies": [
+            1
+          ],
+          "details": "Update all documentation related to the transformers library usage, focusing on data preparation workflows and token extraction scripts. Include code examples, expected inputs/outputs, and guidance on handling different data formats. Ensure compatibility with the latest transformers version and Qwen3-4B model.",
           "status": "pending"
         },
         {
-          "id": "16.4",
-          "description": "Update documentation for using transformers for local data preparation and tokenization",
-          "status": "pending"
-        },
-        {
-          "id": "16.5",
-          "description": "Create clear guidance on which operations should be performed in cloud environments only",
+          "id": 5,
+          "title": "Create cloud workflow guidance documentation",
+          "description": "Develop clear documentation distinguishing between local and cloud workflows with specific guidance for cloud environments",
+          "dependencies": [
+            1,
+            3,
+            4
+          ],
+          "details": "Create documentation that clearly separates local development workflows from cloud-based production workflows. Include cloud setup instructions, environment variables, security considerations, and cost management. Document the differences in configuration, performance expectations, and recommended practices for each environment.",
           "status": "pending"
         }
       ]

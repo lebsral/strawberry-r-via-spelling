@@ -102,9 +102,17 @@ For a new repo, start with the most common tools:
 uv pip install black ruff mypy ipython requests torch transformers datasets wandb dspy lightning matplotlib seaborn pandas jupyter notebook ipywidgets
 ```
 
-**Do NOT install Unsloth or xformers locally.**
+**Do NOT install Unsloth or xformers locally. These are for cloud environments only.**
 
-#### e. Freeze installed packages for reproducibility
+#### e. Install Ollama for local quantized inference
+
+```sh
+uv pip install ollama
+```
+
+- Use Ollama for local quantized inference only. Do not use for training or fine-tuning.
+
+#### f. Freeze installed packages for reproducibility
 
 ```sh
 uv pip freeze > requirements.txt
@@ -112,7 +120,7 @@ uv pip freeze > requirements.txt
 
 Commit `requirements.txt` to version control.
 
-#### f. Document the uv version
+#### g. Document the uv version
 
 ```sh
 uv --version
@@ -125,7 +133,84 @@ Add the output to your `README.md` or a setup section for future reference.
 **Tip:**  
 Whenever you add new packages, always run `uv pip freeze > requirements.txt` again to keep your requirements up to date.
 
-### 2. Environment Variables
+---
+
+### 2. Cloud Workflow (Google Colab, Lightning, etc.)
+
+**All fine-tuning, Unsloth, and xformers steps must be performed in a cloud environment.**
+
+#### a. Recommended cloud platforms
+- Google Colab (Pro/Pro+ recommended for longer jobs)
+- Lightning AI
+- Any cloud VM with CUDA-enabled GPU
+
+#### b. Cloud-specific setup
+
+```sh
+pip install torch transformers datasets wandb dspy lightning matplotlib seaborn pandas jupyter notebook ipywidgets unsloth xformers
+```
+
+- Only install `unsloth` and `xformers` in the cloud.
+- Use the latest compatible versions of all packages.
+- Follow platform-specific instructions for GPU/driver setup.
+
+#### c. Fine-tuning and training
+- All model fine-tuning and heavy training must be done in the cloud.
+- Use Unsloth and xformers for efficient training.
+- Never attempt to install or run Unsloth/xformers locally on Mac/Apple Silicon.
+
+#### d. Data Preparation
+- Data preparation and token extraction can be performed locally using Hugging Face transformers, or in the cloud as needed.
+
+---
+
+### 3. Local vs. Cloud Workflow Comparison
+
+| Step                        | Local (Mac/Apple Silicon)         | Cloud (Colab/Lightning/VM)         |
+|-----------------------------|-----------------------------------|------------------------------------|
+| Python env setup            | uv, .venv                         | pip, conda, or platform default    |
+| Install transformers        | ✅                                 | ✅                                 |
+| Install Ollama              | ✅                                 | 🚫                                 |
+| Install Unsloth/xformers    | 🚫                                 | ✅                                 |
+| Data preparation            | ✅                                 | ✅                                 |
+| Token extraction            | ✅                                 | ✅                                 |
+| Fine-tuning/training        | 🚫                                 | ✅                                 |
+| Quantized inference         | ✅ (Ollama)                        | ✅ (if needed)                     |
+| GPU acceleration            | 🚫                                 | ✅                                 |
+
+**Legend:** ✅ = Supported, 🚫 = Not supported
+
+---
+
+### 4. Troubleshooting & Warnings
+
+- **Do NOT install Unsloth or xformers locally.** These packages are not compatible with Mac/Apple Silicon and are only for cloud environments with CUDA GPUs.
+- If you see errors related to CUDA, xformers, or Unsloth on your Mac, you are likely trying to run a cloud-only step locally. Switch to a cloud environment.
+- Use `uv pip install ollama` only on Mac/Apple Silicon for local quantized inference.
+- For any issues with package versions, check the [requirements.txt](requirements.txt) and ensure you are using the correct environment.
+- If you encounter issues with Hugging Face transformers, ensure you are using version 4.51.0 or higher.
+- For cloud GPU setup, refer to your platform's documentation for driver and CUDA installation.
+
+---
+
+### 5. Example Commands
+
+**Local (Mac/Apple Silicon):**
+```sh
+uv pip install transformers ollama
+python scripts/token_extraction.py --model Qwen3-4B --input data/raw/words.txt --output data/processed/tokens.json
+ollama run qwen3-4b:quantized --input data/processed/tokens.json
+```
+
+**Cloud (Colab):**
+```sh
+pip install transformers unsloth xformers
+python scripts/train.py --model Qwen3-4B --data data/processed/tokens.json --output results/model/
+```
+
+---
+
+### 6. Environment Variables
 
 - Copy `.env.example` to `.env`:
 
@@ -136,7 +221,7 @@ Whenever you add new packages, always run `uv pip freeze > requirements.txt` aga
 - Fill in all required values (API keys, etc.).
 - Never commit `.env` with secrets to version control.
 
-### 3. Authentication
+### 7. Authentication
 
 - Log in to Weights & Biases:
 
@@ -150,7 +235,7 @@ Whenever you add new packages, always run `uv pip freeze > requirements.txt` aga
   huggingface-cli login
   ```
 
-### 4. Project Tasks & Workflow
+### 8. Project Tasks & Workflow
 
 - All development is managed via Taskmaster tasks.
 - To see current tasks:
@@ -168,7 +253,7 @@ Whenever you add new packages, always run `uv pip freeze > requirements.txt` aga
 - Tasks are broken down into subtasks for clarity and iterative progress.
 - Follow the details and test strategies in each task file in `tasks/`.
 
-### 5. Dataset Creation
+### 9. Dataset Creation
 
 The project uses a template-based system to generate diverse training examples. All tokenization and example generation use the Qwen3-4B tokenizer and the English-only token subset.
 
@@ -251,7 +336,7 @@ The data loader provides:
 - Examples saved in JSON format with metadata
 - See `docs/data_format.md` for detailed specifications
 
-### 6. Analysis Tools
+### 10. Analysis Tools
 
 All analysis scripts use the Qwen3-4B tokenizer and support only non-thinking mode. See `/docs/analysis.md` for details.
 
@@ -293,7 +378,7 @@ Generates:
 
 Both scripts use shared visualization utilities from `src/analysis/visualization_utils.py` for consistent styling and report generation.
 
-### 7. Model Training & Evaluation
+### 11. Model Training & Evaluation
 
 - All training and evaluation use Qwen3-4B and the English-only token subset.
 - **Qwen3-4B is always used in non-thinking mode (enable_thinking=False). Thinking mode is strictly prohibited and enforced in code.**
@@ -359,4 +444,3 @@ Both scripts use shared visualization utilities from `src/analysis/visualization
 - `.env.example` — Environment variable template
 - `.env` — Local environment (not committed)
 - `README.md` — Project documentation
-- `
