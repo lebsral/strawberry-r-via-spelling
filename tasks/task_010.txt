@@ -3,29 +3,33 @@
 # Status: pending
 # Dependencies: 9
 # Priority: medium
-# Description: Prepare the final model, documentation, and publish to Hugging Face with comprehensive model card, focusing on both spelling training and position/count evaluation capabilities. Include Qwen3-4B specific documentation requirements.
+# Description: Prepare the final model, documentation, and publish to Hugging Face with comprehensive model card, focusing on spelling training but exclusively evaluating on position/count capabilities. Include Qwen3-4B specific documentation requirements.
 # Details:
-1. Prepare model card documentation highlighting transfer learning approach and Qwen3-4B specifics
-2. Create detailed README for the project with both spelling and position/count evaluation, including Qwen3-4B features
+1. Prepare model card documentation highlighting transfer learning approach (spelling training to position/count evaluation) and Qwen3-4B specifics
+2. Create detailed README for the project clarifying that training is on spelling but evaluation is exclusively on position/count tasks, including Qwen3-4B features
 3. Upload the best model to Hugging Face
 4. Ensure dataset is properly published
-5. Create final report with results and findings, emphasizing transfer learning metrics and Qwen3-4B characteristics
+5. Create final report with results and findings, emphasizing transfer learning metrics (spelling training to position/count evaluation) and Qwen3-4B characteristics
 6. Organize documentation in the specified file structure
-7. Document separate endpoints for spelling training and position/count evaluation
+7. Document training endpoints for spelling and evaluation endpoints exclusively for position/count tasks
 8. Document Lightning.AI Studios setup and usage for model publishing and evaluation
-9. Document Qwen3's thinking/non-thinking modes and their impact on performance
+9. Document Qwen3's non-thinking mode configuration (enable_thinking=False) as project policy
 10. Explain the English-only token subset approach and its benefits
 11. Detail Qwen3's specific sampling parameters (Temperature=0.6, TopP=0.95, TopK=20, MinP=0)
-12. Document mode-specific performance characteristics
+12. Document non-thinking mode performance characteristics
 13. Explain token filtering methodology and implementation
-14. Provide guidelines for mode selection based on task type
-15. Document transfer learning differences between modes
-16. Include visualizations of mode comparison results
+14. Provide guidelines for task optimization with non-thinking mode
+15. Document transfer learning approach (spelling to position/count) in non-thinking mode
+16. Include visualizations of position/count performance results only
 17. Explain tokenizer pattern handling and considerations
 18. Create comprehensive guides for reproducing experiments with Qwen3-4B
 19. Document Lightning.AI Studio configuration for Qwen3 evaluation
 
 NOTE: If publishing Unsloth or GPU-fine-tuned models, use a cloud GPU environment (Google Colab or https://lightning.ai/lars/home). Local publishing is only for CPU-compatible models.
+
+NOTE: Project policy mandates using ONLY Qwen3 non-thinking mode (enable_thinking=False). All documentation and code must reflect this requirement.
+
+NOTE: Training is performed on spelling data, but evaluation is strictly limited to character position and character count tasks. No spelling performance metrics should be reported or documented.
 
 File Structure:
 - API docs: `docs/api.md`
@@ -36,55 +40,59 @@ File Structure:
 - Experiment reproduction guide: `docs/experiment_reproduction.md`
 
 # Test Strategy:
-1. Verify model card is comprehensive and follows Hugging Face guidelines, with clear transfer learning focus and Qwen3-4B specifics
-2. Confirm README provides clear instructions for using the model for both spelling and position/count tasks, including Qwen3-4B features
+1. Verify model card is comprehensive and follows Hugging Face guidelines, with clear transfer learning focus (spelling training to position/count evaluation) and Qwen3-4B specifics
+2. Confirm README provides clear instructions for training on spelling but evaluating exclusively on position/count tasks, including Qwen3-4B features
 3. Test model upload to Hugging Face
 4. Verify dataset is properly published and accessible
-5. Check that final report includes all required information, especially transfer learning metrics and Qwen3-4B characteristics
+5. Check that final report includes all required information, especially transfer learning metrics (spelling to position/count) and Qwen3-4B characteristics
 6. Test model loading from Hugging Face
 7. Verify all success criteria from the PRD are met and documented
 8. For Unsloth or GPU-fine-tuned models, verify the publishing process works in a cloud GPU environment
 9. Validate that all documentation files are created in the correct locations
-10. Test API documentation against actual API implementation, ensuring both spelling and position/count endpoints work
+10. Test API documentation against actual API implementation, ensuring spelling training endpoints and position/count evaluation endpoints work as documented
 11. Verify deployment instructions work in both Docker and Kubernetes environments, with proper GPU support
-12. Test monitoring setup with Prometheus and Grafana, focusing on transfer learning metrics
+12. Test monitoring setup with Prometheus and Grafana, focusing on position/count evaluation metrics only
 13. Ensure all file paths in documentation match the actual project structure
-14. Test both spelling and position/count endpoints for performance and accuracy
-15. Verify transfer learning metrics are properly tracked and visualized
+14. Test position/count endpoints for performance and accuracy
+15. Verify transfer learning metrics (spelling to position/count) are properly tracked and visualized
 16. Test Lightning.AI Studios setup and configuration according to documentation
 17. Verify GPU switching functionality in Lightning.AI Studios
 18. Test shared filesystem operations for data management
 19. Validate environment isolation and dependency management in Studios
 20. Test cost optimization strategies and automatic shutdown functionality
-21. Verify integration with the evaluation framework in Lightning.AI Studios
+21. Verify integration with the position/count evaluation framework in Lightning.AI Studios
 22. Test model publishing to Hugging Face from Lightning.AI Studios
 23. Validate troubleshooting procedures for common issues
 24. Test onboarding process for new team members using the documentation
-25. Verify documentation of Qwen3's thinking/non-thinking modes and their performance impact
+25. Verify documentation explicitly states Qwen3's non-thinking mode configuration (enable_thinking=False) as project policy
 26. Test English-only token subset approach and validate its benefits
 27. Verify Qwen3's sampling parameters are correctly documented and implemented
-28. Test mode-specific performance characteristics
+28. Test non-thinking mode performance characteristics
 29. Validate token filtering methodology and implementation
-30. Test mode selection guidelines for different task types
-31. Verify documentation of transfer learning differences between modes
-32. Check visualizations of mode comparison results for clarity and accuracy
+30. Test task optimization guidelines for non-thinking mode
+31. Verify documentation of transfer learning approach (spelling to position/count) in non-thinking mode
+32. Check visualizations of position/count performance results for clarity and accuracy
 33. Test tokenizer pattern handling and verify documentation accuracy
 34. Verify experiment reproduction guides can be followed successfully
 35. Test Lightning.AI Studio configuration specifically for Qwen3 evaluation
 36. Validate that all Qwen3-4B specific documentation is accurate and comprehensive
+37. Verify no references to thinking mode or <think> blocks exist in any documentation or code
+38. Test that enable_thinking=False is properly set in all model configurations
+39. Verify that no spelling performance metrics are reported or documented anywhere
+40. Confirm all evaluation scripts and metrics focus exclusively on position and count tasks
 
 # Subtasks:
 ## 1. Model Card Creation [pending]
 ### Dependencies: None
 ### Description: Create a comprehensive model card following Hugging Face guidelines with metadata and detailed sections
 ### Details:
-Develop a model card as a Markdown file with YAML metadata section. Include: model description, intended uses & limitations, training parameters, datasets used, evaluation results, biases and ethical considerations. Follow the structure from Mitchell, 2018 paper and use the Hugging Face template. Ensure all metadata supports discovery (license, datasets, language identifiers). Include Qwen3-4B specific information such as thinking/non-thinking modes, English-only token subset, and sampling parameters.
+Develop a model card as a Markdown file with YAML metadata section. Include: model description, intended uses & limitations, training parameters, datasets used, evaluation results, biases and ethical considerations. Follow the structure from Mitchell, 2018 paper and use the Hugging Face template. Ensure all metadata supports discovery (license, datasets, language identifiers). Include Qwen3-4B specific information such as non-thinking mode configuration (enable_thinking=False), English-only token subset, and sampling parameters. Clearly state that the model is trained on spelling data but evaluated exclusively on position/count tasks, with no spelling performance metrics reported.
 
 ## 2. Project README and Documentation [pending]
 ### Dependencies: None
 ### Description: Prepare comprehensive project documentation including installation, usage examples, and technical details
 ### Details:
-Create a detailed README.md for the project repository (separate from the model card). Include: project overview, installation instructions, dependency requirements, usage examples with code snippets, architecture diagrams, limitations, and acknowledgments. Document the preprocessing and postprocessing steps to ensure reproducibility. Add inline code comments and generate API documentation if applicable. Include Qwen3-4B specific sections on mode selection, token filtering, and performance characteristics.
+Create a detailed README.md for the project repository (separate from the model card). Include: project overview, installation instructions, dependency requirements, usage examples with code snippets, architecture diagrams, limitations, and acknowledgments. Document the preprocessing and postprocessing steps to ensure reproducibility. Add inline code comments and generate API documentation if applicable. Include Qwen3-4B specific sections on non-thinking mode configuration (enable_thinking=False), token filtering, and performance characteristics. Clearly distinguish between training (spelling) and evaluation (position/count only) throughout all documentation.
 
 Organize documentation in the specified file structure:
 - API docs: `docs/api.md`
@@ -98,7 +106,7 @@ Organize documentation in the specified file structure:
 ### Dependencies: 10.1
 ### Description: Publish the model to Hugging Face Hub and verify its functionality
 ### Details:
-Use the huggingface_hub library to upload the model, tokenizer, and model card. Configure model tags, set appropriate visibility settings, and verify the model card renders correctly. Test the uploaded model with sample inference code to ensure it works as expected. Validate that all metadata is correctly displayed on the model page and that links to datasets are functional. Include Qwen3-4B specific tags and metadata.
+Use the huggingface_hub library to upload the model, tokenizer, and model card. Configure model tags, set appropriate visibility settings, and verify the model card renders correctly. Test the uploaded model with sample inference code to ensure it works as expected for position/count tasks. Validate that all metadata is correctly displayed on the model page and that links to datasets are functional. Include Qwen3-4B specific tags and metadata, ensuring non-thinking mode configuration (enable_thinking=False) is properly documented. Clearly indicate that the model is trained on spelling data but evaluated exclusively on position/count tasks.
 
 NOTE: If publishing Unsloth or GPU-fine-tuned models, use a cloud GPU environment (Google Colab or https://lightning.ai/lars/home). Local publishing is only for CPU-compatible models.
 
@@ -106,13 +114,13 @@ NOTE: If publishing Unsloth or GPU-fine-tuned models, use a cloud GPU environmen
 ### Dependencies: 10.1, 10.2, 10.3
 ### Description: Create a comprehensive report summarizing the model development, performance, and publication process
 ### Details:
-Generate a final report documenting the entire model development lifecycle. Include: executive summary, methodology, training process details, evaluation metrics with visualizations, comparison to baseline models, limitations discovered during testing, deployment considerations, and future improvement recommendations. Format as a professional document with proper citations and appendices for detailed results. Include specific sections on Qwen3-4B features, mode comparisons, and transfer learning differences between modes.
+Generate a final report documenting the entire model development lifecycle. Include: executive summary, methodology, training process details (spelling), evaluation metrics with visualizations (position/count only), comparison to baseline models, limitations discovered during testing, deployment considerations, and future improvement recommendations. Format as a professional document with proper citations and appendices for detailed results. Include specific sections on Qwen3-4B features, non-thinking mode configuration (enable_thinking=False), and transfer learning approach (spelling to position/count) in non-thinking mode. Ensure no spelling performance metrics are reported or documented.
 
 ## 5. Cloud Environment Setup for Model Publishing [pending]
 ### Dependencies: None
 ### Description: Configure cloud GPU environment for publishing Unsloth or GPU-fine-tuned models
 ### Details:
-Set up a cloud GPU environment (Google Colab or https://lightning.ai/lars/home) for publishing models that require GPU resources. Create a notebook or script that handles authentication with Hugging Face, loads the model from local storage or cloud storage, and publishes it to the Hugging Face Hub. Include clear instructions for users on how to use this environment for model publishing. Test the workflow to ensure it works seamlessly with Unsloth-optimized models.
+Set up a cloud GPU environment (Google Colab or https://lightning.ai/lars/home) for publishing models that require GPU resources. Create a notebook or script that handles authentication with Hugging Face, loads the model from local storage or cloud storage, and publishes it to the Hugging Face Hub. Include clear instructions for users on how to use this environment for model publishing. Test the workflow to ensure it works seamlessly with Unsloth-optimized models. Ensure all configurations explicitly set enable_thinking=False for Qwen3-4B models. Include sample code for position/count evaluation (not spelling evaluation).
 
 ## 6. API Documentation Creation [pending]
 ### Dependencies: 10.2
@@ -125,9 +133,9 @@ Develop comprehensive API documentation in `docs/api.md` that includes:
 - Error handling and status codes
 - Rate limiting information
 - Performance considerations
-- Qwen3-4B specific endpoints and parameters
+- Qwen3-4B specific endpoints and parameters, with explicit non-thinking mode configuration (enable_thinking=False)
 
-Ensure documentation matches the actual implementation in `src/api/app.py` and `src/api/routes/`.
+Clearly distinguish between training endpoints (spelling) and evaluation endpoints (position/count only). Ensure documentation matches the actual implementation in `src/api/app.py` and `src/api/routes/`.
 
 ## 7. Deployment Documentation [pending]
 ### Dependencies: 10.2
@@ -139,9 +147,9 @@ Develop a detailed deployment guide in `docs/deployment.md` covering:
 - Environment variable configuration
 - Resource requirements and scaling recommendations
 - Security considerations
-- Qwen3-4B specific deployment considerations
+- Qwen3-4B specific deployment considerations, including non-thinking mode configuration (enable_thinking=False)
 
-Reference the actual configuration files in `deployment/docker-compose.yml` and `deployment/k8s/`.
+Reference the actual configuration files in `deployment/docker-compose.yml` and `deployment/k8s/`. Clearly indicate that deployed models should be evaluated only on position/count tasks, not spelling.
 
 ## 8. Monitoring Documentation [pending]
 ### Dependencies: 10.2
@@ -153,27 +161,27 @@ Develop a monitoring guide in `docs/monitoring.md` that includes:
 - Alert configuration with Alertmanager
 - Log collection and analysis recommendations
 - Performance monitoring best practices
-- Qwen3-4B specific metrics and monitoring considerations
+- Qwen3-4B specific metrics and monitoring considerations for non-thinking mode
 
-Reference the actual configuration files in `deployment/monitoring/`.
+Reference the actual configuration files in `deployment/monitoring/`. Ensure all monitoring metrics focus exclusively on position/count performance, with no spelling metrics included.
 
 ## 9. Transfer Learning Documentation and Metrics [pending]
 ### Dependencies: 10.1, 10.2, 10.6, 10.8
 ### Description: Document the transfer learning approach and implement metrics tracking
 ### Details:
 Create comprehensive documentation on the transfer learning approach used in the project:
-- Update model card to highlight transfer learning aspects
-- Document correlation between spelling performance and position/count performance
-- Create visualization tools for transfer learning metrics
+- Update model card to highlight transfer learning aspects (spelling training to position/count evaluation)
+- Document how training on spelling tasks transfers to position/count performance
+- Create visualization tools for transfer learning metrics (position/count evaluation only)
 - Implement monitoring for transfer learning effectiveness in production
 - Add transfer learning analysis to the final report
-- Document transfer learning differences between Qwen3-4B modes
+- Document transfer learning approach in Qwen3-4B non-thinking mode
 
-Ensure all documentation clearly explains how training on spelling tasks transfers to position/count tasks, including mode-specific considerations.
+Ensure all documentation clearly explains how training on spelling tasks transfers to position/count tasks, with specific focus on non-thinking mode performance. Do not include any spelling performance metrics in the documentation or visualizations.
 
 ## 10. Dual-Task API Implementation Documentation [pending]
 ### Dependencies: 10.6
-### Description: Document the implementation of separate endpoints for spelling and position/count tasks
+### Description: Document the implementation of separate endpoints for spelling training and position/count evaluation
 ### Details:
 Create detailed documentation for the dual-task API implementation:
 - Document the separate endpoints for spelling training and position/count evaluation
@@ -181,9 +189,9 @@ Create detailed documentation for the dual-task API implementation:
 - Explain how to configure the API for different task types
 - Document error handling specific to each task type
 - Include performance considerations for both tasks
-- Document Qwen3-4B mode selection guidelines for each task type
+- Document Qwen3-4B non-thinking mode configuration (enable_thinking=False) for each task type
 
-Ensure the documentation covers how to efficiently use both capabilities of the model, including mode-specific optimizations.
+Ensure the documentation clearly distinguishes between training (spelling) and evaluation (position/count only) endpoints, with specific focus on non-thinking mode optimization. Make it explicit that spelling performance should never be measured or reported.
 
 ## 11. Lightning.AI Studios Documentation [pending]
 ### Dependencies: 10.2, 10.5
@@ -197,31 +205,31 @@ Develop detailed documentation in `docs/lightning_studios.md` covering:
 - Shared filesystem usage and data management
 - Environment isolation and dependency management
 - Cost optimization guidelines
-- Integration with the evaluation framework
+- Integration with the position/count evaluation framework
 - Model publishing workflow
 - Troubleshooting and best practices
 - Onboarding process for new team members
-- Qwen3-4B specific considerations for Lightning.AI Studios
+- Qwen3-4B specific considerations for Lightning.AI Studios, including non-thinking mode configuration (enable_thinking=False)
 - Specific configuration requirements for Qwen3 evaluation
 
-Include practical examples and commands for each section, with clear explanations of the benefits and trade-offs of different approaches.
+Include practical examples and commands for each section, with clear explanations of the benefits and trade-offs of different approaches. Ensure all evaluation examples focus exclusively on position/count tasks, not spelling.
 
 ## 12. Qwen3-4B Specific Documentation [pending]
 ### Dependencies: 10.1, 10.2, 10.6, 10.9, 10.10
 ### Description: Create comprehensive documentation for Qwen3-4B specific features and considerations
 ### Details:
 Develop detailed documentation in `docs/qwen3_4b_guide.md` covering:
-- Thinking/non-thinking modes and their impact on performance
+- Non-thinking mode configuration (enable_thinking=False) as project policy
 - English-only token subset approach and its benefits
 - Qwen3's specific sampling parameters (Temperature=0.6, TopP=0.95, TopK=20, MinP=0)
-- Mode-specific performance characteristics
+- Non-thinking mode performance characteristics
 - Token filtering methodology and implementation
-- Guidelines for mode selection based on task type
-- Transfer learning differences between modes
-- Visualizations of mode comparison results
+- Guidelines for task optimization with non-thinking mode
+- Transfer learning approach (spelling training to position/count evaluation) in non-thinking mode
+- Visualizations of position/count performance results only
 - Tokenizer pattern handling and considerations
 
-Ensure the documentation provides clear guidance on when and how to use different Qwen3-4B features for optimal performance in various scenarios.
+Ensure the documentation provides clear guidance on how to use Qwen3-4B features for optimal performance in various scenarios, with explicit instructions to always use non-thinking mode. Make it clear that while training is on spelling data, evaluation is exclusively on position/count tasks.
 
 ## 13. Experiment Reproduction Guide [pending]
 ### Dependencies: 10.1, 10.2, 10.11, 10.12
@@ -231,12 +239,41 @@ Develop detailed documentation in `docs/experiment_reproduction.md` covering:
 - Step-by-step instructions for reproducing all experiments
 - Environment setup requirements specific to Qwen3-4B
 - Data preparation and preprocessing steps
-- Training command examples with all parameters
-- Evaluation procedures and metrics calculation
-- Expected results and performance benchmarks
+- Training command examples with all parameters, including enable_thinking=False
+- Evaluation procedures and metrics calculation for position/count tasks only
+- Expected results and performance benchmarks for position/count tasks
 - Troubleshooting common issues
 - Hardware requirements and optimization tips
 - Time and resource estimates for each experiment
 
-Ensure the guide is comprehensive enough that a new researcher could reproduce all experiments exactly as performed in the original work.
+Ensure the guide is comprehensive enough that a new researcher could reproduce all experiments exactly as performed in the original work, with explicit instructions to use non-thinking mode only. Clearly state that while training is on spelling data, evaluation is exclusively on position/count tasks, with no spelling performance metrics to be reported.
+
+## 14. Non-Thinking Mode Configuration Verification [pending]
+### Dependencies: 10.1, 10.2, 10.3, 10.5, 10.6, 10.7, 10.8, 10.9, 10.10, 10.11, 10.12, 10.13
+### Description: Verify all code and configurations use Qwen3-4B non-thinking mode only
+### Details:
+Perform a comprehensive review of all code, configuration files, and documentation to ensure:
+- All Qwen3-4B model instantiations explicitly set enable_thinking=False
+- No references to thinking mode or <think> blocks exist in any code or documentation
+- All examples, tutorials, and guides consistently use non-thinking mode
+- All API endpoints and inference code enforce non-thinking mode
+- Deployment configurations properly set enable_thinking=False
+- Test scripts verify non-thinking mode is properly configured
+
+Create a verification checklist and document the results to confirm project policy compliance.
+
+## 15. Evaluation Metrics Verification [pending]
+### Dependencies: 10.1, 10.2, 10.3, 10.4, 10.6, 10.8, 10.9, 10.10, 10.11, 10.12, 10.13
+### Description: Verify all evaluation metrics focus exclusively on position/count tasks
+### Details:
+Perform a comprehensive review of all evaluation code, metrics, documentation, and visualizations to ensure:
+- All evaluation metrics focus exclusively on position and count tasks
+- No spelling performance metrics are reported or documented anywhere
+- All evaluation scripts properly implement position/count metrics only
+- Visualizations only show position/count performance
+- Documentation clearly states that evaluation is limited to position/count tasks
+- Monitoring dashboards only track position/count metrics
+- API documentation for evaluation endpoints only mentions position/count capabilities
+
+Create a verification checklist and document the results to confirm compliance with the evaluation requirements.
 

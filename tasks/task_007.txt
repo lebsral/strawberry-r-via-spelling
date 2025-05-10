@@ -18,7 +18,7 @@
 9. Leverage Lightning.AI Studios for data preparation and processing
 10. Filter and validate data based on Qwen3's English-only token subset
 11. Handle multi-token words appropriately in Qwen3's tokenization patterns
-12. Prepare data for both thinking and non-thinking modes
+12. Prepare data in non-thinking mode only (enable_thinking=False)
 
 File Structure:
 - Environment setup: `src/unsloth/environment.py`
@@ -121,19 +121,11 @@ def prepare_spelling_dataset(dataset, tokenizer, config):
         questions = examples["question"]
         answers = examples["answer"]
         
-        # Format based on thinking mode configuration
-        if config["use_thinking_mode"]:
-            # Special Qwen3 prompt format with thinking mode
-            prompts = [
-                f"<human>: {question}\n<assistant>: <thinking>\nLet me analyze this spelling question carefully.\n</thinking>\n"
-                for question in questions
-            ]
-        else:
-            # Standard prompt format without thinking mode
-            prompts = [
-                f"<human>: {question}\n<assistant>: "
-                for question in questions
-            ]
+        # Standard prompt format (non-thinking mode only)
+        prompts = [
+            f"<human>: {question}\n<assistant>: "
+            for question in questions
+        ]
 
         # Format responses with EOS token
         formatted_responses = [
@@ -186,19 +178,11 @@ def prepare_position_count_dataset(dataset, tokenizer, config):
         questions = examples["question"]
         answers = examples["answer"]
 
-        # Format based on thinking mode configuration
-        if config["use_thinking_mode"]:
-            # Special Qwen3 prompt format with thinking mode for position/count tasks
-            prompts = [
-                f"<human>: {question}\n<assistant>: <thinking>\nI need to carefully analyze the positions and counts in this question.\n</thinking>\n"
-                for question in questions
-            ]
-        else:
-            # Standard prompt format without thinking mode
-            prompts = [
-                f"<human>: {question}\n<assistant>: "
-                for question in questions
-            ]
+        # Standard prompt format (non-thinking mode only)
+        prompts = [
+            f"<human>: {question}\n<assistant>: "
+            for question in questions
+        ]
 
         # Format responses with EOS token
         formatted_responses = [
@@ -385,7 +369,7 @@ def generate_evaluation_report(spelling_results, position_count_results, config)
 23. Verify efficient data streaming and caching mechanisms in Lightning.AI environment
 24. Test Qwen3-4B tokenizer handling for multi-token words
 25. Verify English-only token subset filtering functionality
-26. Test data preparation in both thinking and non-thinking modes
+26. Test data preparation in non-thinking mode only
 27. Validate token analysis reporting for Qwen3 tokenization patterns
 28. Test compatibility of prepared data with Qwen3's tokenization requirements
 29. Verify that filtered datasets maintain sufficient size for effective training
@@ -425,7 +409,7 @@ Create a dedicated Lightning.AI Studio for data preparation following the "one S
 Specific Qwen3-4B requirements:
 1. Implement functions to identify and filter for English-only token subset
 2. Create analysis tools for multi-token word handling in Qwen3's tokenization patterns
-3. Set up data preparation for both thinking and non-thinking modes
+3. Set up data preparation in non-thinking mode only
 4. Implement validation to ensure data compatibility with Qwen3's tokenization requirements
 5. Create reporting tools to analyze token usage patterns in the dataset
 
@@ -492,7 +476,7 @@ Create separate data processing pipelines for spelling and position/count datase
 Qwen3-4B specific requirements:
 1. Implement English-only token subset filtering for both datasets
 2. Handle multi-token words appropriately in both datasets
-3. Support both thinking and non-thinking modes in data preparation
+3. Support non-thinking mode only in data preparation
 4. Create analysis tools to validate token usage patterns
 5. Implement efficient caching of tokenized data to improve performance
 
@@ -543,7 +527,6 @@ Specific tasks:
 3. Develop optimization strategies for handling multi-token words
 4. Create efficient filtering mechanisms for English-only token subset
 5. Implement validation tools to ensure data compatibility with Qwen3's tokenization
-6. Analyze impact of thinking vs. non-thinking modes on token usage
 
 File locations:
 - Qwen3 tokenizer utilities: `src/unsloth/qwen3_tokenizer.py`
@@ -556,27 +539,27 @@ Output locations:
 
 **NOTE: While analysis can be done locally, validation should be performed with the actual Qwen3-4B tokenizer in a cloud environment.**
 
-## 11. Thinking Mode Implementation [pending]
+## 11. Non-Thinking Mode Implementation [pending]
 ### Dependencies: 7.3, 7.7
-### Description: Implement support for both thinking and non-thinking modes in data preparation
+### Description: Implement support for non-thinking mode in data preparation
 ### Details:
-Create flexible data preparation pipelines that support both thinking and non-thinking modes. Implement configuration options for switching between modes. Develop analysis tools to compare performance between modes. Create visualization utilities for token usage patterns in different modes.
+Create data preparation pipelines that exclusively support non-thinking mode (enable_thinking=False). Ensure all code, configuration, and documentation enforce this project policy.
 
 Specific tasks:
-1. Implement thinking mode formatting with <thinking> tags for Qwen3-4B
-2. Create non-thinking mode formatting for direct response generation
-3. Develop configuration options for switching between modes
-4. Implement analysis tools to compare performance between modes
-5. Create visualization utilities for token usage patterns in different modes
+1. Implement non-thinking mode formatting for direct response generation
+2. Create configuration validation to ensure thinking mode is never enabled
+3. Develop documentation that clearly states the non-thinking mode requirement
+4. Implement validation checks to prevent accidental use of thinking mode
+5. Create visualization utilities for token usage patterns in non-thinking mode
 
 File locations:
 - Dataset preparation: `src/unsloth/dataset.py`
-- Thinking mode utilities: `src/unsloth/thinking_mode.py`
 - Configuration handling: `src/unsloth/config.py`
+- Configuration validation: `src/unsloth/config_validation.py`
 
 Output locations:
-- `results/unsloth/thinking_analysis/` (Thinking mode analysis)
-- `results/unsloth/figures/thinking_comparison/` (Thinking mode comparison visualizations)
+- `results/unsloth/token_analysis/` (Non-thinking mode token analysis)
+- `results/unsloth/figures/token_distribution/` (Token distribution visualizations)
 
 **NOTE: This task requires testing in a cloud GPU environment with the actual Qwen3-4B model.**
 

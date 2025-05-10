@@ -1,4 +1,8 @@
-# Qwen3-4B Token Extraction
+# Qwen3-4B Token Extraction and English-Only Subset
+
+**Project Policy:** Qwen3-4B is always used in non-thinking mode (enable_thinking=False) for all token extraction and evaluation. Thinking mode is strictly prohibited and enforced in code. Any attempt to use thinking mode will raise an error.
+
+**Clarification:** Spelling data is used for training, but evaluation is strictly limited to character position and character count tasks. Spelling is never used as an evaluation metric. All evaluation metrics, scripts, and documentation must focus exclusively on position and count.
 
 ## Current Workflow (Post-Task 14.1)
 
@@ -61,3 +65,9 @@ Qwen3-4B's tokenizer supports multiple languages, but only about 50,000 tokens a
 
 ## Related Tasks
 - See Taskmaster tasks #14 and #15 for migration and compatibility conversion.
+
+## Evaluation Metrics
+
+- Only position and character count are used for evaluation.
+- Spelling is never used as an evaluation metric.
+- **Qwen3-4B is always used in non-thinking mode.**

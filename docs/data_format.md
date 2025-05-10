@@ -253,4 +253,12 @@ All data formats in this project are designed for compatibility with the Qwen3-4
 
 # Data Format Specifications
 
-> **Note:** As of Task 14.1 (DONE), all data generation and token extraction use the Qwen3-4B **tokenizer** only. The full model is only loaded for inference/evaluation. Scripts and imports must follow the `src/` layout (see `.cursor/rules/module_imports.mdc`). This is now the project standard.
+**Clarification:** Spelling data is used for training, but evaluation is strictly limited to character position and character count tasks. Spelling is never used as an evaluation metric. All evaluation metrics, scripts, and documentation must focus exclusively on position and count.
+
+**Project Policy:** Qwen3-4B is always used in non-thinking mode (enable_thinking=False) for all data processing and evaluation. Thinking mode is strictly prohibited and enforced in code. Any attempt to use thinking mode will raise an error.
+
+## Evaluation Fields
+
+- Only position and character count are used for evaluation.
+- Spelling is never used as an evaluation metric.
+- **Qwen3-4B is always used in non-thinking mode.**

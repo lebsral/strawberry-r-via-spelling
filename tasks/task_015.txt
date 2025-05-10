@@ -3,12 +3,12 @@
 # Status: pending
 # Dependencies: 14
 # Priority: high
-# Description: Update training data format, evaluation framework, and scripts to ensure compatibility with Qwen3-4B, including support for its tokenizer and thinking/non-thinking modes, while validating the integrity of the original experiment.
+# Description: Update training data format, evaluation framework, and scripts to ensure compatibility with Qwen3-4B, including support for its tokenizer and non-thinking mode only, while validating the integrity of the original experiment.
 # Details:
-This task involves converting all existing training datasets and evaluation frameworks to be compatible with the Qwen3-4B model. Key steps include: (1) Updating the training data format to align with Qwen3's tokenizer, ensuring that only English tokens are used as per the English-only subset; (2) Adapting the evaluation framework to support Qwen3-4B's unique features, such as thinking and non-thinking modes, and ensuring that all evaluation metrics and scripts are updated to reflect these capabilities; (3) Modifying all existing scripts and utilities to work seamlessly with the new tokenizer and model configuration; (4) Validating that the conversion process maintains the integrity of the original experiment's goals by comparing results before and after the migration. Special attention should be paid to the tokenizer's handling of English-only data and the model's reasoning modes, as these are critical for accurate and fair evaluation. Documentation should be updated to reflect all changes and provide clear guidance for future maintenance.
+This task involves converting all existing training datasets and evaluation frameworks to be compatible with the Qwen3-4B model. Key steps include: (1) Updating the training data format to align with Qwen3's tokenizer, ensuring that only English tokens are used as per the English-only subset; (2) Adapting the evaluation framework to support Qwen3-4B in non-thinking mode only (enable_thinking=False), and ensuring that all evaluation metrics and scripts are updated to reflect this configuration; (3) Modifying all existing scripts and utilities to work seamlessly with the new tokenizer and model configuration, removing any logic related to thinking mode or <think> blocks; (4) Validating that the conversion process maintains the integrity of the original experiment's goals by comparing results before and after the migration. Special attention should be paid to the tokenizer's handling of English-only data, as this is critical for accurate and fair evaluation. Documentation should be updated to reflect all changes, explicitly state that only non-thinking mode is allowed per project policy, and provide clear guidance for future maintenance.
 
 # Test Strategy:
-To verify task completion, perform the following: (1) Run the updated training pipeline with the converted datasets and confirm that the model trains without errors; (2) Execute the evaluation framework with both thinking and non-thinking modes enabled, ensuring that all metrics are reported correctly and that the results are consistent with the original experiment; (3) Validate that all scripts and utilities function as expected with the new tokenizer and model configuration; (4) Compare the results of the original and converted pipelines to ensure that the integrity of the experiment is maintained; (5) Review updated documentation for accuracy and completeness. Automated tests should be added where possible to catch regressions in data processing, tokenization, and evaluation logic.
+To verify task completion, perform the following: (1) Run the updated training pipeline with the converted datasets and confirm that the model trains without errors; (2) Execute the evaluation framework with non-thinking mode only (enable_thinking=False), ensuring that all metrics are reported correctly and that the results are consistent with the original experiment; (3) Validate that all scripts and utilities function as expected with the new tokenizer and model configuration, with no references to thinking mode; (4) Compare the results of the original and converted pipelines to ensure that the integrity of the experiment is maintained; (5) Review updated documentation for accuracy and completeness, confirming it clearly states that only non-thinking mode is allowed. Automated tests should be added where possible to catch regressions in data processing, tokenization, and evaluation logic, including tests that verify thinking mode is never enabled.
 
 # Subtasks:
 ## 1. Convert Training Datasets to Qwen3-4B English-Only Tokenizer Format [pending]
@@ -17,27 +17,33 @@ To verify task completion, perform the following: (1) Run the updated training p
 ### Details:
 Analyze the Qwen3-4B tokenizer specifications and preprocess datasets to filter out non-English tokens, reformatting data as needed for model ingestion.
 
-## 2. Update Evaluation Framework for Qwen3-4B Reasoning Modes [pending]
+## 2. Update Evaluation Framework for Qwen3-4B Non-Thinking Mode [pending]
 ### Dependencies: 15.1
-### Description: Adapt the evaluation framework to support Qwen3-4B's unique features, including thinking and non-thinking modes, and update evaluation metrics and scripts accordingly.
+### Description: Adapt the evaluation framework to support Qwen3-4B in non-thinking mode only, and update evaluation metrics and scripts accordingly.
 ### Details:
-Review Qwen3-4B's API and reasoning mode requirements, modifying evaluation scripts to trigger and assess both thinking and non-thinking outputs, and ensure metrics capture relevant model behaviors.
+Review Qwen3-4B's API and modify evaluation scripts to always use non-thinking mode (enable_thinking=False), removing any code that references or enables thinking mode or <think> blocks, and ensure metrics capture relevant model behaviors in non-thinking mode only.
 
 ## 3. Refactor Scripts and Utilities for Qwen3-4B Compatibility [pending]
 ### Dependencies: 15.1
-### Description: Modify all existing scripts and utilities to work seamlessly with the Qwen3-4B model configuration and tokenizer.
+### Description: Modify all existing scripts and utilities to work seamlessly with the Qwen3-4B model configuration and tokenizer, ensuring thinking mode is never enabled.
 ### Details:
-Update data loading, preprocessing, and inference scripts to use the latest Qwen3-4B APIs and ensure compatibility with the model's configuration and tokenizer requirements.
+Update data loading, preprocessing, and inference scripts to use the latest Qwen3-4B APIs with enable_thinking=False explicitly set. Remove any code that processes or generates <think> blocks or thinking mode outputs. Ensure compatibility with the model's configuration and tokenizer requirements.
 
 ## 4. Validate Integrity of Experimental Results Post-Conversion [pending]
 ### Dependencies: 15.2, 15.3
-### Description: Ensure that the conversion process maintains the integrity of the original experiment by comparing results before and after migration to Qwen3-4B.
+### Description: Ensure that the conversion process maintains the integrity of the original experiment by comparing results before and after migration to Qwen3-4B in non-thinking mode.
 ### Details:
-Design and run comparative experiments using both the original and converted setups, analyzing key metrics to confirm that experimental goals and data integrity are preserved.
+Design and run comparative experiments using both the original and converted setups, analyzing key metrics to confirm that experimental goals and data integrity are preserved when using Qwen3-4B in non-thinking mode only.
 
 ## 5. Update Documentation and Provide Maintenance Guidance [pending]
 ### Dependencies: 15.4
-### Description: Revise all relevant documentation to reflect changes made for Qwen3-4B compatibility and offer clear guidance for future maintenance.
+### Description: Revise all relevant documentation to reflect changes made for Qwen3-4B compatibility in non-thinking mode only and offer clear guidance for future maintenance.
 ### Details:
-Document new data formats, evaluation procedures, script changes, and best practices for working with Qwen3-4B, including handling of English-only data and reasoning modes.
+Document new data formats, evaluation procedures, script changes, and best practices for working with Qwen3-4B in non-thinking mode only. Explicitly state that project policy requires enable_thinking=False for all Qwen3-4B usage. Include handling of English-only data and ensure no references to thinking mode remain in documentation.
+
+## 6. Add Safeguards Against Thinking Mode Usage [pending]
+### Dependencies: 15.2, 15.3
+### Description: Implement safeguards in code to prevent accidental use of thinking mode in any part of the system.
+### Details:
+Add validation checks in model initialization and inference code to ensure enable_thinking is always set to False. Create CI/CD tests that verify no thinking mode code exists in the codebase. Consider adding runtime assertions that will fail if thinking mode is detected.
 

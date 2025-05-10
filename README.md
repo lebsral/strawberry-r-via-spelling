@@ -6,12 +6,12 @@ This project explores whether training a language model (LLM) on spelling tasks 
 
 ## Qwen3-4B Migration
 
-- The project now uses the Qwen3-4B model, which supports both thinking and non-thinking modes.
+- The project now uses the Qwen3-4B model, which **must always be used in non-thinking mode (enable_thinking=False)**. Thinking mode is strictly prohibited by project policy and enforced in code. Any attempt to use thinking mode will raise an error.
 - **Tokenizer-only workflows are the default for all data preparation and token extraction tasks.**
 - The full model is only loaded for inference or evaluation, not for data prep.
 - Scripts and imports are enforced to follow the `src/` layout, and a Cursor rule prevents import errors (see `.cursor/rules/module_imports.mdc`).
 - Only the English token subset (~50k tokens) is used for all experiments.
-- Model configuration uses specific sampling parameters: Temperature=0.6, TopP=0.95, TopK=20, MinP=0 (for thinking mode).
+- Model configuration uses specific sampling parameters: Temperature=0.6, TopP=0.95, TopK=20, MinP=0 (for non-thinking mode).
 - All scripts, data, and evaluation are Qwen3-4B-specific.
 
 ## Task 14.1: Qwen3-4B Model Setup (Status: DONE)
@@ -27,6 +27,7 @@ This project explores whether training a language model (LLM) on spelling tasks 
 - Build a dataset for spelling, position, and count questions.
 - Train and fine-tune a Qwen3-4B model using Unsloth and LoRA optimizations.
 - Evaluate if spelling training improves model performance on position and count metrics using a true hold-out set.
+- **Clarification:** Qwen3-4B is always used in non-thinking mode (enable_thinking=False). Spelling data is used for training, but evaluation is strictly limited to character position and character count tasks. Spelling is never used as an evaluation metric. All evaluation metrics, scripts, and documentation must focus exclusively on position and count. Any use of thinking mode is prohibited and enforced in code.
 
 ## Project Structure
 
@@ -292,11 +293,12 @@ Both scripts use shared visualization utilities from `src/analysis/visualization
 ### 7. Model Training & Evaluation
 
 - All training and evaluation use Qwen3-4B and the English-only token subset.
-- Select the correct mode (thinking/non-thinking) and configure sampling parameters as described above.
+- **Qwen3-4B is always used in non-thinking mode (enable_thinking=False). Thinking mode is strictly prohibited and enforced in code.**
+- Select the correct mode (non-thinking only) and configure sampling parameters as described above.
 - For Unsloth-based fine-tuning or any GPU-dependent workflow, use [Google Colab](https://colab.research.google.com/) or [Lightning.ai](https://lightning.ai/lars/home).
 - See the section below for cloud workflow instructions.
 - Experiments are tracked with W&B.
-- Evaluation focuses on position and count question metrics, using the hold-out set for true generalization measurement.
+- **Evaluation focuses only on position and count question metrics, using the hold-out set for true generalization measurement. Spelling is never used as an evaluation metric.**
 
 ---
 
@@ -360,6 +362,7 @@ Both scripts use shared visualization utilities from `src/analysis/visualization
 ## Contribution Guidelines
 
 - Follow the Taskmaster workflow for all new features or changes.
+- **Project policy: Qwen3-4B must always be used in non-thinking mode (enable_thinking=False). Any attempt to use thinking mode is prohibited and will raise an error.**
 - Add new tasks or subtasks as needed using Taskmaster commands.
 - Update this README as the project evolves.
 - Use clear commit messages and document any changes to onboarding or environment setup.

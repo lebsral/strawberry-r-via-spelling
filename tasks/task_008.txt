@@ -7,12 +7,14 @@
 # Details:
 **IMPORTANT NOTE: This task requires a cloud GPU environment for Qwen3-4B fine-tuning. Do not attempt on local Mac.**
 
+**CLARIFICATION: Training is performed on spelling data, but evaluation is strictly limited to character position and character count tasks. All evaluation metrics, scripts, and documentation must focus exclusively on position and count. Spelling is never used as an evaluation metric.**
+
 1. Create a reusable training script that accepts hyperparameter configs (`src/training/train.py`)
 2. Implement the training loop using Unsloth with Qwen3-4B on Google Colab or https://lightning.ai/lars/home
 3. Set up checkpoint saving and loading system (`src/training/checkpointing.py`)
 4. Implement early stopping based on validation metrics
 5. Configure Qwen3-4B specific features:
-   - Support for thinking/non-thinking modes
+   - Non-thinking mode only (enable_thinking=False) as per project policy
    - Sampling parameters (Temperature=0.6, TopP=0.95, TopK=20, MinP=0)
    - English-only token subset handling during training
    - Adaptation to Qwen3's tokenizer patterns
@@ -23,18 +25,17 @@
    - Batch size: [4, 8, 16, 32]
    - Gradient accumulation steps: [1, 2, 4, 8]
    - Training steps: [500, 1000, 2000, 5000]
-   - Thinking mode: [enabled, disabled]
-7. Track all experiments in W&B with both spelling metrics and transfer metrics
-8. Implement evaluation metrics suitable for both thinking and non-thinking modes
-9. Analyze correlation between spelling improvement and transfer performance
+7. Track all experiments in W&B with position and character count metrics only
+8. Implement evaluation metrics for non-thinking mode
+9. Analyze transfer performance on position and character count tasks
 10. Identify training patterns that lead to better transfer learning
 
 **Transfer Learning Focus:**
 - Primary training on spelling variation tasks
-- Monitor transfer learning effectiveness to position/count tasks
-- Track correlation between spelling performance and transfer capabilities
-- Identify which training approaches generalize better across task types
-- Compare performance between thinking and non-thinking modes
+- Evaluate transfer learning effectiveness exclusively on position/count tasks
+- Track performance on position and character count tasks only
+- Identify which training approaches generalize better to position and count tasks
+- Never use spelling as an evaluation metric
 
 **File Structure:**
 - Training Infrastructure:
@@ -51,7 +52,6 @@
   - Metrics tracking: `src/models/metrics.py`
   - Model utilities: `src/models/utils.py`
   - Transfer evaluation: `src/models/transfer_eval.py`
-  - Thinking mode handler: `src/models/thinking_mode.py`
 
 - Deployment Components:
   - Model export: `src/deployment/model_export.py`
@@ -77,7 +77,6 @@
   - Model checkpoints: `checkpoints/`
   - Training logs: `results/training_logs/`
   - Performance metrics: `results/metrics/`
-  - Error analysis: `results/error_analysis/`
   - Transfer analysis: `results/transfer_analysis/`
   - Deployment results: `results/deployment/`
     - Figures: `results/deployment/figures/`
@@ -146,35 +145,28 @@ def run_experiment(config_path):
         random_state=42
     )
     
-    # Load datasets - both spelling and transfer task datasets
+    # Load datasets - both training and transfer task datasets
     spelling_dataset = load_dataset("YOUR-USERNAME/llm-spelling-dataset")
     position_dataset = load_dataset("YOUR-USERNAME/llm-position-dataset")
     count_dataset = load_dataset("YOUR-USERNAME/llm-count-dataset")
     
     # Format dataset for instruction fine-tuning with Qwen3's format
-    def formatting_func(examples, thinking_mode=False):
+    def formatting_func(examples):
         questions = examples["question"]
         answers = examples["answer"]
         
-        if thinking_mode:
-            # Format with thinking mode enabled
-            prompts = [f"<|im_start|>user\n{q}\n<|im_end|>\n<|im_start|>assistant\n<|thinking|>" for q in questions]
-            completions = [f"Let me solve this step by step...\n{a}\n<|endthinking|>\n{a}<|im_end|>" for a in answers]
-        else:
-            # Format with standard mode (no thinking)
-            prompts = [f"<|im_start|>user\n{q}\n<|im_end|>\n<|im_start|>assistant\n" for q in questions]
-            completions = [f"{a}<|im_end|>" for a in answers]
+        # Format with standard mode (non-thinking mode only as per project policy)
+        prompts = [f"<|im_start|>user\n{q}\n<|im_end|>\n<|im_start|>assistant\n" for q in questions]
+        completions = [f"{a}<|im_end|>" for a in answers]
         
         return {"prompt": prompts, "completion": completions}
     
-    # Apply formatting based on thinking mode configuration
-    thinking_mode = config.get("thinking_mode", False)
-    train_dataset = spelling_dataset["train"].map(lambda x: formatting_func(x, thinking_mode), batched=True)
-    eval_dataset = spelling_dataset["validation"].map(lambda x: formatting_func(x, thinking_mode), batched=True)
+    # Apply formatting
+    train_dataset = spelling_dataset["train"].map(formatting_func, batched=True)
     
     # Format transfer task datasets for evaluation
-    position_eval_dataset = position_dataset["validation"].map(lambda x: formatting_func(x, thinking_mode), batched=True)
-    count_eval_dataset = count_dataset["validation"].map(lambda x: formatting_func(x, thinking_mode), batched=True)
+    position_eval_dataset = position_dataset["validation"].map(formatting_func, batched=True)
+    count_eval_dataset = count_dataset["validation"].map(formatting_func, batched=True)
     
     # Set up output directory
     output_dir = f"./results/{config['experiment_name']}_{config['timestamp']}"
@@ -196,8 +188,8 @@ def run_experiment(config_path):
         save_strategy="steps",
         save_steps=200,
         load_best_model_at_end=True,
-        metric_for_best_model="eval_loss",
-        greater_is_better=False,
+        metric_for_best_model="eval_position_accuracy",  # Use position task accuracy as primary metric
+        greater_is_better=True,
         optim="adamw_torch",
         max_grad_norm=0.3,
         report_to="wandb"
@@ -216,19 +208,12 @@ def run_experiment(config_path):
         accuracy = accuracy_score(labels, predictions)
         precision, recall, f1, _ = precision_recall_fscore_support(labels, predictions, average='weighted')
         
-        # Add thinking mode specific metrics if applicable
         metrics = {
             "accuracy": accuracy,
             "precision": precision,
             "recall": recall,
             "f1": f1
         }
-        
-        if thinking_mode:
-            # Add thinking-specific metrics
-            # This would analyze the quality of the thinking process
-            # Implementation depends on specific requirements
-            pass
         
         return metrics
     
@@ -238,7 +223,7 @@ def run_experiment(config_path):
         tokenizer=tokenizer,
         args=training_args,
         train_dataset=train_dataset,
-        eval_dataset=eval_dataset,
+        eval_dataset=position_eval_dataset,  # Use position task as primary validation dataset
         data_collator=FastLanguageModel.get_data_collator(tokenizer),
         compute_metrics=compute_metrics,
         callbacks=[EarlyStoppingCallback(early_stopping_patience=3)]
@@ -250,38 +235,30 @@ def run_experiment(config_path):
     # Save final model
     trainer.save_model(f"{output_dir}/final")
     
-    # Evaluate on spelling validation set
-    spelling_eval_results = trainer.evaluate()
-    
     # Evaluate on transfer task datasets
     position_eval_results = trainer.evaluate(eval_dataset=position_eval_dataset)
     count_eval_results = trainer.evaluate(eval_dataset=count_eval_dataset)
     
     # Calculate transfer metrics
     transfer_metrics = {
-        "position_transfer_score": position_eval_results["eval_accuracy"],
-        "count_transfer_score": count_eval_results["eval_accuracy"],
+        "position_accuracy": position_eval_results["eval_accuracy"],
+        "count_accuracy": count_eval_results["eval_accuracy"],
         "avg_transfer_score": (position_eval_results["eval_accuracy"] + count_eval_results["eval_accuracy"]) / 2,
-        "spelling_to_position_ratio": spelling_eval_results["eval_accuracy"] / position_eval_results["eval_accuracy"] if position_eval_results["eval_accuracy"] > 0 else 0,
-        "spelling_to_count_ratio": spelling_eval_results["eval_accuracy"] / count_eval_results["eval_accuracy"] if count_eval_results["eval_accuracy"] > 0 else 0
+        "position_to_count_ratio": position_eval_results["eval_accuracy"] / count_eval_results["eval_accuracy"] if count_eval_results["eval_accuracy"] > 0 else 0
     }
     
     # Log all results
     wandb.log({
-        **spelling_eval_results,
         "position_eval_results": position_eval_results,
         "count_eval_results": count_eval_results,
-        **transfer_metrics,
-        "thinking_mode": thinking_mode
+        **transfer_metrics
     })
     
     # Save evaluation results
     all_results = {
-        "spelling_eval_results": spelling_eval_results,
         "position_eval_results": position_eval_results,
         "count_eval_results": count_eval_results,
-        "transfer_metrics": transfer_metrics,
-        "thinking_mode": thinking_mode
+        "transfer_metrics": transfer_metrics
     }
     
     with open(f"{output_dir}/eval_results.yaml", "w") as f:
@@ -334,22 +311,16 @@ def analyze_transfer_effectiveness(results):
             "batch_size": config["training_config"]["per_device_train_batch_size"],
             "grad_accum_steps": config["training_config"]["gradient_accumulation_steps"],
             "training_steps": config["training_config"]["max_steps"],
-            "thinking_mode": config.get("thinking_mode", False),
-            "spelling_accuracy": exp_data["eval_results"]["spelling_eval_results"]["eval_accuracy"],
             "position_accuracy": exp_data["eval_results"]["position_eval_results"]["eval_accuracy"],
             "count_accuracy": exp_data["eval_results"]["count_eval_results"]["eval_accuracy"],
             "avg_transfer_score": exp_data["eval_results"]["transfer_metrics"]["avg_transfer_score"]
         }
         experiment_metrics.append(metrics)
     
-    # Calculate correlations between spelling performance and transfer tasks
+    # Calculate correlations between position and count tasks
     import pandas as pd
     df = pd.DataFrame(experiment_metrics)
-    correlation = df[["spelling_accuracy", "position_accuracy", "count_accuracy", "avg_transfer_score"]].corr()
-    
-    # Analyze impact of thinking mode on transfer learning
-    thinking_vs_standard = df.groupby("thinking_mode")[["spelling_accuracy", "position_accuracy", 
-                                                      "count_accuracy", "avg_transfer_score"]].mean()
+    correlation = df[["position_accuracy", "count_accuracy", "avg_transfer_score"]].corr()
     
     # Identify top performing configurations for transfer learning
     df_sorted = df.sort_values(by="avg_transfer_score", ascending=False)
@@ -358,50 +329,45 @@ def analyze_transfer_effectiveness(results):
     # Save analysis results
     os.makedirs("results/transfer_analysis", exist_ok=True)
     correlation.to_csv("results/transfer_analysis/metric_correlations.csv")
-    thinking_vs_standard.to_csv("results/transfer_analysis/thinking_mode_impact.csv")
     top_configs.to_csv("results/transfer_analysis/top_transfer_configs.csv")
     
     # Generate visualization of transfer learning effectiveness
     import matplotlib.pyplot as plt
     plt.figure(figsize=(10, 6))
-    plt.scatter(df["spelling_accuracy"], df["avg_transfer_score"], 
-                c=df["thinking_mode"].map({True: 'red', False: 'blue'}))
-    plt.xlabel("Spelling Task Accuracy")
-    plt.ylabel("Average Transfer Task Accuracy")
-    plt.title("Correlation between Spelling Performance and Transfer Learning")
-    plt.legend(["Thinking Mode", "Standard Mode"])
-    plt.savefig("results/transfer_analysis/spelling_vs_transfer.png")
+    plt.scatter(df["position_accuracy"], df["count_accuracy"])
+    plt.xlabel("Position Task Accuracy")
+    plt.ylabel("Count Task Accuracy")
+    plt.title("Correlation between Position and Count Task Performance")
+    plt.savefig("results/transfer_analysis/position_vs_count.png")
     
     # Log findings to wandb
     wandb.init(project="llm-spelling-finetuning", name="transfer_analysis", reinit=True)
     wandb.log({
         "correlation_matrix": wandb.Table(dataframe=correlation),
-        "thinking_vs_standard": wandb.Table(dataframe=thinking_vs_standard),
         "top_transfer_configs": wandb.Table(dataframe=top_configs),
-        "spelling_vs_transfer_plot": wandb.Image("results/transfer_analysis/spelling_vs_transfer.png")
+        "position_vs_count_plot": wandb.Image("results/transfer_analysis/position_vs_count.png")
     })
     wandb.finish()
 ```
 
 # Test Strategy:
 1. Verify training script (`src/training/train.py`) runs without errors on Google Colab or lightning.ai with Qwen3-4B
-2. Test both thinking and non-thinking modes to ensure proper formatting and processing
-3. Confirm experiments are properly tracked in W&B with both spelling and transfer metrics
+2. Confirm non-thinking mode is properly implemented and no thinking mode code exists in the codebase
+3. Confirm experiments are properly tracked in W&B with position and character count metrics only
 4. Verify Qwen3-specific sampling parameters (Temperature=0.6, TopP=0.95, TopK=20, MinP=0) are correctly applied
 5. Test English-only token subset handling during training
 6. Check that checkpoints are saved correctly to `checkpoints/` directory and can be loaded properly
 7. Verify early stopping works as expected
 8. Test that the best model is loaded at the end of training
 9. Compare performance across different hyperparameter configurations using Python scripts
-10. Specifically test the impact of thinking mode vs. non-thinking mode on performance
-11. Ensure all experiment results are properly saved to `results/metrics/` and `results/training_logs/`
-12. Verify the environment is properly set up with GPU access before starting experiments
-13. Validate that all configuration files in `configs/` directory are properly loaded and applied
-14. Test transfer learning evaluation on position and count tasks with both thinking and non-thinking modes
-15. Verify correlation analysis between spelling performance and transfer capabilities
-16. Test the transfer analysis visualization generation, including thinking mode comparisons
-17. Validate the identification of optimal training patterns for transfer learning
-18. Test deployment scripts in `src/deployment/` directory with Qwen3-4B models:
+10. Ensure all experiment results are properly saved to `results/metrics/` and `results/training_logs/`
+11. Verify the environment is properly set up with GPU access before starting experiments
+12. Validate that all configuration files in `configs/` directory are properly loaded and applied
+13. Test transfer learning evaluation on position and count tasks only
+14. Verify correlation analysis between position and count task performance
+15. Test the transfer analysis visualization generation
+16. Validate the identification of optimal training patterns for transfer learning
+17. Test deployment scripts in `src/deployment/` directory with Qwen3-4B models:
     - Verify model export functionality in `model_export.py`
     - Test Lightning.AI Studio setup in `lightning_studio.py`
     - Test API implementation in `api.py`
@@ -411,14 +377,19 @@ def analyze_transfer_effectiveness(results):
     - Verify HTML report generation in `report.py`
     - Test transfer analysis in `transfer_analysis.py`
     - Validate auto-scaling configuration in `scaling_config.py`
-19. Ensure all deployment and analysis results are correctly saved to the appropriate directories
-20. Test Lightning.AI deployment with Qwen3-4B models:
+18. Ensure all deployment and analysis results are correctly saved to the appropriate directories
+19. Test Lightning.AI deployment with Qwen3-4B models:
     - Verify dedicated deployment Studio creation
     - Test environment isolation and dependency management
     - Validate auto-scaling and load balancing configuration
     - Check monitoring and logging setup
     - Test cost optimization mechanisms
     - Verify automated testing and validation pipeline
+20. Verify that no thinking mode references exist in any documentation, code, or configuration files
+21. Confirm that no spelling evaluation metrics or code exists in the implementation
+22. Verify that all evaluation focuses exclusively on position and character count tasks
+23. Run a comprehensive check to ensure no spelling evaluation metrics are tracked in W&B or any other logging system
+24. Verify all documentation clearly states that training is on spelling data but evaluation is exclusively on position and count tasks
 
 # Subtasks:
 ## 1. Training Script Implementation [pending]
@@ -454,13 +425,13 @@ Develop a hyperparameter experimentation system that: supports grid search and r
 ### Dependencies: 8.4
 ### Description: Build a comprehensive system to track, visualize and compare experiment results
 ### Details:
-Implement a results management system that: stores metrics for all experiments in `results/metrics/`, generates comparative visualizations using Python scripts, calculates statistical significance of improvements, exports results in standard formats, provides filtering and sorting capabilities, and integrates with external visualization tools if needed. Ensure all results are properly saved to persistent storage accessible after cloud GPU sessions end. Implement error analysis functionality in `src/deployment/visualization.py` and `src/deployment/report.py` to help understand model performance and limitations. Use the deployment scripts to generate HTML reports and visualizations that will be saved to `results/deployment/reports/` and `results/deployment/figures/` respectively.
+Implement a results management system that: stores metrics for all experiments in `results/metrics/`, generates comparative visualizations using Python scripts, calculates statistical significance of improvements, exports results in standard formats, provides filtering and sorting capabilities, and integrates with external visualization tools if needed. Ensure all results are properly saved to persistent storage accessible after cloud GPU sessions end. Implement error analysis functionality in `src/deployment/visualization.py` and `src/deployment/report.py` to help understand model performance and limitations. Use the deployment scripts to generate HTML reports and visualizations that will be saved to `results/deployment/reports/` and `results/deployment/figures/` respectively. Focus exclusively on position and character count task metrics in all visualizations and reports. Ensure no spelling evaluation metrics are tracked or displayed in any reports or visualizations.
 
 ## 6. Cloud Environment Setup Guide [pending]
 ### Dependencies: None
 ### Description: Create documentation for setting up the required cloud GPU environment
 ### Details:
-Develop a comprehensive guide in `docs/training.md` for setting up the training environment on Google Colab or lightning.ai, including: step-by-step instructions for accessing GPU resources, installing Unsloth and other dependencies, configuring W&B integration, handling file storage and persistence, and troubleshooting common issues. Include examples of notebook configurations that work well for this specific fine-tuning task. Create additional documentation in `docs/model.md` for model architecture details and in `docs/results.md` for analyzing training results.
+Develop a comprehensive guide in `docs/training.md` for setting up the training environment on Google Colab or lightning.ai, including: step-by-step instructions for accessing GPU resources, installing Unsloth and other dependencies, configuring W&B integration, handling file storage and persistence, and troubleshooting common issues. Include examples of notebook configurations that work well for this specific fine-tuning task. Create additional documentation in `docs/model.md` for model architecture details and in `docs/results.md` for analyzing training results. Clearly document that while training is performed on spelling data, all evaluation is strictly limited to position and count tasks.
 
 ## 7. Deployment Scripts Implementation [pending]
 ### Dependencies: 8.5
@@ -485,29 +456,53 @@ All output from these scripts should be saved to the appropriate directories und
 - Performance data: `results/deployment/data/`
 - Exported models: `results/deployment/models/`
 
-Create comprehensive deployment documentation in `docs/lightning_deployment.md` including Lightning.AI-specific setup instructions.
+Create comprehensive deployment documentation in `docs/lightning_deployment.md` including Lightning.AI-specific setup instructions. Ensure all monitoring, visualization, and reporting focus exclusively on position and count task metrics, with no spelling evaluation metrics included.
 
 ## 8. Transfer Learning Evaluation System [pending]
 ### Dependencies: 8.1, 8.4
 ### Description: Implement a system to evaluate transfer learning effectiveness across different tasks
 ### Details:
-Develop a transfer learning evaluation system in `src/training/transfer_metrics.py` and `src/models/transfer_eval.py` that: evaluates models trained on spelling tasks against position and count tasks, calculates transfer metrics and correlation scores, identifies which training patterns lead to better transfer, visualizes the relationship between spelling performance and transfer capabilities, and generates comprehensive reports on transfer learning effectiveness. The system should integrate with the existing experimentation framework and results tracking system. All transfer analysis results should be saved to `results/transfer_analysis/` directory.
+Develop a transfer learning evaluation system in `src/training/transfer_metrics.py` and `src/models/transfer_eval.py` that: evaluates models trained on spelling tasks against position and count tasks only, calculates transfer metrics between position and count tasks, identifies which training patterns lead to better transfer, visualizes the relationship between position and count task performance, and generates comprehensive reports on transfer learning effectiveness. The system should integrate with the existing experimentation framework and results tracking system. All transfer analysis results should be saved to `results/transfer_analysis/` directory. Ensure the system focuses exclusively on position and character count tasks as per project policy. Implement strict validation to ensure no spelling evaluation metrics are tracked or reported.
 
 ## 9. Transfer Learning Documentation [pending]
 ### Dependencies: 8.8
 ### Description: Create comprehensive documentation on transfer learning analysis and findings
 ### Details:
-Develop detailed documentation in `docs/transfer_learning.md` that explains: the transfer learning evaluation methodology, metrics used to assess transfer effectiveness, analysis of correlation between spelling performance and transfer capabilities, identification of optimal training patterns for transfer learning, visualization of key findings, and recommendations for maximizing transfer learning effectiveness. Include examples and case studies from the experiments to illustrate important concepts and findings.
+Develop detailed documentation in `docs/transfer_learning.md` that explains: the transfer learning evaluation methodology, metrics used to assess transfer effectiveness between position and count tasks, analysis of correlation between position and count task performance, identification of optimal training patterns for transfer learning, visualization of key findings, and recommendations for maximizing transfer learning effectiveness. Include examples and case studies from the experiments to illustrate important concepts and findings. Ensure all documentation focuses exclusively on position and character count tasks as per project policy. Clearly document that while training is performed on spelling data, all evaluation is strictly limited to position and count tasks, and spelling is never used as an evaluation metric.
 
-## 10. Qwen3-4B Thinking Mode Implementation [pending]
+## 12. Qwen3-4B Non-Thinking Mode Implementation [pending]
 ### Dependencies: 8.1
-### Description: Implement support for Qwen3-4B's thinking and non-thinking modes
+### Description: Implement support for Qwen3-4B's non-thinking mode only
 ### Details:
-Create a dedicated module in `src/models/thinking_mode.py` that handles Qwen3-4B's thinking and non-thinking modes. Implement functionality to format prompts correctly for each mode, process model outputs appropriately, and evaluate performance differences. Develop utilities in `src/training/qwen3_utils.py` to support Qwen3-specific features including handling of the English-only token subset during training and adapting to Qwen3's tokenizer patterns. Create configuration options in `configs/models/qwen3_config.yaml` to control thinking mode behavior and other Qwen3-specific parameters. Document the implementation details and usage guidelines in `docs/qwen3_guide.md`.
+Create utilities in `src/training/qwen3_utils.py` to support Qwen3-specific features including handling of the English-only token subset during training and adapting to Qwen3's tokenizer patterns. Ensure all implementations strictly follow the project policy of using non-thinking mode only (enable_thinking=False). Create configuration options in `configs/models/qwen3_config.yaml` to control Qwen3-specific parameters. Document the implementation details and usage guidelines in `docs/qwen3_guide.md`, emphasizing that only non-thinking mode is supported.
 
-## 11. Qwen3-4B Sampling Parameters Configuration [pending]
-### Dependencies: 8.1, 8.10
+## 13. Qwen3-4B Sampling Parameters Configuration [pending]
+### Dependencies: 8.1, 8.12
 ### Description: Implement configuration for Qwen3-4B's specific sampling parameters
 ### Details:
 Create a configuration system for Qwen3-4B's sampling parameters in `configs/models/qwen3_config.yaml` that includes Temperature=0.6, TopP=0.95, TopK=20, and MinP=0 as default values. Implement utilities in `src/training/qwen3_utils.py` to apply these parameters during model initialization and inference. Add functionality to experiment with different sampling parameter combinations and analyze their impact on model performance. Document the sampling parameters and their effects in `docs/qwen3_guide.md`.
+
+## 14. Code Review for Thinking Mode References [pending]
+### Dependencies: 8.1, 8.12, 8.13
+### Description: Review all code to ensure no thinking mode references remain
+### Details:
+Perform a comprehensive review of all code, configuration files, and documentation to ensure that no references to thinking mode remain. This includes checking for any code that might enable thinking mode, any configuration options related to thinking mode, and any documentation that mentions thinking mode. Create a verification script that can scan the codebase for thinking mode references and report any findings. Document the verification process and results to confirm compliance with the project policy of using non-thinking mode only.
+
+## 15. Remove Spelling Evaluation References [pending]
+### Dependencies: 8.1, 8.5, 8.8
+### Description: Ensure all evaluation focuses exclusively on position and character count tasks
+### Details:
+Perform a comprehensive review of all code, configuration files, and documentation to ensure that no references to spelling evaluation remain. This includes removing any code that evaluates spelling performance, any configuration options related to spelling metrics, and any documentation that mentions spelling evaluation. Create a verification script that can scan the codebase for spelling evaluation references and report any findings. Update all evaluation scripts, metrics tracking, and visualization code to focus exclusively on position and character count tasks as per project policy. Ensure that W&B logging, reports, and all analysis focus only on position and count task metrics.
+
+## 16. Training vs. Evaluation Documentation [pending]
+### Dependencies: 8.6, 8.9
+### Description: Clearly document the distinction between training and evaluation tasks
+### Details:
+Create clear documentation that explicitly states the distinction between training data (spelling tasks) and evaluation metrics (position and count tasks only). Update all existing documentation to reflect this distinction. Add prominent notes in all relevant files including README.md, training guides, evaluation scripts, and configuration files. Create a dedicated section in the documentation that explains the transfer learning approach: training on spelling tasks but evaluating exclusively on position and count tasks. Ensure this distinction is clear to all users of the codebase.
+
+## 17. Metrics Validation System [pending]
+### Dependencies: 8.5, 8.8, 8.15
+### Description: Implement a validation system to ensure no spelling metrics are tracked
+### Details:
+Develop a validation system that checks all metrics being tracked and reported to ensure they are exclusively related to position and count tasks. Implement this as a pre-commit hook and as part of the CI/CD pipeline. Create a whitelist of allowed metrics and validate that only these metrics are being tracked in W&B, saved to result files, or displayed in visualizations. Add assertions in the code to prevent accidental tracking of spelling metrics. Create a comprehensive test suite that verifies no spelling metrics are being tracked or reported.
 

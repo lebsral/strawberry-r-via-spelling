@@ -1,5 +1,9 @@
 # Template System Documentation (Qwen3-4B)
 
+**Project Policy:** Qwen3-4B is always used in non-thinking mode (enable_thinking=False) for all template processing and evaluation. Thinking mode is strictly prohibited and enforced in code. Any attempt to use thinking mode will raise an error.
+
+**Clarification:** Spelling data is used for training, but evaluation is strictly limited to character position and character count tasks. Spelling is never used as an evaluation metric. All evaluation metrics, scripts, and documentation must focus exclusively on position and count.
+
 > **Note:** As of Task 14.1 (DONE), all template-based data generation uses the Qwen3-4B **tokenizer** only. The full model is only loaded for inference/evaluation. Scripts and imports must follow the `src/` layout (see `.cursor/rules/module_imports.mdc`). This is now the project standard.
 
 ## Overview
@@ -175,3 +179,9 @@ When creating or modifying templates, ensure they meet these criteria:
 3. Variability: Provide meaningful variations in presentation
 4. Formatting: Maintain proper spacing and punctuation
 5. Scalability: Work well with words of different lengths 
+
+## Evaluation Considerations
+
+- Only position and character count are used for evaluation.
+- Spelling is never used as an evaluation metric.
+- **Qwen3-4B is always used in non-thinking mode.**

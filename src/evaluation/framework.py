@@ -1,5 +1,9 @@
 """
 Core evaluation framework for assessing model performance on spelling-related tasks.
+
+PROJECT POLICY: Qwen3-4B must ALWAYS be used in non-thinking mode (enable_thinking=False).
+Any attempt to use thinking mode (enable_thinking=True) is prohibited and will raise an error.
+See src/models/qwen3_loader.py for the enforced chat template utility.
 """
 
 import os
@@ -78,7 +82,12 @@ class EvaluationConfig:
         )
 
 class BaseEvaluator(ABC):
-    """Base class for evaluators."""
+    """Base class for evaluators.
+
+    NOTE: For Qwen3-4B, only non-thinking mode is allowed for all inference and evaluation.
+    If chat template formatting is used, always call apply_qwen3_chat_template_non_thinking from src/models/qwen3_loader.py.
+    Thinking mode is strictly prohibited by project policy.
+    """
 
     def __init__(self, config: EvaluationConfig, model: PreTrainedModel, tokenizer: PreTrainedTokenizer):
         self.config = config

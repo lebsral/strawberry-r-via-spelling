@@ -3,41 +3,37 @@
 # Status: pending
 # Dependencies: 8
 # Priority: medium
-# Description: Evaluate the fine-tuned models on the test set using multiple metrics and perform detailed analysis of transfer learning effectiveness between spelling and position/count tasks, with specific focus on Qwen3-4B's thinking and non-thinking modes, English token subset, and sampling parameters, leveraging Lightning.AI Studios for efficient GPU-based evaluation.
+# Description: Evaluate the fine-tuned models on the test set using multiple metrics and perform detailed analysis of transfer learning effectiveness from spelling training to position/count tasks, with specific focus on Qwen3-4B's non-thinking mode, English token subset, and sampling parameters, leveraging Lightning.AI Studios for efficient GPU-based evaluation.
 # Details:
-1. Evaluate the best model on the test set with separate pipelines for spelling and position/count tasks
-2. Implement comprehensive evaluation metrics:
-   - Direct Spelling Performance Metrics
+1. Evaluate the best model on the test set with dedicated pipelines for position/count tasks only
+2. Implement comprehensive evaluation metrics for position/count tasks:
    - Letter Count Accuracy
    - Letter Position Accuracy
-   - Character-Level Accuracy
-   - Levenshtein Distance
-   - Token-Level Perplexity
-   - Transfer Learning Effectiveness Metrics
-   - Correlation Analysis between Spelling and Position/Count Performance
-3. Evaluate both thinking and non-thinking modes of Qwen3-4B
+   - Character-Level Accuracy for position/count responses
+   - Levenshtein Distance for position/count responses
+   - Token-Level Perplexity for position/count tasks
+   - Transfer Learning Effectiveness Metrics (from spelling training to position/count performance)
+3. Evaluate Qwen3-4B in non-thinking mode only (enable_thinking=False)
 4. Assess performance with the English-only token subset
 5. Analyze the impact of Qwen3's specific sampling parameters (Temperature=0.6, TopP=0.95, TopK=20, MinP=0)
-6. Compare performance between modes for both spelling and transfer tasks
-7. Perform detailed error analysis for both task types and modes
-8. Investigate transfer learning patterns and identify successful/unsuccessful transfer cases
-9. Analyze model's generalization capabilities
-10. Create visualizations of the results with mode-specific comparisons
-11. Compare performance between base and fine-tuned models
-12. Evaluate the effectiveness of the English token filtering approach
-13. Analyze how thinking mode affects transfer learning capabilities
-14. Implement mode-specific evaluation metrics and visualization tools
-15. Ensure proper handling of Qwen3's tokenizer patterns in evaluation
+6. Perform detailed error analysis for position and count tasks only
+7. Investigate transfer learning patterns from spelling training to position/count performance
+8. Analyze model's generalization capabilities on position/count tasks
+9. Create visualizations of the position/count results
+10. Compare position/count performance between base and fine-tuned models
+11. Evaluate the effectiveness of the English token filtering approach for position/count tasks
+12. Implement task-specific evaluation metrics and visualization tools for position/count tasks
+13. Ensure proper handling of Qwen3's tokenizer patterns in position/count evaluation
 
 NOTE: Use Lightning.AI Studios for all model evaluation, leveraging their GPU switching feature (CPU → T4 → A100) for cost-effective evaluation.
 
 File Structure:
-- Main evaluator: `src/evaluation/evaluator.py`
+- Main evaluator: `src/evaluation/position_count_evaluator.py`
 - Metrics calculator: `src/evaluation/metrics.py`
 - Error analyzer: `src/evaluation/error_analysis.py`
 - Transfer learning analyzer: `src/evaluation/transfer_analysis.py`
 - Visualization utils: `src/evaluation/visualization.py`
-- Qwen3 mode evaluator: `src/evaluation/qwen3_mode_evaluator.py`
+- Qwen3 evaluator: `src/evaluation/qwen3_evaluator.py`
 - English token analyzer: `src/evaluation/token_analysis.py`
 - Test data: `data/splits/test.json`
 - Challenge sets: `data/splits/challenge_sets/`
@@ -47,7 +43,6 @@ File Structure:
 - Performance metrics: `results/evaluation/metrics/`
 - Error analysis: `results/evaluation/error_analysis/`
 - Transfer learning analysis: `results/evaluation/transfer_analysis/`
-- Mode comparison: `results/evaluation/mode_comparison/`
 - Token subset analysis: `results/evaluation/token_analysis/`
 - Visualizations: `results/evaluation/plots/`
 
@@ -82,9 +77,9 @@ def load_models(base_model_name, finetuned_model_path):
         "finetuned": (finetuned_model, finetuned_tokenizer)
     }
 
-# Generate answer from model with support for Qwen3 thinking/non-thinking modes
-def generate_answer(model, tokenizer, question, max_length=10, thinking_mode=False, 
-                   temperature=0.6, top_p=0.95, top_k=20, min_p=0):
+# Generate answer from model with support for Qwen3 in non-thinking mode
+def generate_answer(model, tokenizer, question, max_length=10, 
+                   temperature=0.6, top_p=0.95, top_k=20, min_p=0, english_only=False):
     inputs = tokenizer(question, return_tensors="pt")
     
     # Configure generation parameters based on Qwen3 specifications
@@ -101,14 +96,15 @@ def generate_answer(model, tokenizer, question, max_length=10, thinking_mode=Fal
     if hasattr(model.config, "min_p"):
         generation_config["min_p"] = min_p
     
-    # Add thinking mode configuration for Qwen3
+    # For Qwen3, explicitly disable thinking mode
     if "qwen" in tokenizer.name_or_path.lower():
-        if thinking_mode:
-            # Enable thinking mode
-            generation_config["thinking"] = True
-        else:
-            # Disable thinking mode
-            generation_config["thinking"] = False
+        generation_config["thinking"] = False
+    
+    # Apply English-only token filtering if requested
+    if english_only:
+        # Implementation would depend on the specific model and tokenizer
+        # This is a placeholder for the actual implementation
+        pass
     
     with torch.no_grad():
         outputs = model.generate(
@@ -128,7 +124,7 @@ def generate_answer(model, tokenizer, question, max_length=10, thinking_mode=Fal
         # Extract first character
         return response.strip()[0] if response.strip() else ""
     else:
-        # For spelling tasks, return the full response
+        # For other tasks, return the full response
         return response.strip()
 
 # Filter to English-only tokens for Qwen3
@@ -154,7 +150,7 @@ def is_english_token(tokenizer, token_id):
     return all(c.isascii() and (c.isalnum() or c.isspace() or c in string.punctuation) for c in token)
 
 # Calculate letter count accuracy
-def calc_letter_count_accuracy(model, tokenizer, test_dataset, thinking_mode=False, english_only=False):
+def calc_letter_count_accuracy(model, tokenizer, test_dataset, english_only=False):
     correct = 0
     total = 0
     results = []
@@ -163,7 +159,7 @@ def calc_letter_count_accuracy(model, tokenizer, test_dataset, thinking_mode=Fal
         if item["question_type"] != "letter_count":
             continue
             
-        prediction = generate_answer(model, tokenizer, item["question"], thinking_mode=thinking_mode)
+        prediction = generate_answer(model, tokenizer, item["question"], english_only=english_only)
         is_correct = prediction == item["answer"]
         
         results.append({
@@ -172,7 +168,6 @@ def calc_letter_count_accuracy(model, tokenizer, test_dataset, thinking_mode=Fal
             "prediction": prediction,
             "correct": is_correct,
             "word": item["word"],
-            "thinking_mode": thinking_mode,
             "english_only": english_only
         })
         
@@ -180,12 +175,12 @@ def calc_letter_count_accuracy(model, tokenizer, test_dataset, thinking_mode=Fal
         total += 1
     
     accuracy = correct / total if total > 0 else 0
-    print(f"Letter Count Accuracy (Thinking: {thinking_mode}, English-only: {english_only}): {accuracy:.4f} ({correct}/{total})")
+    print(f"Letter Count Accuracy (English-only: {english_only}): {accuracy:.4f} ({correct}/{total})")
     
     return accuracy, results
 
 # Calculate letter position accuracy
-def calc_letter_position_accuracy(model, tokenizer, test_dataset, thinking_mode=False, english_only=False):
+def calc_letter_position_accuracy(model, tokenizer, test_dataset, english_only=False):
     correct = 0
     total = 0
     results = []
@@ -194,7 +189,7 @@ def calc_letter_position_accuracy(model, tokenizer, test_dataset, thinking_mode=
         if item["question_type"] != "letter_position":
             continue
             
-        prediction = generate_answer(model, tokenizer, item["question"], thinking_mode=thinking_mode)
+        prediction = generate_answer(model, tokenizer, item["question"], english_only=english_only)
         is_correct = prediction.lower() == item["answer"].lower()
         
         results.append({
@@ -203,7 +198,6 @@ def calc_letter_position_accuracy(model, tokenizer, test_dataset, thinking_mode=
             "prediction": prediction,
             "correct": is_correct,
             "word": item["word"],
-            "thinking_mode": thinking_mode,
             "english_only": english_only
         })
         
@@ -211,52 +205,21 @@ def calc_letter_position_accuracy(model, tokenizer, test_dataset, thinking_mode=
         total += 1
     
     accuracy = correct / total if total > 0 else 0
-    print(f"Letter Position Accuracy (Thinking: {thinking_mode}, English-only: {english_only}): {accuracy:.4f} ({correct}/{total})")
+    print(f"Letter Position Accuracy (English-only: {english_only}): {accuracy:.4f} ({correct}/{total})")
     
     return accuracy, results
 
-# Calculate spelling accuracy
-def calc_spelling_accuracy(model, tokenizer, test_dataset, thinking_mode=False, english_only=False):
-    correct = 0
-    total = 0
-    results = []
-    
-    for item in test_dataset:
-        if item["question_type"] != "spelling":
-            continue
-            
-        prediction = generate_answer(model, tokenizer, item["question"], thinking_mode=thinking_mode)
-        is_correct = prediction.lower() == item["answer"].lower()
-        
-        results.append({
-            "question": item["question"],
-            "expected": item["answer"],
-            "prediction": prediction,
-            "correct": is_correct,
-            "word": item["word"],
-            "thinking_mode": thinking_mode,
-            "english_only": english_only
-        })
-        
-        correct += int(is_correct)
-        total += 1
-    
-    accuracy = correct / total if total > 0 else 0
-    print(f"Spelling Accuracy (Thinking: {thinking_mode}, English-only: {english_only}): {accuracy:.4f} ({correct}/{total})")
-    
-    return accuracy, results
-
-# Calculate character-level accuracy
-def calc_character_level_accuracy(model, tokenizer, test_dataset, thinking_mode=False, english_only=False):
+# Calculate character-level accuracy for position/count tasks
+def calc_character_level_accuracy(model, tokenizer, test_dataset, english_only=False):
     total_char_accuracy = 0
     total_samples = 0
     results = []
 
     for item in test_dataset:
-        if item["question_type"] not in ["letter_position", "letter_count", "spelling"]:
+        if item["question_type"] not in ["letter_position", "letter_count"]:
             continue
 
-        prediction = generate_answer(model, tokenizer, item["question"], thinking_mode=thinking_mode)
+        prediction = generate_answer(model, tokenizer, item["question"], english_only=english_only)
         pred_chars = prediction.strip().lower().replace(" ", "")
         true_chars = item["answer"].lower()
 
@@ -275,7 +238,6 @@ def calc_character_level_accuracy(model, tokenizer, test_dataset, thinking_mode=
             "char_accuracy": char_accuracy,
             "word": item["word"],
             "question_type": item["question_type"],
-            "thinking_mode": thinking_mode,
             "english_only": english_only
         })
         
@@ -283,21 +245,21 @@ def calc_character_level_accuracy(model, tokenizer, test_dataset, thinking_mode=
         total_samples += 1
 
     avg_char_accuracy = total_char_accuracy / total_samples if total_samples > 0 else 0
-    print(f"Character-Level Accuracy (Thinking: {thinking_mode}, English-only: {english_only}): {avg_char_accuracy:.4f}")
+    print(f"Character-Level Accuracy (English-only: {english_only}): {avg_char_accuracy:.4f}")
     
     return avg_char_accuracy, results
 
-# Calculate Levenshtein distance
-def calc_levenshtein_metrics(model, tokenizer, test_dataset, thinking_mode=False, english_only=False):
+# Calculate Levenshtein distance for position/count tasks
+def calc_levenshtein_metrics(model, tokenizer, test_dataset, english_only=False):
     total_distances = 0
     total_samples = 0
     results = []
 
     for item in test_dataset:
-        if item["question_type"] not in ["letter_position", "letter_count", "spelling"]:
+        if item["question_type"] not in ["letter_position", "letter_count"]:
             continue
 
-        prediction = generate_answer(model, tokenizer, item["question"], thinking_mode=thinking_mode)
+        prediction = generate_answer(model, tokenizer, item["question"], english_only=english_only)
         pred_text = prediction.strip().lower()
         true_text = item["answer"].lower()
 
@@ -313,7 +275,6 @@ def calc_levenshtein_metrics(model, tokenizer, test_dataset, thinking_mode=False
             "normalized_distance": normalized_distance,
             "word": item["word"],
             "question_type": item["question_type"],
-            "thinking_mode": thinking_mode,
             "english_only": english_only
         })
         
@@ -321,566 +282,389 @@ def calc_levenshtein_metrics(model, tokenizer, test_dataset, thinking_mode=False
         total_samples += 1
 
     avg_distance = total_distances / total_samples if total_samples > 0 else 0
-    print(f"Average Normalized Levenshtein Distance (Thinking: {thinking_mode}, English-only: {english_only}): {avg_distance:.4f}")
+    print(f"Average Normalized Levenshtein Distance (English-only: {english_only}): {avg_distance:.4f}")
     
     return avg_distance, results
 
-# Analyze transfer learning effectiveness with mode comparison
-def analyze_transfer_learning(spelling_results, position_count_results):
-    # Create a dictionary to map words to their spelling performance
-    word_spelling_performance = {}
-    for result in spelling_results:
-        word = result["word"]
-        thinking_mode = result.get("thinking_mode", False)
-        key = (word, thinking_mode)
-        if key not in word_spelling_performance:
-            word_spelling_performance[key] = []
-        word_spelling_performance[key].append(result["correct"])
+# Analyze transfer learning effectiveness from spelling training to position/count tasks
+def analyze_transfer_learning(model_info, position_count_results):
+    # Extract model training info to understand spelling training impact
+    training_words = model_info.get("training_words", [])
+    training_metrics = model_info.get("training_metrics", {})
     
-    # Calculate average spelling performance for each word and mode
-    for key in word_spelling_performance:
-        word_spelling_performance[key] = sum(word_spelling_performance[key]) / len(word_spelling_performance[key])
-    
-    # Map position/count performance to corresponding spelling performance
+    # Map position/count performance to corresponding training data
     transfer_data = []
     for result in position_count_results:
         word = result["word"]
-        thinking_mode = result.get("thinking_mode", False)
-        key = (word, thinking_mode)
-        if key in word_spelling_performance:
-            transfer_data.append({
-                "word": word,
-                "spelling_performance": word_spelling_performance[key],
-                "task_performance": 1 if result["correct"] else 0,
-                "question_type": result["question_type"],
-                "thinking_mode": thinking_mode
-            })
+        # Check if this word was in the training data
+        was_trained = word in training_words
+        
+        transfer_data.append({
+            "word": word,
+            "was_trained": was_trained,
+            "task_performance": 1 if result["correct"] else 0,
+            "question_type": result["question_type"]
+        })
     
-    # Separate data by thinking mode
-    thinking_data = [item for item in transfer_data if item["thinking_mode"]]
-    non_thinking_data = [item for item in transfer_data if not item["thinking_mode"]]
+    # Calculate performance difference between trained and untrained words
+    trained_words_results = [item for item in transfer_data if item["was_trained"]]
+    untrained_words_results = [item for item in transfer_data if not item["was_trained"]]
     
-    # Calculate correlation for each mode
-    transfer_analysis = {}
+    trained_performance = sum([item["task_performance"] for item in trained_words_results]) / len(trained_words_results) if trained_words_results else 0
+    untrained_performance = sum([item["task_performance"] for item in untrained_words_results]) / len(untrained_words_results) if untrained_words_results else 0
     
-    # Process each mode
-    for mode_name, mode_data in [("thinking", thinking_data), ("non_thinking", non_thinking_data)]:
-        if not mode_data:
-            transfer_analysis[mode_name] = {"error": "No data available for this mode"}
-            continue
+    transfer_effect = trained_performance - untrained_performance
+    
+    # Separate by question type
+    position_data = [item for item in transfer_data if item["question_type"] == "letter_position"]
+    count_data = [item for item in transfer_data if item["question_type"] == "letter_count"]
+    
+    # Calculate type-specific transfer effects
+    position_trained = [item for item in position_data if item["was_trained"]]
+    position_untrained = [item for item in position_data if not item["was_trained"]]
+    
+    count_trained = [item for item in count_data if item["was_trained"]]
+    count_untrained = [item for item in count_data if not item["was_trained"]]
+    
+    position_trained_perf = sum([item["task_performance"] for item in position_trained]) / len(position_trained) if position_trained else 0
+    position_untrained_perf = sum([item["task_performance"] for item in position_untrained]) / len(position_untrained) if position_untrained else 0
+    position_transfer_effect = position_trained_perf - position_untrained_perf
+    
+    count_trained_perf = sum([item["task_performance"] for item in count_trained]) / len(count_trained) if count_trained else 0
+    count_untrained_perf = sum([item["task_performance"] for item in count_untrained]) / len(count_untrained) if count_untrained else 0
+    count_transfer_effect = count_trained_perf - count_untrained_perf
+    
+    # Identify successful and unsuccessful transfer cases
+    successful_transfer = [item for item in transfer_data if item["was_trained"] and item["task_performance"] == 1]
+    unsuccessful_transfer = [item for item in transfer_data if item["was_trained"] and item["task_performance"] == 0]
+    
+    # Group words by patterns
+    pattern_performance = {}
+    for item in transfer_data:
+        word = item["word"]
+        # Identify patterns (this is a simplified example - expand as needed)
+        patterns = []
+        if 'ie' in word or 'ei' in word:
+            patterns.append('ie_ei_rule')
+        if word.endswith('e') and any(word.endswith(f'{c}e') for c in 'aeiou'):
+            patterns.append('silent_e')
+        if any(c*2 in word for c in 'abcdefghijklmnopqrstuvwxyz'):
+            patterns.append('double_letter')
+        
+        for pattern in patterns:
+            if pattern not in pattern_performance:
+                pattern_performance[pattern] = {
+                    "position": [],
+                    "count": []
+                }
             
-        spelling_scores = [item["spelling_performance"] for item in mode_data]
-        task_scores = [item["task_performance"] for item in mode_data]
-        
-        if len(spelling_scores) > 1:  # Need at least 2 points for correlation
-            pearson_corr, pearson_p = pearsonr(spelling_scores, task_scores)
-            spearman_corr, spearman_p = spearmanr(spelling_scores, task_scores)
-        else:
-            pearson_corr, pearson_p = 0, 1
-            spearman_corr, spearman_p = 0, 1
-        
-        # Separate by question type
-        position_data = [item for item in mode_data if item["question_type"] == "letter_position"]
-        count_data = [item for item in mode_data if item["question_type"] == "letter_count"]
-        
-        # Calculate type-specific correlations
-        position_spelling = [item["spelling_performance"] for item in position_data]
-        position_task = [item["task_performance"] for item in position_data]
-        
-        count_spelling = [item["spelling_performance"] for item in count_data]
-        count_task = [item["task_performance"] for item in count_data]
-        
-        if len(position_spelling) > 1:
-            position_pearson, position_p = pearsonr(position_spelling, position_task)
-        else:
-            position_pearson, position_p = 0, 1
-            
-        if len(count_spelling) > 1:
-            count_pearson, count_p = pearsonr(count_spelling, count_task)
-        else:
-            count_pearson, count_p = 0, 1
-        
-        # Identify successful and unsuccessful transfer cases
-        successful_transfer = [item for item in mode_data if item["spelling_performance"] > 0.5 and item["task_performance"] == 1]
-        unsuccessful_transfer = [item for item in mode_data if item["spelling_performance"] > 0.5 and item["task_performance"] == 0]
-        
-        # Group words by spelling patterns
-        pattern_performance = {}
-        for item in mode_data:
-            word = item["word"]
-            # Identify patterns (this is a simplified example - expand as needed)
-            patterns = []
-            if 'ie' in word or 'ei' in word:
-                patterns.append('ie_ei_rule')
-            if word.endswith('e') and any(word.endswith(f'{c}e') for c in 'aeiou'):
-                patterns.append('silent_e')
-            if any(c*2 in word for c in 'abcdefghijklmnopqrstuvwxyz'):
-                patterns.append('double_letter')
-            
-            for pattern in patterns:
-                if pattern not in pattern_performance:
-                    pattern_performance[pattern] = {
-                        "spelling": [], 
-                        "position": [],
-                        "count": []
-                    }
-                
-                pattern_performance[pattern]["spelling"].append(item["spelling_performance"])
-                
-                if item["question_type"] == "letter_position":
-                    pattern_performance[pattern]["position"].append(item["task_performance"])
-                elif item["question_type"] == "letter_count":
-                    pattern_performance[pattern]["count"].append(item["task_performance"])
-        
-        # Calculate average performance by pattern
-        for pattern in pattern_performance:
-            if pattern_performance[pattern]["spelling"]:
-                pattern_performance[pattern]["avg_spelling"] = sum(pattern_performance[pattern]["spelling"]) / len(pattern_performance[pattern]["spelling"])
-            else:
-                pattern_performance[pattern]["avg_spelling"] = 0
-                
-            if pattern_performance[pattern]["position"]:
-                pattern_performance[pattern]["avg_position"] = sum(pattern_performance[pattern]["position"]) / len(pattern_performance[pattern]["position"])
-            else:
-                pattern_performance[pattern]["avg_position"] = 0
-                
-            if pattern_performance[pattern]["count"]:
-                pattern_performance[pattern]["avg_count"] = sum(pattern_performance[pattern]["count"]) / len(pattern_performance[pattern]["count"])
-            else:
-                pattern_performance[pattern]["avg_count"] = 0
-        
-        transfer_analysis[mode_name] = {
-            "overall_correlation": {
-                "pearson": pearson_corr,
-                "pearson_p_value": pearson_p,
-                "spearman": spearman_corr,
-                "spearman_p_value": spearman_p
-            },
-            "position_correlation": {
-                "pearson": position_pearson,
-                "p_value": position_p
-            },
-            "count_correlation": {
-                "pearson": count_pearson,
-                "p_value": count_p
-            },
-            "successful_transfer": {
-                "count": len(successful_transfer),
-                "examples": successful_transfer[:10]  # Limit to 10 examples
-            },
-            "unsuccessful_transfer": {
-                "count": len(unsuccessful_transfer),
-                "examples": unsuccessful_transfer[:10]  # Limit to 10 examples
-            },
-            "pattern_performance": pattern_performance
-        }
+            if item["question_type"] == "letter_position":
+                pattern_performance[pattern]["position"].append(item["task_performance"])
+            elif item["question_type"] == "letter_count":
+                pattern_performance[pattern]["count"].append(item["task_performance"])
     
-    # Compare thinking vs non-thinking mode transfer effectiveness
-    if "thinking" in transfer_analysis and "non_thinking" in transfer_analysis:
-        thinking_corr = transfer_analysis["thinking"]["overall_correlation"]["pearson"]
-        non_thinking_corr = transfer_analysis["non_thinking"]["overall_correlation"]["pearson"]
-        
-        transfer_analysis["mode_comparison"] = {
-            "correlation_difference": thinking_corr - non_thinking_corr,
-            "better_mode": "thinking" if thinking_corr > non_thinking_corr else "non_thinking"
-        }
+    # Calculate average performance by pattern
+    for pattern in pattern_performance:                
+        if pattern_performance[pattern]["position"]:
+            pattern_performance[pattern]["avg_position"] = sum(pattern_performance[pattern]["position"]) / len(pattern_performance[pattern]["position"])
+        else:
+            pattern_performance[pattern]["avg_position"] = 0
+            
+        if pattern_performance[pattern]["count"]:
+            pattern_performance[pattern]["avg_count"] = sum(pattern_performance[pattern]["count"]) / len(pattern_performance[pattern]["count"])
+        else:
+            pattern_performance[pattern]["avg_count"] = 0
+    
+    transfer_analysis = {
+        "overall_transfer_effect": transfer_effect,
+        "position_transfer_effect": position_transfer_effect,
+        "count_transfer_effect": count_transfer_effect,
+        "successful_transfer": {
+            "count": len(successful_transfer),
+            "examples": successful_transfer[:10]  # Limit to 10 examples
+        },
+        "unsuccessful_transfer": {
+            "count": len(unsuccessful_transfer),
+            "examples": unsuccessful_transfer[:10]  # Limit to 10 examples
+        },
+        "pattern_performance": pattern_performance
+    }
     
     return transfer_analysis, transfer_data
 
-# Perform error analysis with mode comparison
+# Perform error analysis for position/count tasks
 def perform_error_analysis(results_dict):
     error_analysis = {}
     
-    # Analyze by thinking mode
-    for mode in [True, False]:
-        mode_name = "thinking" if mode else "non_thinking"
-        mode_results = {}
-        
-        for task_type, results in results_dict.items():
-            mode_results[task_type] = [r for r in results if r.get("thinking_mode", False) == mode]
-        
-        # Analyze letter count errors
-        count_errors = [r for r in mode_results["letter_count"] if not r["correct"]]
-        
-        # Categorize errors
-        error_types = {
-            "off_by_one": 0,
-            "completely_wrong": 0,
-            "no_number": 0,
-            "other": 0
-        }
-        
-        for error in count_errors:
-            try:
-                pred = int(error["prediction"])
-                true = int(error["expected"])
-                
-                if abs(pred - true) == 1:
-                    error_types["off_by_one"] += 1
-                else:
-                    error_types["completely_wrong"] += 1
-            except ValueError:
-                if not error["prediction"].strip():
-                    error_types["no_number"] += 1
-                else:
-                    error_types["other"] += 1
-        
-        # Analyze letter position errors
-        position_errors = [r for r in mode_results["letter_position"] if not r["correct"]]
-        
-        # Categorize position errors
-        position_error_types = {
-            "adjacent_letter": 0,
-            "wrong_case": 0,
-            "no_response": 0,
-            "other": 0
-        }
-        
-        for error in position_errors:
-            if not error["prediction"].strip():
-                position_error_types["no_response"] += 1
-            elif error["prediction"].lower() == error["expected"].lower():
-                position_error_types["wrong_case"] += 1
-            elif error["word"] and error["prediction"] in error["word"]:
-                position_error_types["adjacent_letter"] += 1
-            else:
-                position_error_types["other"] += 1
-        
-        # Analyze spelling errors
-        spelling_errors = [r for r in mode_results["spelling"] if not r["correct"]]
-        
-        # Categorize spelling errors
-        spelling_error_types = {
-            "single_character_diff": 0,
-            "multiple_character_diff": 0,
-            "completely_wrong": 0,
-            "no_response": 0
-        }
-        
-        for error in spelling_errors:
-            if not error["prediction"].strip():
-                spelling_error_types["no_response"] += 1
-            else:
-                distance = Levenshtein.distance(error["prediction"].lower(), error["expected"].lower())
-                if distance == 1:
-                    spelling_error_types["single_character_diff"] += 1
-                elif distance <= 3:
-                    spelling_error_types["multiple_character_diff"] += 1
-                else:
-                    spelling_error_types["completely_wrong"] += 1
-        
-        # Analyze by word length
-        word_length_performance = {}
-        
-        for result in mode_results["letter_count"] + mode_results["letter_position"] + mode_results["spelling"]:
-            word = result["word"]
-            length = len(word)
-            task_type = "position_count" if result in mode_results["letter_count"] + mode_results["letter_position"] else "spelling"
-            
-            if length not in word_length_performance:
-                word_length_performance[length] = {
-                    "spelling": {"correct": 0, "total": 0},
-                    "position_count": {"correct": 0, "total": 0}
-                }
-            
-            word_length_performance[length][task_type]["total"] += 1
-            if result["correct"]:
-                word_length_performance[length][task_type]["correct"] += 1
-        
-        # Calculate accuracy by word length
-        for length, stats in word_length_performance.items():
-            for task_type in ["spelling", "position_count"]:
-                stats[task_type]["accuracy"] = stats[task_type]["correct"] / stats[task_type]["total"] if stats[task_type]["total"] > 0 else 0
-        
-        error_analysis[mode_name] = {
-            "letter_count_errors": error_types,
-            "letter_position_errors": position_error_types,
-            "spelling_errors": spelling_error_types,
-            "word_length_performance": word_length_performance
-        }
+    # Analyze letter count errors
+    count_errors = [r for r in results_dict["letter_count"] if not r["correct"]]
     
-    # Compare error patterns between thinking and non-thinking modes
-    if "thinking" in error_analysis and "non_thinking" in error_analysis:
-        error_analysis["mode_comparison"] = {}
+    # Categorize errors
+    error_types = {
+        "off_by_one": 0,
+        "completely_wrong": 0,
+        "no_number": 0,
+        "other": 0
+    }
+    
+    for error in count_errors:
+        try:
+            pred = int(error["prediction"])
+            true = int(error["expected"])
+            
+            if abs(pred - true) == 1:
+                error_types["off_by_one"] += 1
+            else:
+                error_types["completely_wrong"] += 1
+        except ValueError:
+            if not error["prediction"].strip():
+                error_types["no_number"] += 1
+            else:
+                error_types["other"] += 1
+    
+    # Analyze letter position errors
+    position_errors = [r for r in results_dict["letter_position"] if not r["correct"]]
+    
+    # Categorize position errors
+    position_error_types = {
+        "adjacent_letter": 0,
+        "wrong_case": 0,
+        "no_response": 0,
+        "other": 0
+    }
+    
+    for error in position_errors:
+        if not error["prediction"].strip():
+            position_error_types["no_response"] += 1
+        elif error["prediction"].lower() == error["expected"].lower():
+            position_error_types["wrong_case"] += 1
+        elif error["word"] and error["prediction"] in error["word"]:
+            position_error_types["adjacent_letter"] += 1
+        else:
+            position_error_types["other"] += 1
+    
+    # Analyze by word length
+    word_length_performance = {}
+    
+    for result in results_dict["letter_count"] + results_dict["letter_position"]:
+        word = result["word"]
+        length = len(word)
+        task_type = "position" if result in results_dict["letter_position"] else "count"
         
-        # Compare letter count error distributions
-        thinking_count = error_analysis["thinking"]["letter_count_errors"]
-        non_thinking_count = error_analysis["non_thinking"]["letter_count_errors"]
+        if length not in word_length_performance:
+            word_length_performance[length] = {
+                "position": {"correct": 0, "total": 0},
+                "count": {"correct": 0, "total": 0}
+            }
         
-        error_analysis["mode_comparison"]["letter_count"] = {
-            error_type: thinking_count.get(error_type, 0) - non_thinking_count.get(error_type, 0)
-            for error_type in set(thinking_count.keys()) | set(non_thinking_count.keys())
-        }
-        
-        # Compare letter position error distributions
-        thinking_pos = error_analysis["thinking"]["letter_position_errors"]
-        non_thinking_pos = error_analysis["non_thinking"]["letter_position_errors"]
-        
-        error_analysis["mode_comparison"]["letter_position"] = {
-            error_type: thinking_pos.get(error_type, 0) - non_thinking_pos.get(error_type, 0)
-            for error_type in set(thinking_pos.keys()) | set(non_thinking_pos.keys())
-        }
-        
-        # Compare spelling error distributions
-        thinking_spell = error_analysis["thinking"]["spelling_errors"]
-        non_thinking_spell = error_analysis["non_thinking"]["spelling_errors"]
-        
-        error_analysis["mode_comparison"]["spelling"] = {
-            error_type: thinking_spell.get(error_type, 0) - non_thinking_spell.get(error_type, 0)
-            for error_type in set(thinking_spell.keys()) | set(non_thinking_spell.keys())
-        }
+        word_length_performance[length][task_type]["total"] += 1
+        if result["correct"]:
+            word_length_performance[length][task_type]["correct"] += 1
+    
+    # Calculate accuracy by word length
+    for length, stats in word_length_performance.items():
+        for task_type in ["position", "count"]:
+            stats[task_type]["accuracy"] = stats[task_type]["correct"] / stats[task_type]["total"] if stats[task_type]["total"] > 0 else 0
+    
+    error_analysis = {
+        "letter_count_errors": error_types,
+        "letter_position_errors": position_error_types,
+        "word_length_performance": word_length_performance
+    }
     
     return error_analysis
 
-# Create performance dashboard with mode comparison
+# Create performance dashboard for position/count tasks
 def create_performance_dashboard(results, error_analysis, transfer_analysis):
     # Set up figure
     fig = plt.figure(figsize=(20, 16))
     
-    # 1. Accuracy comparison across metrics and modes
+    # 1. Accuracy comparison across metrics
     ax1 = fig.add_subplot(3, 3, 1)
-    metrics = ['spelling_accuracy', 'letter_count_accuracy', 'letter_position_accuracy', 'character_level_accuracy']
+    metrics = ['letter_count_accuracy', 'letter_position_accuracy', 'character_level_accuracy']
     
-    # Extract values for each mode
-    thinking_values = [results["thinking"].get(m, 0) for m in metrics]
-    non_thinking_values = [results["non_thinking"].get(m, 0) for m in metrics]
+    # Extract values
+    values = [results.get(m, 0) for m in metrics]
     
-    x = np.arange(len(metrics))
-    width = 0.35
-    
-    ax1.bar(x - width/2, thinking_values, width, label='Thinking Mode')
-    ax1.bar(x + width/2, non_thinking_values, width, label='Non-Thinking Mode')
-    
+    ax1.bar(range(len(metrics)), values)
     ax1.set_ylabel('Accuracy')
-    ax1.set_title('Accuracy Comparison by Mode')
-    ax1.set_xticks(x)
+    ax1.set_title('Position/Count Accuracy Comparison')
+    ax1.set_xticks(range(len(metrics)))
     ax1.set_xticklabels([m.replace('_', ' ').title() for m in metrics])
-    ax1.legend()
     
-    # 2. Error analysis comparison for letter count
+    # 2. Error analysis for letter count
     ax2 = fig.add_subplot(3, 3, 2)
-    thinking_errors = error_analysis["thinking"]["letter_count_errors"]
-    non_thinking_errors = error_analysis["non_thinking"]["letter_count_errors"]
+    error_types = list(error_analysis["letter_count_errors"].keys())
+    error_counts = [error_analysis["letter_count_errors"][t] for t in error_types]
     
-    error_types = list(set(thinking_errors.keys()) | set(non_thinking_errors.keys()))
-    thinking_counts = [thinking_errors.get(t, 0) for t in error_types]
-    non_thinking_counts = [non_thinking_errors.get(t, 0) for t in error_types]
-    
-    x = np.arange(len(error_types))
-    width = 0.35
-    
-    ax2.bar(x - width/2, thinking_counts, width, label='Thinking Mode')
-    ax2.bar(x + width/2, non_thinking_counts, width, label='Non-Thinking Mode')
-    
-    ax2.set_title('Letter Count Error Types by Mode')
+    ax2.bar(error_types, error_counts)
+    ax2.set_title('Letter Count Error Types')
     ax2.set_ylabel('Count')
-    ax2.set_xticks(x)
-    ax2.set_xticklabels(error_types)
-    ax2.legend()
     plt.setp(ax2.get_xticklabels(), rotation=45, ha="right")
     
-    # 3. Error analysis comparison for letter position
+    # 3. Error analysis for letter position
     ax3 = fig.add_subplot(3, 3, 3)
-    thinking_pos_errors = error_analysis["thinking"]["letter_position_errors"]
-    non_thinking_pos_errors = error_analysis["non_thinking"]["letter_position_errors"]
+    pos_error_types = list(error_analysis["letter_position_errors"].keys())
+    pos_error_counts = [error_analysis["letter_position_errors"][t] for t in pos_error_types]
     
-    pos_error_types = list(set(thinking_pos_errors.keys()) | set(non_thinking_pos_errors.keys()))
-    thinking_pos_counts = [thinking_pos_errors.get(t, 0) for t in pos_error_types]
-    non_thinking_pos_counts = [non_thinking_pos_errors.get(t, 0) for t in pos_error_types]
-    
-    x = np.arange(len(pos_error_types))
-    width = 0.35
-    
-    ax3.bar(x - width/2, thinking_pos_counts, width, label='Thinking Mode')
-    ax3.bar(x + width/2, non_thinking_pos_counts, width, label='Non-Thinking Mode')
-    
-    ax3.set_title('Letter Position Error Types by Mode')
+    ax3.bar(pos_error_types, pos_error_counts)
+    ax3.set_title('Letter Position Error Types')
     ax3.set_ylabel('Count')
-    ax3.set_xticks(x)
-    ax3.set_xticklabels(pos_error_types)
-    ax3.legend()
     plt.setp(ax3.get_xticklabels(), rotation=45, ha="right")
     
-    # 4. Error analysis comparison for spelling
+    # 4. Performance by word length
     ax4 = fig.add_subplot(3, 3, 4)
-    thinking_spell_errors = error_analysis["thinking"]["spelling_errors"]
-    non_thinking_spell_errors = error_analysis["non_thinking"]["spelling_errors"]
+    length_perf = error_analysis["word_length_performance"]
     
-    spell_error_types = list(set(thinking_spell_errors.keys()) | set(non_thinking_spell_errors.keys()))
-    thinking_spell_counts = [thinking_spell_errors.get(t, 0) for t in spell_error_types]
-    non_thinking_spell_counts = [non_thinking_spell_errors.get(t, 0) for t in spell_error_types]
+    # Get all word lengths
+    all_lengths = sorted(length_perf.keys())
     
-    x = np.arange(len(spell_error_types))
-    width = 0.35
+    # Get position accuracy by word length
+    pos_acc = [length_perf.get(l, {}).get("position", {}).get("accuracy", 0) for l in all_lengths]
     
-    ax4.bar(x - width/2, thinking_spell_counts, width, label='Thinking Mode')
-    ax4.bar(x + width/2, non_thinking_spell_counts, width, label='Non-Thinking Mode')
+    ax4.plot(all_lengths, pos_acc, marker='o', label='Position')
     
-    ax4.set_title('Spelling Error Types by Mode')
-    ax4.set_ylabel('Count')
-    ax4.set_xticks(x)
-    ax4.set_xticklabels(spell_error_types)
+    # Get count accuracy by word length
+    count_acc = [length_perf.get(l, {}).get("count", {}).get("accuracy", 0) for l in all_lengths]
+    
+    ax4.plot(all_lengths, count_acc, marker='^', linestyle='--', label='Count')
+    
+    ax4.set_title('Performance by Word Length')
+    ax4.set_xlabel('Word Length')
+    ax4.set_ylabel('Accuracy')
     ax4.legend()
-    plt.setp(ax4.get_xticklabels(), rotation=45, ha="right")
     
-    # 5. Performance by word length comparison
+    # 5. Transfer learning effect
     ax5 = fig.add_subplot(3, 3, 5)
-    thinking_length_perf = error_analysis["thinking"]["word_length_performance"]
-    non_thinking_length_perf = error_analysis["non_thinking"]["word_length_performance"]
     
-    # Get all word lengths from both modes
-    all_lengths = sorted(set(thinking_length_perf.keys()) | set(non_thinking_length_perf.keys()))
+    # Extract transfer effects
+    transfer_effects = [
+        transfer_analysis.get("overall_transfer_effect", 0),
+        transfer_analysis.get("position_transfer_effect", 0),
+        transfer_analysis.get("count_transfer_effect", 0)
+    ]
     
-    # Get spelling accuracy for each mode by word length
-    thinking_spell_acc = [thinking_length_perf.get(l, {}).get("spelling", {}).get("accuracy", 0) for l in all_lengths]
-    non_thinking_spell_acc = [non_thinking_length_perf.get(l, {}).get("spelling", {}).get("accuracy", 0) for l in all_lengths]
+    ax5.bar(["Overall", "Position", "Count"], transfer_effects)
+    ax5.set_title('Transfer Effect from Spelling Training')
+    ax5.set_ylabel('Performance Difference (Trained - Untrained)')
     
-    ax5.plot(all_lengths, thinking_spell_acc, marker='o', label='Thinking Mode - Spelling')
-    ax5.plot(all_lengths, non_thinking_spell_acc, marker='s', label='Non-Thinking Mode - Spelling')
-    
-    # Get position/count accuracy for each mode by word length
-    thinking_pos_acc = [thinking_length_perf.get(l, {}).get("position_count", {}).get("accuracy", 0) for l in all_lengths]
-    non_thinking_pos_acc = [non_thinking_length_perf.get(l, {}).get("position_count", {}).get("accuracy", 0) for l in all_lengths]
-    
-    ax5.plot(all_lengths, thinking_pos_acc, marker='^', linestyle='--', label='Thinking Mode - Position/Count')
-    ax5.plot(all_lengths, non_thinking_pos_acc, marker='v', linestyle='--', label='Non-Thinking Mode - Position/Count')
-    
-    ax5.set_title('Performance by Word Length and Mode')
-    ax5.set_xlabel('Word Length')
-    ax5.set_ylabel('Accuracy')
-    ax5.legend()
-    
-    # 6. Transfer learning correlation comparison
+    # 6. Pattern performance
     ax6 = fig.add_subplot(3, 3, 6)
     
-    # Extract correlation values for each mode
-    thinking_corr = transfer_analysis.get("thinking", {}).get("overall_correlation", {}).get("pearson", 0)
-    non_thinking_corr = transfer_analysis.get("non_thinking", {}).get("overall_correlation", {}).get("pearson", 0)
+    # Get patterns
+    patterns = transfer_analysis.get("pattern_performance", {})
     
-    ax6.bar(["Thinking Mode", "Non-Thinking Mode"], [thinking_corr, non_thinking_corr])
-    ax6.set_title('Transfer Learning Correlation by Mode')
-    ax6.set_ylabel('Pearson Correlation')
-    
-    # 7. Pattern performance comparison between modes
-    ax7 = fig.add_subplot(3, 3, 7)
-    
-    # Get patterns from both modes
-    thinking_patterns = transfer_analysis.get("thinking", {}).get("pattern_performance", {})
-    non_thinking_patterns = transfer_analysis.get("non_thinking", {}).get("pattern_performance", {})
-    
-    all_patterns = list(set(thinking_patterns.keys()) | set(non_thinking_patterns.keys()))
+    all_patterns = list(patterns.keys())
     
     if all_patterns:
-        # Get spelling performance for each pattern and mode
-        thinking_pattern_spell = [thinking_patterns.get(p, {}).get("avg_spelling", 0) for p in all_patterns]
-        non_thinking_pattern_spell = [non_thinking_patterns.get(p, {}).get("avg_spelling", 0) for p in all_patterns]
+        # Get position performance for each pattern
+        pattern_pos = [patterns.get(p, {}).get("avg_position", 0) for p in all_patterns]
         
-        # Get position performance for each pattern and mode
-        thinking_pattern_pos = [thinking_patterns.get(p, {}).get("avg_position", 0) for p in all_patterns]
-        non_thinking_pattern_pos = [non_thinking_patterns.get(p, {}).get("avg_position", 0) for p in all_patterns]
+        # Get count performance for each pattern
+        pattern_count = [patterns.get(p, {}).get("avg_count", 0) for p in all_patterns]
         
         # Set up grouped bar chart
         x = np.arange(len(all_patterns))
-        width = 0.2
+        width = 0.35
         
-        ax7.bar(x - 1.5*width, thinking_pattern_spell, width, label='Thinking - Spelling')
-        ax7.bar(x - 0.5*width, non_thinking_pattern_spell, width, label='Non-Thinking - Spelling')
-        ax7.bar(x + 0.5*width, thinking_pattern_pos, width, label='Thinking - Position')
-        ax7.bar(x + 1.5*width, non_thinking_pattern_pos, width, label='Non-Thinking - Position')
+        ax6.bar(x - width/2, pattern_pos, width, label='Position')
+        ax6.bar(x + width/2, pattern_count, width, label='Count')
         
-        ax7.set_title('Pattern Performance by Mode')
-        ax7.set_xticks(x)
-        ax7.set_xticklabels(all_patterns)
-        ax7.set_ylabel('Accuracy')
-        ax7.legend()
-        plt.setp(ax7.get_xticklabels(), rotation=45, ha="right")
+        ax6.set_title('Pattern Performance')
+        ax6.set_xticks(x)
+        ax6.set_xticklabels(all_patterns)
+        ax6.set_ylabel('Accuracy')
+        ax6.legend()
+        plt.setp(ax6.get_xticklabels(), rotation=45, ha="right")
     else:
-        ax7.text(0.5, 0.5, 'No pattern data available', 
+        ax6.text(0.5, 0.5, 'No pattern data available', 
                 horizontalalignment='center', verticalalignment='center')
     
-    # 8. Levenshtein distance comparison by mode
+    # 7. Levenshtein distance
+    ax7 = fig.add_subplot(3, 3, 7)
+    lev = results.get('levenshtein_distance', 0)
+    
+    ax7.bar(['Normalized Levenshtein Distance'], [lev])
+    ax7.set_title('Normalized Levenshtein Distance')
+    ax7.set_ylabel('Distance (lower is better)')
+    
+    # 8. Transfer success/failure counts
     ax8 = fig.add_subplot(3, 3, 8)
-    thinking_lev = results["thinking"].get('levenshtein_distance', 0)
-    non_thinking_lev = results["non_thinking"].get('levenshtein_distance', 0)
     
-    ax8.bar(['Thinking Mode', 'Non-Thinking Mode'], [thinking_lev, non_thinking_lev])
-    ax8.set_title('Normalized Levenshtein Distance by Mode')
-    ax8.set_ylabel('Distance (lower is better)')
+    success = transfer_analysis.get("successful_transfer", {}).get("count", 0)
+    failure = transfer_analysis.get("unsuccessful_transfer", {}).get("count", 0)
     
-    # 9. Transfer success/failure counts by mode
-    ax9 = fig.add_subplot(3, 3, 9)
+    ax8.bar(['Successful Transfer', 'Unsuccessful Transfer'], [success, failure])
+    ax8.set_title('Transfer Learning Success/Failure')
+    ax8.set_ylabel('Count')
     
-    thinking_success = transfer_analysis.get("thinking", {}).get("successful_transfer", {}).get("count", 0)
-    thinking_failure = transfer_analysis.get("thinking", {}).get("unsuccessful_transfer", {}).get("count", 0)
-    non_thinking_success = transfer_analysis.get("non_thinking", {}).get("successful_transfer", {}).get("count", 0)
-    non_thinking_failure = transfer_analysis.get("non_thinking", {}).get("unsuccessful_transfer", {}).get("count", 0)
-    
-    x = np.arange(2)
-    width = 0.35
-    
-    ax9.bar(x - width/2, [thinking_success, thinking_failure], width, label='Thinking Mode')
-    ax9.bar(x + width/2, [non_thinking_success, non_thinking_failure], width, label='Non-Thinking Mode')
-    
-    ax9.set_title('Transfer Learning Success/Failure by Mode')
-    ax9.set_ylabel('Count')
-    ax9.set_xticks(x)
-    ax9.set_xticklabels(['Successful Transfer', 'Unsuccessful Transfer'])
-    ax9.legend()
+    # 9. English-only vs All tokens comparison
+    if 'english_only' in results and 'all_tokens' in results:
+        ax9 = fig.add_subplot(3, 3, 9)
+        
+        metrics = ['letter_count_accuracy', 'letter_position_accuracy']
+        english_values = [results['english_only'].get(m, 0) for m in metrics]
+        all_values = [results['all_tokens'].get(m, 0) for m in metrics]
+        
+        x = np.arange(len(metrics))
+        width = 0.35
+        
+        ax9.bar(x - width/2, english_values, width, label='English-only')
+        ax9.bar(x + width/2, all_values, width, label='All tokens')
+        
+        ax9.set_title('Token Filtering Comparison')
+        ax9.set_xticks(x)
+        ax9.set_xticklabels([m.replace('_', ' ').title() for m in metrics])
+        ax9.set_ylabel('Accuracy')
+        ax9.legend()
     
     plt.tight_layout()
-    plt.savefig('results/evaluation/plots/qwen3_mode_comparison_dashboard.png', dpi=300)
+    plt.savefig('results/evaluation/plots/qwen3_position_count_dashboard.png', dpi=300)
     
     return fig
 
-# Analyze English token subset effectiveness
+# Analyze English token subset effectiveness for position/count tasks
 def analyze_english_token_subset(english_results, all_results):
     token_analysis = {}
     
     # Compare metrics between English-only and all tokens
-    metrics = ['spelling_accuracy', 'letter_count_accuracy', 'letter_position_accuracy', 'character_level_accuracy', 'levenshtein_distance']
+    metrics = ['letter_count_accuracy', 'letter_position_accuracy', 'character_level_accuracy', 'levenshtein_distance']
     
-    for mode in ['thinking', 'non_thinking']:
-        token_analysis[mode] = {}
+    for metric in metrics:
+        english_value = english_results.get(metric, 0)
+        all_value = all_results.get(metric, 0)
         
-        for metric in metrics:
-            english_value = english_results[mode].get(metric, 0)
-            all_value = all_results[mode].get(metric, 0)
+        # For Levenshtein, lower is better
+        if metric == 'levenshtein_distance':
+            improvement = all_value - english_value
+        else:
+            improvement = english_value - all_value
             
-            # For Levenshtein, lower is better
-            if metric == 'levenshtein_distance':
-                improvement = all_value - english_value
-            else:
-                improvement = english_value - all_value
-                
-            token_analysis[mode][metric] = {
-                'english_only': english_value,
-                'all_tokens': all_value,
-                'improvement': improvement,
-                'percent_change': (improvement / all_value * 100) if all_value != 0 else 0
-            }
+        token_analysis[metric] = {
+            'english_only': english_value,
+            'all_tokens': all_value,
+            'improvement': improvement,
+            'percent_change': (improvement / all_value * 100) if all_value != 0 else 0
+        }
     
     # Analyze which task types benefit most from English-only tokens
-    task_benefit = {}
+    task_benefit = {
+        'letter_count': english_results.get('letter_count_accuracy', 0) - all_results.get('letter_count_accuracy', 0),
+        'letter_position': english_results.get('letter_position_accuracy', 0) - all_results.get('letter_position_accuracy', 0)
+    }
     
-    for mode in ['thinking', 'non_thinking']:
-        task_benefit[mode] = {
-            'spelling': english_results[mode].get('spelling_accuracy', 0) - all_results[mode].get('spelling_accuracy', 0),
-            'letter_count': english_results[mode].get('letter_count_accuracy', 0) - all_results[mode].get('letter_count_accuracy', 0),
-            'letter_position': english_results[mode].get('letter_position_accuracy', 0) - all_results[mode].get('letter_position_accuracy', 0)
-        }
-        
-        # Determine which task benefits most
-        max_benefit_task = max(task_benefit[mode].items(), key=lambda x: x[1])[0]
-        task_benefit[mode]['most_improved_task'] = max_benefit_task
+    # Determine which task benefits most
+    max_benefit_task = max(task_benefit.items(), key=lambda x: x[1])[0]
+    task_benefit['most_improved_task'] = max_benefit_task
     
     token_analysis['task_benefit'] = task_benefit
     
     return token_analysis
 
 # Main evaluation function
-def evaluate_models(model_path):
+def evaluate_models(model_path, model_info=None):
     # Initialize W&B
-    wandb.init(project="llm-spelling-finetuning", name="qwen3_mode_evaluation")
+    wandb.init(project="llm-spelling-finetuning", name="qwen3_position_count_evaluation")
     
     # Load test dataset
     test_dataset = load_dataset("YOUR-USERNAME/llm-spelling-dataset", split="test")
@@ -888,103 +672,75 @@ def evaluate_models(model_path):
     # with open('data/splits/test.json', 'r') as f:
     #     test_dataset = json.load(f)
     
+    # Filter test dataset to only include position and count tasks
+    test_dataset = [item for item in test_dataset if item["question_type"] in ["letter_position", "letter_count"]]
+    
     # Load model and tokenizer
     model = AutoModelForCausalLM.from_pretrained(model_path)
     tokenizer = AutoTokenizer.from_pretrained(model_path)
     
-    # Evaluate with different modes and token settings
+    # Evaluate with different token settings
     results = {}
     detailed_results = {}
     
-    # Mode combinations to evaluate
+    # Token settings to evaluate
     configs = [
-        {"thinking_mode": True, "english_only": False},
-        {"thinking_mode": False, "english_only": False},
-        {"thinking_mode": True, "english_only": True},
-        {"thinking_mode": False, "english_only": True}
+        {"english_only": False},
+        {"english_only": True}
     ]
     
     for config in configs:
-        thinking = config["thinking_mode"]
         english_only = config["english_only"]
         
-        mode_key = "thinking" if thinking else "non_thinking"
         token_key = "english_only" if english_only else "all_tokens"
         
-        # Create nested dictionaries if they don't exist
-        if mode_key not in results:
-            results[mode_key] = {}
-        
-        if token_key not in results[mode_key]:
-            results[mode_key][token_key] = {}
-        
-        if mode_key not in detailed_results:
-            detailed_results[mode_key] = {}
-            
-        if token_key not in detailed_results[mode_key]:
-            detailed_results[mode_key][token_key] = {}
-        
-        print(f"\nEvaluating with thinking_mode={thinking}, english_only={english_only}...")
+        print(f"\nEvaluating with english_only={english_only}...")
         
         # Run evaluations with current configuration
-        spelling_acc, spelling_results = calc_spelling_accuracy(model, tokenizer, test_dataset, thinking, english_only)
-        letter_count_acc, count_results = calc_letter_count_accuracy(model, tokenizer, test_dataset, thinking, english_only)
-        letter_position_acc, position_results = calc_letter_position_accuracy(model, tokenizer, test_dataset, thinking, english_only)
-        char_acc, char_results = calc_character_level_accuracy(model, tokenizer, test_dataset, thinking, english_only)
-        lev_dist, lev_results = calc_levenshtein_metrics(model, tokenizer, test_dataset, thinking, english_only)
+        letter_count_acc, count_results = calc_letter_count_accuracy(model, tokenizer, test_dataset, english_only)
+        letter_position_acc, position_results = calc_letter_position_accuracy(model, tokenizer, test_dataset, english_only)
+        char_acc, char_results = calc_character_level_accuracy(model, tokenizer, test_dataset, english_only)
+        lev_dist, lev_results = calc_levenshtein_metrics(model, tokenizer, test_dataset, english_only)
         
         # Store results
-        results[mode_key][token_key] = {
-            "spelling_accuracy": spelling_acc,
+        results[token_key] = {
             "letter_count_accuracy": letter_count_acc,
             "letter_position_accuracy": letter_position_acc,
             "character_level_accuracy": char_acc,
             "levenshtein_distance": lev_dist
         }
         
-        detailed_results[mode_key][token_key] = {
-            "spelling": spelling_results,
+        detailed_results[token_key] = {
             "letter_count": count_results,
             "letter_position": position_results,
             "character_level": char_results,
             "levenshtein": lev_results
         }
     
-    # Flatten results for easier access in analysis functions
-    flattened_results = {}
-    flattened_detailed_results = {}
-    
-    for mode_key in results:
-        flattened_results[mode_key] = results[mode_key]["all_tokens"]
-        flattened_detailed_results[mode_key] = detailed_results[mode_key]["all_tokens"]
+    # Use all_tokens results for main analysis
+    main_results = results["all_tokens"]
+    main_detailed_results = detailed_results["all_tokens"]
     
     # Perform error analysis
-    error_analysis = perform_error_analysis(flattened_detailed_results)
+    error_analysis = perform_error_analysis(main_detailed_results)
     
     # Analyze transfer learning effectiveness
-    transfer_analysis = {}
-    for mode_key in flattened_detailed_results:
-        transfer_result, transfer_data = analyze_transfer_learning(
-            flattened_detailed_results[mode_key]["spelling"],
-            flattened_detailed_results[mode_key]["letter_count"] + flattened_detailed_results[mode_key]["letter_position"]
-        )
-        transfer_analysis[mode_key] = transfer_result
+    transfer_result, transfer_data = analyze_transfer_learning(
+        model_info or {},
+        main_detailed_results["letter_count"] + main_detailed_results["letter_position"]
+    )
     
     # Analyze English token subset effectiveness
-    english_only_results = {}
-    for mode_key in results:
-        english_only_results[mode_key] = results[mode_key]["english_only"]
-    
-    token_analysis = analyze_english_token_subset(english_only_results, flattened_results)
+    token_analysis = analyze_english_token_subset(results["english_only"], results["all_tokens"])
     
     # Create performance dashboard
-    dashboard = create_performance_dashboard(flattened_results, error_analysis, transfer_analysis)
+    dashboard = create_performance_dashboard(main_results, error_analysis, transfer_result)
     
     # Log results to W&B
     wandb.log({
         "results": results,
         "error_analysis": error_analysis,
-        "transfer_learning": transfer_analysis,
+        "transfer_learning": transfer_result,
         "token_analysis": token_analysis,
         "evaluation_dashboard": wandb.Image(dashboard)
     })
@@ -994,7 +750,7 @@ def evaluate_models(model_path):
         "results": results,
         "detailed_results": detailed_results,
         "error_analysis": error_analysis,
-        "transfer_learning": transfer_analysis,
+        "transfer_learning": transfer_result,
         "token_analysis": token_analysis
     }
     
@@ -1003,22 +759,18 @@ def evaluate_models(model_path):
     os.makedirs('results/evaluation/metrics', exist_ok=True)
     os.makedirs('results/evaluation/error_analysis', exist_ok=True)
     os.makedirs('results/evaluation/transfer_analysis', exist_ok=True)
-    os.makedirs('results/evaluation/mode_comparison', exist_ok=True)
     os.makedirs('results/evaluation/token_analysis', exist_ok=True)
     os.makedirs('results/evaluation/plots', exist_ok=True)
     
     # Save results to appropriate locations
-    with open("results/evaluation/metrics/qwen3_evaluation_results.json", "w") as f:
+    with open("results/evaluation/metrics/qwen3_position_count_evaluation.json", "w") as f:
         json.dump(evaluation_results, f, indent=2)
     
-    with open("results/evaluation/error_analysis/qwen3_error_patterns.json", "w") as f:
+    with open("results/evaluation/error_analysis/qwen3_position_count_error_patterns.json", "w") as f:
         json.dump(error_analysis, f, indent=2)
         
     with open("results/evaluation/transfer_analysis/qwen3_transfer_learning_analysis.json", "w") as f:
-        json.dump(transfer_analysis, f, indent=2)
-        
-    with open("results/evaluation/mode_comparison/qwen3_mode_comparison.json", "w") as f:
-        json.dump({"results": flattened_results, "error_analysis": error_analysis, "transfer_analysis": transfer_analysis}, f, indent=2)
+        json.dump(transfer_result, f, indent=2)
         
     with open("results/evaluation/token_analysis/qwen3_token_analysis.json", "w") as f:
         json.dump(token_analysis, f, indent=2)
@@ -1030,30 +782,30 @@ def evaluate_models(model_path):
 ```
 
 # Test Strategy:
-1. Verify all evaluation metrics are calculated correctly for both spelling and position/count tasks
-2. Test both thinking and non-thinking modes of Qwen3-4B to ensure proper mode switching
-3. Validate English-only token subset filtering works correctly
+1. Verify all evaluation metrics are calculated correctly for position/count tasks only
+2. Test Qwen3-4B in non-thinking mode only to ensure proper configuration
+3. Validate English-only token subset filtering works correctly for position/count tasks
 4. Test with Qwen3's specific sampling parameters (Temperature=0.6, TopP=0.95, TopK=20, MinP=0)
-5. Confirm error analysis provides meaningful insights for both task types and both modes
-6. Validate transfer learning analysis metrics and correlations between modes
-7. Check that visualizations clearly show the relationship between spelling and position/count performance for each mode
-8. Verify results are properly logged to W&B with mode-specific metrics
-9. Confirm performance comparison between thinking and non-thinking modes across all task types
+5. Confirm error analysis provides meaningful insights for position/count task types
+6. Validate transfer learning analysis metrics for how spelling training affects position/count performance
+7. Check that visualizations clearly show position/count performance metrics
+8. Verify results are properly logged to W&B with appropriate metrics
+9. Confirm performance comparison between different token filtering approaches for position/count tasks
 10. Test with different model checkpoints to ensure consistent evaluation
 11. Verify final evaluation results are saved locally in the correct directories:
    - `results/evaluation/metrics/`
    - `results/evaluation/error_analysis/`
    - `results/evaluation/transfer_analysis/`
-   - `results/evaluation/mode_comparison/`
    - `results/evaluation/token_analysis/`
    - `results/evaluation/plots/`
 12. Test GPU switching functionality in Lightning.AI Studio (CPU → T4 → A100) for optimal resource usage
-13. Verify that all test datasets are properly loaded from `data/splits/test.json` and challenge sets
-14. Check that the evaluation notebooks can successfully load and analyze the mode comparison results
-15. Validate the pattern analysis to ensure it correctly identifies which spelling patterns lead to better position/count performance in each mode
+13. Verify that all test datasets are properly filtered to include only position/count tasks
+14. Check that the evaluation notebooks can successfully load and analyze the position/count results
+15. Validate the pattern analysis to ensure it correctly identifies which spelling patterns in training lead to better position/count performance
 16. Test Lightning.AI Studio's job system for automated evaluation pipeline execution
 17. Verify proper environment isolation and dependency management in the Lightning.AI Studio
-18. Test the token analysis to ensure it correctly measures the effectiveness of the English token filtering approach
+18. Test the token analysis to ensure it correctly measures the effectiveness of the English token filtering approach for position/count tasks
+19. Verify that thinking mode is never enabled in any part of the evaluation process
 
 # Subtasks:
 ## 1. Multi-metric evaluation framework implementation [pending]
@@ -1128,19 +880,19 @@ Ensure notebooks can load results from the standardized file locations. Implemen
 
 ## 9. Transfer learning analysis implementation [pending]
 ### Dependencies: 9.1, 9.3
-### Description: Develop and implement analysis tools to measure transfer learning effectiveness between spelling and position/count tasks
+### Description: Develop and implement analysis tools to measure transfer learning effectiveness from spelling training to position/count tasks
 ### Details:
-Create a transfer learning analysis module in `src/evaluation/transfer_analysis.py`. Implement correlation metrics between spelling performance and position/count task performance. Develop methods to identify which spelling patterns lead to better position/count performance. Create visualizations showing the relationship between spelling ability and position/count task success. Implement statistical tests to validate transfer learning effectiveness. Design analysis tools to identify successful and unsuccessful transfer cases.
+Create a transfer learning analysis module in `src/evaluation/transfer_analysis.py`. Implement metrics to measure how spelling training affects position/count task performance. Develop methods to identify which spelling patterns in training lead to better position/count performance. Create visualizations showing the relationship between spelling training and position/count task success. Implement statistical tests to validate transfer learning effectiveness. Design analysis tools to identify successful and unsuccessful transfer cases.
 
 Ensure results are saved to `results/evaluation/transfer_analysis/` directory and properly visualized in the dashboard.
 
-## 10. Separate evaluation pipelines for task types [pending]
+## 10. Position/count task evaluation pipeline [pending]
 ### Dependencies: 9.1
-### Description: Implement separate but coordinated evaluation pipelines for spelling tasks and position/count tasks
+### Description: Implement dedicated evaluation pipeline for position/count tasks only
 ### Details:
-Refactor the evaluation framework to handle spelling tasks and position/count tasks separately. Ensure metrics are calculated appropriately for each task type. Implement task-specific error analysis for each pipeline. Create mechanisms to track and correlate performance between the two task types. Design the system to identify which aspects of spelling knowledge transfer to position/count tasks. Ensure all results can be combined for comprehensive reporting and visualization.
+Refactor the evaluation framework to focus exclusively on position/count tasks. Ensure metrics are calculated appropriately for position and count tasks. Implement task-specific error analysis for position/count tasks. Create mechanisms to track performance on different position/count question types. Design the system to identify how spelling training transfers to position/count tasks. Ensure all results can be combined for comprehensive reporting and visualization.
 
-Update the main evaluator in `src/evaluation/evaluator.py` to coordinate between the separate pipelines.
+Implement the main evaluator in `src/evaluation/position_count_evaluator.py` to handle position/count evaluation.
 
 ## 11. Lightning.AI automated evaluation pipeline [pending]
 ### Dependencies: 9.6, 9.10
@@ -1160,33 +912,39 @@ Analyze resource requirements for different evaluation stages. Implement automat
 ### Details:
 Document the Lightning.AI Studio setup and configuration. Create user guides for running evaluations in the Studio. Document GPU switching functionality and best practices. Create troubleshooting guides for common issues. Document cost optimization strategies and resource management. Create onboarding materials for new team members. Include examples and tutorials for different evaluation scenarios. Maintain documentation with updates for new Lightning.AI features.
 
-## 14. Qwen3 thinking mode evaluation [pending]
+## 14. Qwen3 non-thinking mode evaluation [pending]
 ### Dependencies: 9.1, 9.10
-### Description: Implement evaluation pipeline for Qwen3-4B's thinking and non-thinking modes
+### Description: Implement evaluation pipeline for Qwen3-4B in non-thinking mode
 ### Details:
-Extend the evaluation framework to support Qwen3-4B's thinking and non-thinking modes. Create mode-specific evaluation configurations. Implement mode switching in the generation pipeline. Develop metrics to compare performance between modes. Create visualizations showing mode-specific performance differences. Analyze how thinking mode affects transfer learning capabilities. Identify tasks that benefit most from each mode. Document findings and recommendations for mode selection based on task type.
+Extend the evaluation framework to support Qwen3-4B in non-thinking mode for position/count tasks. Create evaluation configurations with enable_thinking=False. Implement proper configuration in the generation pipeline. Develop metrics to assess position/count performance. Create visualizations showing performance across different position/count tasks. Analyze transfer learning capabilities from spelling training to position/count tasks. Identify position/count tasks that benefit most from the model. Document findings and recommendations for optimal usage based on task type.
 
 ## 15. English token subset analysis [pending]
 ### Dependencies: 9.1, 9.14
-### Description: Implement analysis tools to evaluate performance with English-only token subset
+### Description: Implement analysis tools to evaluate position/count performance with English-only token subset
 ### Details:
-Develop token filtering mechanism for Qwen3-4B to restrict generation to English-only tokens. Create analysis tools to compare performance between full vocabulary and English-only subset. Implement metrics to measure the effectiveness of token filtering. Analyze which tasks benefit most from English token filtering. Create visualizations showing the impact of token filtering on different metrics. Document findings and recommendations for token filtering usage. Ensure proper handling of Qwen3's tokenizer patterns in the filtering process.
+Develop token filtering mechanism for Qwen3-4B to restrict generation to English-only tokens. Create analysis tools to compare position/count performance between full vocabulary and English-only subset. Implement metrics to measure the effectiveness of token filtering for position/count tasks. Analyze which position/count tasks benefit most from English token filtering. Create visualizations showing the impact of token filtering on different position/count metrics. Document findings and recommendations for token filtering usage. Ensure proper handling of Qwen3's tokenizer patterns in the filtering process.
 
 ## 16. Qwen3 sampling parameters analysis [pending]
 ### Dependencies: 9.1, 9.14
-### Description: Analyze the impact of Qwen3's specific sampling parameters on performance
+### Description: Analyze the impact of Qwen3's specific sampling parameters on position/count performance
 ### Details:
-Implement evaluation with Qwen3's recommended sampling parameters (Temperature=0.6, TopP=0.95, TopK=20, MinP=0). Create comparison framework to test different parameter combinations. Analyze how sampling parameters affect performance on different task types. Identify optimal parameter settings for spelling and position/count tasks. Create visualizations showing parameter sensitivity. Document findings and recommendations for parameter tuning. Ensure proper implementation of MinP parameter if supported by the model.
+Implement evaluation with Qwen3's recommended sampling parameters (Temperature=0.6, TopP=0.95, TopK=20, MinP=0) for position/count tasks. Create comparison framework to test different parameter combinations for position/count tasks. Analyze how sampling parameters affect performance on position and count task types. Identify optimal parameter settings for position and count tasks. Create visualizations showing parameter sensitivity for position/count tasks. Document findings and recommendations for parameter tuning. Ensure proper implementation of MinP parameter if supported by the model.
 
-## 17. Mode comparison dashboard [pending]
+## 17. Performance comparison dashboard [pending]
 ### Dependencies: 9.4, 9.14
-### Description: Create interactive dashboard for comparing thinking and non-thinking mode performance
+### Description: Create interactive dashboard for comparing position/count performance across different configurations
 ### Details:
-Design and implement a dedicated dashboard for mode comparison. Create side-by-side visualizations of thinking vs. non-thinking mode performance. Implement filtering capabilities to focus on specific metrics or task types. Develop interactive features for exploring mode-specific error patterns. Create visualizations showing transfer learning differences between modes. Ensure the dashboard is accessible and interpretable for both technical and non-technical stakeholders. Save mode comparison visualizations to `results/evaluation/plots/` directory.
+Design and implement a dedicated dashboard for position/count performance comparison. Create visualizations of model performance across different configurations for position/count tasks. Implement filtering capabilities to focus on specific position/count metrics. Develop interactive features for exploring position/count error patterns. Create visualizations showing transfer learning characteristics from spelling training to position/count tasks. Ensure the dashboard is accessible and interpretable for both technical and non-technical stakeholders. Save performance comparison visualizations to `results/evaluation/plots/` directory.
 
 ## 18. Qwen3 tokenizer pattern analysis [pending]
 ### Dependencies: 9.1, 9.14, 9.15
-### Description: Analyze and handle Qwen3's specific tokenizer patterns in evaluation
+### Description: Analyze and handle Qwen3's specific tokenizer patterns in position/count evaluation
 ### Details:
-Investigate Qwen3's tokenizer patterns and their impact on evaluation. Develop tools to analyze token distributions in model outputs. Implement proper handling of Qwen3's tokenizer patterns in evaluation metrics. Create visualizations showing token usage patterns. Analyze how tokenizer patterns affect performance on different task types. Document findings and recommendations for handling tokenizer-specific issues. Ensure evaluation metrics properly account for tokenizer characteristics.
+Investigate Qwen3's tokenizer patterns and their impact on position/count evaluation. Develop tools to analyze token distributions in model outputs for position/count tasks. Implement proper handling of Qwen3's tokenizer patterns in position/count evaluation metrics. Create visualizations showing token usage patterns for position/count tasks. Analyze how tokenizer patterns affect performance on position and count task types. Document findings and recommendations for handling tokenizer-specific issues in position/count evaluation. Ensure evaluation metrics properly account for tokenizer characteristics.
+
+## 19. Non-thinking mode configuration verification [pending]
+### Dependencies: 9.14
+### Description: Implement verification checks to ensure thinking mode is never enabled in the evaluation process
+### Details:
+Create validation checks in the evaluation pipeline to verify thinking mode is never enabled. Implement configuration validation in the model loading and generation functions. Add assertions and error handling to prevent accidental use of thinking mode. Create documentation clearly stating the project policy on non-thinking mode usage. Update all code examples and documentation to explicitly show enable_thinking=False. Implement unit tests to verify thinking mode is never enabled in any part of the evaluation process. Create a pre-execution validation step in the Lightning.AI job system to verify configuration compliance.
 

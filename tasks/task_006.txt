@@ -3,13 +3,13 @@
 # Status: pending
 # Dependencies: 1, 5
 # Priority: medium
-# Description: Create a configuration system for hyperparameter experiments focused on spelling task performance and transfer learning, and set up experiment tracking with Weights & Biases using Python scripts instead of notebooks, leveraging Lightning.AI Studios for efficient training and experimentation.
+# Description: Create a configuration system for hyperparameter experiments focused on position and character count task performance and transfer learning, and set up experiment tracking with Weights & Biases using Python scripts instead of notebooks, leveraging Lightning.AI Studios for efficient training and experimentation.
 # Details:
-1. Create a configuration system for hyperparameter experiments with focus on spelling tasks and transfer learning
-2. Set up Python scripts for experiment tracking with separate metrics for spelling and transfer learning
-3. Create a script that can run training with different hyperparameters optimized for transfer learning
-4. Set up W&B for experiment tracking with correlation analysis between spelling and transfer learning
-5. Define a clear set of metrics for comparing experiments across both direct and transfer performance
+1. Create a configuration system for hyperparameter experiments with focus on position and character count tasks and transfer learning
+2. Set up Python scripts for experiment tracking with metrics for position and character count tasks
+3. Create a script that can run training with different hyperparameters optimized for position and count tasks
+4. Set up W&B for experiment tracking with correlation analysis between position and count tasks
+5. Define a clear set of metrics for comparing experiments across position and count task performance
 6. Create a dedicated Lightning.AI Studio for hyperparameter tuning following the "one Studio, one task" principle
 7. Implement GPU switching for efficient resource usage (CPU → T4 → A100)
 8. Leverage Lightning.AI's job system for managing multiple training runs
@@ -33,7 +33,7 @@ Python Module Structure:
 - Experiment executor: `src/tuning/executor.py`
 - Visualization tools: `src/tuning/visualization.py`
 - Report generation: `src/tuning/report.py`
-- Transfer learning analysis: `src/tuning/transfer_analysis.py`
+- Task analysis: `src/tuning/task_analysis.py`
 - Lightning.AI job manager: `src/tuning/lightning_jobs.py`
 - Token analysis: `src/tuning/token_analysis.py`
 - Qwen3 tokenizer utilities: `src/tuning/qwen3_tokenizer.py`
@@ -42,11 +42,11 @@ Results Structure:
 - Experiment results: `results/tuning/data/`
 - Best configurations: `results/tuning/configs/`
 - Performance plots: `results/tuning/figures/`
-- Transfer learning analysis: `results/tuning/transfer/`
+- Task analysis: `results/tuning/tasks/`
 - HTML reports: `results/tuning/reports/`
 - Token analysis: `results/tuning/token_analysis/`
 - English token subset: `results/tuning/token_analysis/english_tokens/`
-- Documentation: `docs/hyperparameter_tuning.md`, `docs/config_system.md`, `docs/tuning_results.md`, `docs/transfer_learning.md`, `docs/lightning_studio_setup.md`, `docs/qwen3_token_analysis.md`
+- Documentation: `docs/hyperparameter_tuning.md`, `docs/config_system.md`, `docs/tuning_results.md`, `docs/position_count_tasks.md`, `docs/lightning_studio_setup.md`, `docs/qwen3_token_analysis.md`
 
 Implementation:
 ```python
@@ -75,12 +75,12 @@ def create_experiment_config(
     max_steps=1000,
     warmup_steps=100,
     target_modules=["q_proj", "k_proj", "v_proj", "o_proj"],
-    # Spelling-specific parameters
+    # Training parameters
     spelling_data_ratio=0.7,
     spelling_augmentation=True,
     spelling_difficulty="medium",
-    # Transfer learning parameters
-    transfer_eval_frequency=100,
+    # Task evaluation parameters
+    eval_frequency=100,
     position_task_weight=0.5,
     count_task_weight=0.5,
     # Lightning.AI parameters
@@ -89,9 +89,8 @@ def create_experiment_config(
     sleep_when_idle=True,
     # Qwen3 tokenizer parameters
     use_english_only_tokens=False,
-    analyze_thinking_mode=False,
 ):
-    """Create and save an experiment configuration with spelling and transfer learning focus."""
+    """Create and save an experiment configuration with position and count task focus."""
     config = {
         "experiment_name": exp_name,
         "timestamp": datetime.now().strftime("%Y%m%d_%H%M%S"),
@@ -107,16 +106,15 @@ def create_experiment_config(
             "gradient_accumulation_steps": grad_accum_steps,
             "max_steps": max_steps,
             "warmup_steps": warmup_steps,
+            "spelling_data_ratio": spelling_data_ratio,
+            "spelling_augmentation": spelling_augmentation,
+            "spelling_difficulty": spelling_difficulty,
         },
-        "spelling_config": {
-            "data_ratio": spelling_data_ratio,
-            "augmentation": spelling_augmentation,
-            "difficulty": spelling_difficulty,
-        },
-        "transfer_config": {
-            "eval_frequency": transfer_eval_frequency,
+        "evaluation_config": {
+            "eval_frequency": eval_frequency,
             "position_task_weight": position_task_weight,
             "count_task_weight": count_task_weight,
+            # No spelling evaluation per project policy
         },
         "lightning_config": {
             "gpu_tier": gpu_tier,
@@ -126,7 +124,7 @@ def create_experiment_config(
         "tokenizer_config": {
             "model_name": "Qwen/Qwen3-4B",
             "use_english_only_tokens": use_english_only_tokens,
-            "analyze_thinking_mode": analyze_thinking_mode,
+            "enable_thinking": False,  # Always set to False per project policy
         }
     }
 
@@ -141,7 +139,7 @@ def create_experiment_config(
     print(f"Created experiment config: {config_path}")
     return config_path
 
-# Define hyperparameter grid with spelling and transfer learning focus
+# Define hyperparameter grid with position and count task focus
 def create_hyperparameter_grid():
     grid = {
         # LoRA parameters
@@ -152,22 +150,21 @@ def create_hyperparameter_grid():
         "batch_size": [4, 8, 16, 32],
         "grad_accum_steps": [1, 2, 4, 8],
         "max_steps": [500, 1000, 2000, 5000],
-        # Spelling-specific parameters
+        # Spelling training parameters (for training only)
         "spelling_data_ratio": [0.5, 0.7, 0.9],
         "spelling_difficulty": ["easy", "medium", "hard"],
-        # Transfer learning parameters
+        # Task evaluation parameters
         "position_task_weight": [0.3, 0.5, 0.7],
         "count_task_weight": [0.3, 0.5, 0.7],
         # Lightning.AI parameters
         "gpu_tier": ["cpu", "t4", "a100"],
         # Qwen3 tokenizer parameters
         "use_english_only_tokens": [False, True],
-        "analyze_thinking_mode": [False, True],
     }
     return grid
 
 # Create experiment configs for grid search
-def create_grid_search_configs(base_name="spelling_transfer_exp"):
+def create_grid_search_configs(base_name="position_count_exp"):
     grid = create_hyperparameter_grid()
     configs = []
     
@@ -190,7 +187,6 @@ def create_grid_search_configs(base_name="spelling_transfer_exp"):
             if param == "count_task_weight" and value == 0.5: continue
             if param == "gpu_tier" and value == "cpu": continue
             if param == "use_english_only_tokens" and value == False: continue
-            if param == "analyze_thinking_mode" and value == False: continue
                 
             kwargs = {param: value}
             config_path = create_experiment_config(f"{base_name}_{param}_{value}", **kwargs)
@@ -198,12 +194,12 @@ def create_grid_search_configs(base_name="spelling_transfer_exp"):
     
     return configs
 
-# Initialize W&B sweep with spelling and transfer learning metrics
+# Initialize W&B sweep with position and count task metrics
 def create_wandb_sweep():
     sweep_config = {
         "method": "grid",
         "metric": {
-            "name": "transfer_learning_score",  # Combined metric for transfer learning effectiveness
+            "name": "combined_task_score",  # Combined metric for position and count tasks
             "goal": "maximize"
         },
         "parameters": {
@@ -215,34 +211,33 @@ def create_wandb_sweep():
             "batch_size": {"values": [4, 8, 16, 32]},
             "grad_accum_steps": {"values": [1, 2, 4, 8]},
             "max_steps": {"values": [500, 1000, 2000, 5000]},
-            # Spelling-specific parameters
+            # Spelling training parameters (for training only)
             "spelling_data_ratio": {"values": [0.5, 0.7, 0.9]},
             "spelling_difficulty": {"values": ["easy", "medium", "hard"]},
-            # Transfer learning parameters
+            # Task evaluation parameters
             "position_task_weight": {"values": [0.3, 0.5, 0.7]},
             "count_task_weight": {"values": [0.3, 0.5, 0.7]},
             # Lightning.AI parameters
             "gpu_tier": {"values": ["cpu", "t4", "a100"]},
             # Qwen3 tokenizer parameters
             "use_english_only_tokens": {"values": [False, True]},
-            "analyze_thinking_mode": {"values": [False, True]},
         }
     }
     
-    sweep_id = wandb.sweep(sweep_config, project="llm-spelling-transfer-learning")
+    sweep_id = wandb.sweep(sweep_config, project="llm-position-count-tasks")
     return sweep_id
 
-# Calculate transfer learning score from spelling and transfer metrics
-def calculate_transfer_score(spelling_accuracy, position_accuracy, count_accuracy, position_weight=0.5, count_weight=0.5):
-    """Calculate a combined score that measures transfer learning effectiveness."""
-    transfer_score = position_weight * position_accuracy + count_weight * count_accuracy
-    # Correlation bonus: reward configurations where spelling improvement correlates with transfer task improvement
-    correlation_bonus = min(spelling_accuracy, (position_accuracy + count_accuracy) / 2) * 0.2
-    return transfer_score + correlation_bonus
+# Calculate combined task score from position and count metrics
+def calculate_combined_task_score(position_accuracy, count_accuracy, position_weight=0.5, count_weight=0.5):
+    """Calculate a combined score that measures position and count task performance."""
+    combined_score = position_weight * position_accuracy + count_weight * count_accuracy
+    # Correlation bonus: reward configurations where position and count tasks both perform well
+    correlation_bonus = min(position_accuracy, count_accuracy) * 0.2
+    return combined_score + correlation_bonus
 
 # Qwen3 tokenizer analysis functions
-def analyze_qwen3_tokenizer(use_english_only=False, analyze_thinking_mode=False):
-    """Analyze the Qwen3-4B tokenizer with focus on English tokens and thinking/non-thinking modes."""
+def analyze_qwen3_tokenizer(use_english_only=False):
+    """Analyze the Qwen3-4B tokenizer with focus on English tokens."""
     # Load the tokenizer
     tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen3-4B")
     vocab = tokenizer.get_vocab()
@@ -283,43 +278,6 @@ def analyze_qwen3_tokenizer(use_english_only=False, analyze_thinking_mode=False)
             
         stats["english_token_count"] = len(english_tokens)
         stats["english_token_percentage"] = len(english_tokens) / len(vocab) * 100
-    
-    # Analyze thinking vs non-thinking mode token usage
-    if analyze_thinking_mode:
-        thinking_samples = [
-            "Let me think about this step by step.",
-            "I need to analyze this carefully.",
-            "Let's break this down systematically."
-        ]
-        
-        non_thinking_samples = [
-            "The answer is 42.",
-            "Yes, that's correct.",
-            "No, that's not right."
-        ]
-        
-        thinking_tokens = {}
-        non_thinking_tokens = {}
-        
-        for sample in thinking_samples:
-            tokens = tokenizer.tokenize(sample)
-            for token in tokens:
-                thinking_tokens[token] = thinking_tokens.get(token, 0) + 1
-                
-        for sample in non_thinking_samples:
-            tokens = tokenizer.tokenize(sample)
-            for token in tokens:
-                non_thinking_tokens[token] = non_thinking_tokens.get(token, 0) + 1
-        
-        stats["thinking_mode"] = {
-            "unique_tokens": len(thinking_tokens),
-            "token_distribution": thinking_tokens
-        }
-        
-        stats["non_thinking_mode"] = {
-            "unique_tokens": len(non_thinking_tokens),
-            "token_distribution": non_thinking_tokens
-        }
     
     # Save analysis results
     with open("results/tuning/token_analysis/tokenizer_stats.json", "w") as f:
@@ -366,24 +324,21 @@ class HyperparameterTuningWork(LightningWork):
         # Run training and evaluation
         # ... training code here ...
         
-        # Calculate transfer learning score
-        spelling_accuracy = 0.85  # Example value
+        # Calculate combined task score
         position_accuracy = 0.75  # Example value
         count_accuracy = 0.70     # Example value
-        transfer_score = calculate_transfer_score(
-            spelling_accuracy, 
+        combined_score = calculate_combined_task_score(
             position_accuracy, 
             count_accuracy,
-            position_weight=config["transfer_config"]["position_task_weight"],
-            count_weight=config["transfer_config"]["count_task_weight"]
+            position_weight=config["evaluation_config"]["position_task_weight"],
+            count_weight=config["evaluation_config"]["count_task_weight"]
         )
         
         # Store results
         self.results = {
-            "spelling_accuracy": spelling_accuracy,
             "position_accuracy": position_accuracy,
             "count_accuracy": count_accuracy,
-            "transfer_score": transfer_score,
+            "combined_score": combined_score,
         }
         
         # Save results to shared storage
@@ -426,34 +381,33 @@ class HyperparameterTuningFlow(LightningFlow):
 
 # Command-line interface for experiment execution
 def main():
-    parser = argparse.ArgumentParser(description="Run hyperparameter tuning experiments for spelling and transfer learning")
+    parser = argparse.ArgumentParser(description="Run hyperparameter tuning experiments for position and count tasks")
     parser.add_argument("--mode", choices=["grid", "sweep", "single", "lightning", "token-analysis"], default="single",
                         help="Experiment mode: grid search, W&B sweep, single experiment, Lightning.AI jobs, or token analysis")
-    parser.add_argument("--name", type=str, default="spelling_transfer_exp",
+    parser.add_argument("--name", type=str, default="position_count_exp",
                         help="Base name for the experiment")
     parser.add_argument("--config", type=str, help="Path to a specific config file (for single mode)")
-    parser.add_argument("--focus", choices=["spelling", "transfer", "balanced"], default="balanced",
-                        help="Focus of the experiment: spelling performance, transfer learning, or balanced")
+    parser.add_argument("--focus", choices=["position", "count", "balanced"], default="balanced",
+                        help="Focus of the experiment: position task, count task, or balanced")
     parser.add_argument("--gpu-tier", choices=["cpu", "t4", "a100"], default="cpu",
                         help="GPU tier to use for Lightning.AI jobs")
     parser.add_argument("--english-only", action="store_true", help="Use only English tokens from Qwen3 tokenizer")
-    parser.add_argument("--analyze-thinking", action="store_true", help="Analyze thinking vs non-thinking mode token usage")
     
     args = parser.parse_args()
     
     # Adjust weights based on experiment focus
     position_weight = 0.5
     count_weight = 0.5
-    if args.focus == "spelling":
-        position_weight = 0.3
+    if args.focus == "position":
+        position_weight = 0.7
         count_weight = 0.3
-    elif args.focus == "transfer":
-        position_weight = 0.6
-        count_weight = 0.6
+    elif args.focus == "count":
+        position_weight = 0.3
+        count_weight = 0.7
     
     if args.mode == "token-analysis":
         print("Running Qwen3-4B tokenizer analysis...")
-        stats = analyze_qwen3_tokenizer(use_english_only=args.english_only, analyze_thinking_mode=args.analyze_thinking)
+        stats = analyze_qwen3_tokenizer(use_english_only=args.english_only)
         print(f"Analysis complete. Results saved to results/tuning/token_analysis/")
         print(f"Vocabulary size: {stats['vocab_size']}")
         if 'english_token_count' in stats:
@@ -488,7 +442,6 @@ def main():
                 count_task_weight=count_weight,
                 gpu_tier=args.gpu_tier,
                 use_english_only_tokens=args.english_only,
-                analyze_thinking_mode=args.analyze_thinking,
             )
             print(f"Created single experiment config: {config_path} with {args.focus} focus")
 
@@ -497,17 +450,17 @@ if __name__ == "__main__":
 ```
 
 # Test Strategy:
-1. Verify configuration system creates valid YAML files with spelling and transfer learning parameters in the correct directories (`configs/hyperparameters/`)
-2. Confirm W&B experiment tracking properly separates spelling metrics from transfer learning metrics
-3. Test that the hyperparameter grid generates the expected number of configurations including spelling-specific parameters
-4. Verify W&B sweep configuration includes both spelling and transfer learning metrics
-5. Test the command-line interfaces for all Python scripts, especially the new `--focus`, `--gpu-tier`, `--english-only`, and `--analyze-thinking` parameters
-6. Ensure metrics for comparing experiments clearly separate direct spelling performance from transfer learning effectiveness
-7. Verify that results are properly saved to `results/tuning/` directories including the new transfer learning analysis
-8. Test the experiment executor to ensure it correctly tracks both spelling performance and transfer learning metrics
-9. Verify HTML report generation produces valid reports that show correlations between spelling improvement and transfer learning
-10. Test visualization tools to ensure they generate figures showing relationships between spelling training and transfer learning performance
-11. Verify the transfer learning analysis module correctly calculates combined scores and identifies optimal training patterns
+1. Verify configuration system creates valid YAML files with position and count task parameters in the correct directories (`configs/hyperparameters/`)
+2. Confirm W&B experiment tracking properly tracks position and count task metrics (and does NOT track spelling evaluation metrics)
+3. Test that the hyperparameter grid generates the expected number of configurations including position and count task parameters
+4. Verify W&B sweep configuration includes only position and count task metrics
+5. Test the command-line interfaces for all Python scripts, especially the new `--focus`, `--gpu-tier`, and `--english-only` parameters
+6. Ensure metrics for comparing experiments only include position and count task performance (no spelling evaluation metrics)
+7. Verify that results are properly saved to `results/tuning/` directories including the task analysis
+8. Test the experiment executor to ensure it correctly tracks position and count task metrics
+9. Verify HTML report generation produces valid reports that show correlations between position and count task performance
+10. Test visualization tools to ensure they generate figures showing relationships between position and count task performance
+11. Verify the task analysis module correctly calculates combined scores and identifies optimal training patterns
 12. Test Lightning.AI Studio creation and configuration with proper environment isolation
 13. Verify GPU switching functionality works correctly (CPU → T4 → A100) based on experiment phase
 14. Test Lightning.AI job system integration for managing multiple training runs
@@ -516,10 +469,15 @@ if __name__ == "__main__":
 17. Verify PyTorch Lightning integration works correctly with the Lightning.AI platform
 18. Test Qwen3-4B tokenizer analysis functionality with focus on English-only token subset
 19. Verify multi-token word analysis correctly identifies tokenization patterns in Qwen3-4B
-20. Test the thinking/non-thinking mode analysis to ensure it captures differences in token usage patterns
-21. Verify the English token filtering process produces a valid subset of the full vocabulary
-22. Test token distribution visualization to ensure it correctly shows the proportion of English tokens
-23. Verify that experiments can be run with both full vocabulary and English-only token subset
+20. Verify the English token filtering process produces a valid subset of the full vocabulary
+21. Test token distribution visualization to ensure it correctly shows the proportion of English tokens
+22. Verify that experiments can be run with both full vocabulary and English-only token subset
+23. Confirm that all configurations explicitly set `enable_thinking=False` for Qwen3 tokenizer
+24. Verify that no code references or enables thinking mode functionality
+25. Test that the tokenizer analysis does not attempt to analyze thinking mode patterns
+26. Verify that no spelling evaluation metrics are included in any reports or visualizations
+27. Confirm that training can still use spelling data, but evaluation is strictly limited to position and count tasks
+28. Test that the combined task score calculation only uses position and count metrics
 
 # Subtasks:
 ## 1. Configuration System Design and Implementation [pending]
@@ -530,33 +488,33 @@ Create a configuration framework that supports defining, validating, and loading
 
 ## 2. Experiment Tracking Setup with W&B Integration [pending]
 ### Dependencies: 6.1
-### Description: Implement experiment tracking infrastructure with Weights & Biases integration focused on spelling and transfer learning metrics
+### Description: Implement experiment tracking infrastructure with Weights & Biases integration focused on position and count task metrics
 ### Details:
-Set up W&B project structure for hyperparameter experiments with separate tracking for spelling and transfer learning metrics. Implement logging mechanisms for spelling training metrics, transfer learning metrics, and model artifacts in `src/tuning/wandb_integration.py`. Create utilities for experiment initialization, updating, and finalization. Design a consistent naming convention for experiments. Implement automatic synchronization between local experiment state and W&B. Add support for experiment grouping and comparison within the W&B interface. Create visualizations that show correlations between spelling improvement and position/count task performance.
+Set up W&B project structure for hyperparameter experiments with tracking for position and count task metrics. Implement logging mechanisms for position task metrics, count task metrics, and model artifacts in `src/tuning/wandb_integration.py`. Create utilities for experiment initialization, updating, and finalization. Design a consistent naming convention for experiments. Implement automatic synchronization between local experiment state and W&B. Add support for experiment grouping and comparison within the W&B interface. Create visualizations that show correlations between position and count task performance.
 
 ## 3. Hyperparameter Grid Definition and Validation [pending]
 ### Dependencies: 6.1
-### Description: Create a system for defining and validating hyperparameter search spaces for spelling and transfer learning optimization
+### Description: Create a system for defining and validating hyperparameter search spaces for position and count task optimization
 ### Details:
-Implement a framework for defining hyperparameter search spaces including random, grid, and Bayesian optimization strategies in `src/tuning/grid.py`. Create validation mechanisms to ensure search spaces are properly defined. Support both continuous ranges and discrete value sets for different hyperparameter types. Implement utilities for sampling from defined search spaces. Add functionality to estimate the total number of trials based on the search space definition. Create interfaces for custom search space definitions. Store search space definitions in `configs/hyperparameters/search_spaces/`. Include spelling-specific parameters (data ratio, augmentation, difficulty) and transfer learning parameters (task weights, evaluation frequency) in the search space.
+Implement a framework for defining hyperparameter search spaces including random, grid, and Bayesian optimization strategies in `src/tuning/grid.py`. Create validation mechanisms to ensure search spaces are properly defined. Support both continuous ranges and discrete value sets for different hyperparameter types. Implement utilities for sampling from defined search spaces. Add functionality to estimate the total number of trials based on the search space definition. Create interfaces for custom search space definitions. Store search space definitions in `configs/hyperparameters/search_spaces/`. Include position and count task parameters (task weights, evaluation frequency) in the search space.
 
 ## 4. Experiment Execution Framework [pending]
 ### Dependencies: 6.1, 6.2, 6.3
-### Description: Build a framework for executing hyperparameter tuning experiments optimized for transfer learning effectiveness
+### Description: Build a framework for executing hyperparameter tuning experiments optimized for position and count task performance
 ### Details:
-Implement a job scheduler in `src/tuning/executor.py` for running multiple trials with different hyperparameter configurations. Create mechanisms for early stopping of underperforming trials based on both spelling and transfer metrics. Design parallel execution capabilities to utilize available computational resources efficiently. Implement checkpointing and resumption of interrupted experiments. Add support for distributed training across multiple machines. Create a monitoring system for active experiments with real-time status updates for both spelling and transfer learning performance. Save experiment results to `results/tuning/data/` with best configurations in `results/tuning/configs/`. Implement command-line interfaces for flexible experiment execution with options to focus on spelling performance, transfer learning, or a balanced approach.
+Implement a job scheduler in `src/tuning/executor.py` for running multiple trials with different hyperparameter configurations. Create mechanisms for early stopping of underperforming trials based on position and count metrics. Design parallel execution capabilities to utilize available computational resources efficiently. Implement checkpointing and resumption of interrupted experiments. Add support for distributed training across multiple machines. Create a monitoring system for active experiments with real-time status updates for position and count task performance. Save experiment results to `results/tuning/data/` with best configurations in `results/tuning/configs/`. Implement command-line interfaces for flexible experiment execution with options to focus on position task, count task, or a balanced approach.
 
 ## 5. Results Visualization and Reporting System [pending]
 ### Dependencies: 6.2, 6.4
-### Description: Develop tools for visualizing and reporting hyperparameter tuning results with focus on transfer learning effectiveness
+### Description: Develop tools for visualizing and reporting hyperparameter tuning results with focus on position and count task performance
 ### Details:
-Create visualization tools in `src/tuning/visualization.py` for comparing metrics across different hyperparameter configurations, showing relationships between spelling performance and transfer learning. Implement automated analysis to identify the most influential hyperparameters for both spelling and transfer tasks. Design HTML report generation in `src/tuning/report.py` for exploring the hyperparameter search space and transfer learning patterns. Add functionality to export comparison reports to `results/tuning/reports/`. Implement statistical analysis tools to evaluate the significance of performance differences and correlations between spelling and transfer metrics. Create recommendation system for suggesting optimal hyperparameter configurations for future experiments based on transfer learning goals. Generate performance plots in `results/tuning/figures/` showing relationships between spelling training and transfer learning outcomes.
+Create visualization tools in `src/tuning/visualization.py` for comparing metrics across different hyperparameter configurations, showing relationships between position and count task performance. Implement automated analysis to identify the most influential hyperparameters for both position and count tasks. Design HTML report generation in `src/tuning/report.py` for exploring the hyperparameter search space and task performance patterns. Add functionality to export comparison reports to `results/tuning/reports/`. Implement statistical analysis tools to evaluate the significance of performance differences and correlations between position and count metrics. Create recommendation system for suggesting optimal hyperparameter configurations for future experiments based on task performance goals. Generate performance plots in `results/tuning/figures/` showing relationships between position and count task outcomes.
 
 ## 6. Documentation and User Guides [pending]
 ### Dependencies: 6.1, 6.2, 6.3, 6.4, 6.5
-### Description: Create comprehensive documentation for the hyperparameter tuning system with focus on transfer learning
+### Description: Create comprehensive documentation for the hyperparameter tuning system with focus on position and count tasks
 ### Details:
-Develop detailed documentation covering the hyperparameter tuning system in `docs/hyperparameter_tuning.md`. Create a configuration guide explaining the structure and usage of the configuration system in `docs/config_system.md`. Write a results analysis guide detailing how to interpret and utilize tuning results in `docs/tuning_results.md`. Create a transfer learning guide explaining how to optimize spelling training for better transfer to position/count tasks in `docs/transfer_learning.md`. Include examples, best practices, and troubleshooting information in all documentation. Document command-line interfaces and provide usage examples for all scripts, including the new focus options.
+Develop detailed documentation covering the hyperparameter tuning system in `docs/hyperparameter_tuning.md`. Create a configuration guide explaining the structure and usage of the configuration system in `docs/config_system.md`. Write a results analysis guide detailing how to interpret and utilize tuning results in `docs/tuning_results.md`. Create a position and count tasks guide explaining how to optimize training for better performance on these tasks in `docs/position_count_tasks.md`. Include examples, best practices, and troubleshooting information in all documentation. Document command-line interfaces and provide usage examples for all scripts, including the new focus options.
 
 ## 7. Python Package Structure and Testing [pending]
 ### Dependencies: 6.1, 6.2, 6.3, 6.4, 6.5
@@ -564,11 +522,11 @@ Develop detailed documentation covering the hyperparameter tuning system in `doc
 ### Details:
 Organize the tuning code as a proper Python package with appropriate imports and dependencies. Create unit tests for each component of the tuning infrastructure. Implement integration tests to verify the end-to-end workflow. Set up continuous integration for automated testing. Create a requirements.txt or setup.py file to manage dependencies. Ensure compatibility with the rest of the codebase. Add type hints and docstrings for better code documentation.
 
-## 8. Transfer Learning Analysis Module [pending]
+## 8. Task Analysis Module [pending]
 ### Dependencies: 6.2, 6.4, 6.5
-### Description: Develop a module for analyzing transfer learning effectiveness from spelling to position/count tasks
+### Description: Develop a module for analyzing position and count task performance across different hyperparameter configurations
 ### Details:
-Create a dedicated module `src/tuning/transfer_analysis.py` for analyzing the relationship between spelling training and transfer learning performance. Implement metrics that quantify transfer learning effectiveness across different hyperparameter configurations. Design visualization tools specifically for transfer learning analysis. Create correlation analysis between spelling performance improvements and position/count task improvements. Implement functions to identify which training patterns lead to better transfer learning. Add support for calculating combined scores that balance direct spelling performance with transfer learning effectiveness. Save transfer learning analysis results to `results/tuning/transfer/`.
+Create a dedicated module `src/tuning/task_analysis.py` for analyzing the performance on position and count tasks. Implement metrics that quantify task performance across different hyperparameter configurations. Design visualization tools specifically for task performance analysis. Create correlation analysis between position and count task performance. Implement functions to identify which training patterns lead to better performance on both tasks. Add support for calculating combined scores that balance position and count task performance. Save task analysis results to `results/tuning/tasks/`.
 
 ## 9. Lightning.AI Studio Integration [pending]
 ### Dependencies: 6.1, 6.2, 6.3
@@ -580,7 +538,7 @@ Create a dedicated Lightning.AI Studio for hyperparameter tuning following the "
 ### Dependencies: 6.1, 6.4, 6.9
 ### Description: Implement training using PyTorch Lightning for better integration with Lightning.AI platform
 ### Details:
-Refactor training code to use PyTorch Lightning for better integration with the Lightning.AI platform. Implement Lightning Modules for spelling and transfer learning models. Create custom callbacks for tracking transfer learning metrics. Set up Lightning DataModules for efficient data loading. Implement checkpointing and model saving compatible with Lightning.AI's shared filesystem. Create Lightning CLI interfaces for experiment configuration. Implement distributed training support using Lightning's built-in capabilities. Add support for mixed precision training to improve performance on GPUs.
+Refactor training code to use PyTorch Lightning for better integration with the Lightning.AI platform. Implement Lightning Modules for position and count task models. Create custom callbacks for tracking task metrics. Set up Lightning DataModules for efficient data loading. Implement checkpointing and model saving compatible with Lightning.AI's shared filesystem. Create Lightning CLI interfaces for experiment configuration. Implement distributed training support using Lightning's built-in capabilities. Add support for mixed precision training to improve performance on GPUs.
 
 ## 11. Lightning.AI Job System Integration [pending]
 ### Dependencies: 6.9, 6.10
@@ -592,11 +550,17 @@ Implement integration with Lightning.AI's job system in `src/tuning/lightning_jo
 ### Dependencies: 6.1
 ### Description: Implement analysis tools for Qwen3-4B tokenizer with focus on English-only token subset
 ### Details:
-Create a dedicated module `src/tuning/token_analysis.py` for analyzing the Qwen3-4B tokenizer. Implement functions to identify and extract English-only tokens from the full vocabulary. Create analysis tools for multi-token word behavior in Qwen3-4B. Implement visualization of token distribution between full vocabulary and English-only subset. Add support for analyzing thinking vs. non-thinking modes and their impact on token usage patterns. Create utilities for filtering and using the English-only token subset in experiments. Save analysis results and English token subset to `results/tuning/token_analysis/`. Document the tokenizer analysis process and findings in `docs/qwen3_token_analysis.md`.
+Create a dedicated module `src/tuning/token_analysis.py` for analyzing the Qwen3-4B tokenizer. Implement functions to identify and extract English-only tokens from the full vocabulary. Create analysis tools for multi-token word behavior in Qwen3-4B. Implement visualization of token distribution between full vocabulary and English-only subset. Create utilities for filtering and using the English-only token subset in experiments. Save analysis results and English token subset to `results/tuning/token_analysis/`. Document the tokenizer analysis process and findings in `docs/qwen3_token_analysis.md`. Ensure all tokenizer configurations explicitly set `enable_thinking=False` in accordance with project policy.
 
 ## 13. English Token Subset Integration [pending]
 ### Dependencies: 6.1, 6.12
 ### Description: Integrate English-only token subset option into the hyperparameter tuning framework
 ### Details:
-Extend the configuration system to support using English-only token subset from Qwen3-4B. Implement mechanisms to filter and use only English tokens during training and evaluation. Create comparison experiments between full vocabulary and English-only subset. Add metrics to measure the impact of token subset on spelling performance and transfer learning. Implement visualization tools to compare results between full vocabulary and English-only experiments. Document the English token subset approach and its effects in the hyperparameter tuning documentation.
+Extend the configuration system to support using English-only token subset from Qwen3-4B. Implement mechanisms to filter and use only English tokens during training and evaluation. Create comparison experiments between full vocabulary and English-only subset. Add metrics to measure the impact of token subset on position and count task performance. Implement visualization tools to compare results between full vocabulary and English-only experiments. Document the English token subset approach and its effects in the hyperparameter tuning documentation.
+
+## 14. Non-Thinking Mode Enforcement [pending]
+### Dependencies: 6.1, 6.12, 6.13
+### Description: Ensure all Qwen3-4B usage strictly adheres to non-thinking mode policy
+### Details:
+Implement validation checks in the configuration system to ensure `enable_thinking=False` is always set for Qwen3 tokenizer. Create documentation explaining the project policy regarding non-thinking mode usage. Add unit tests to verify that thinking mode is never enabled in any configuration. Update all tokenizer initialization code to explicitly set `enable_thinking=False`. Create a linting rule to prevent accidental enabling of thinking mode in future code. Add warnings in the codebase about the strict non-thinking mode policy. Ensure all experiment configurations and hyperparameter search spaces enforce non-thinking mode.
 

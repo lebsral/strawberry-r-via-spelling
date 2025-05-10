@@ -1,0 +1,44 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+- **Qwen3-4B Non-Thinking Mode Enforcement**
+  - **Always set `enable_thinking=False` in all uses of Qwen3-4B.**
+    - Applies to all inference, chat template, tokenizer, and evaluation logic.
+    - Applies to all scripts, modules, and documentation.
+  - **Prohibit any use, reference, or support for thinking mode (`enable_thinking=True`).**
+    - Remove or refactor any code, config, or documentation that enables, references, or documents thinking mode, chain-of-thought, or `<think>...</think>` blocks.
+    - Any attempt to use thinking mode must raise an error (see [qwen3_loader.py](mdc:src/models/qwen3_loader.py)).
+  - **Update documentation to reflect this policy.**
+    - All docs must state that only non-thinking mode is allowed and enforced.
+    - See [README.md](mdc:README.md), [docs/analysis.md](mdc:docs/analysis.md), [docs/templates.md](mdc:docs/templates.md), [docs/data_format.md](mdc:docs/data_format.md), [docs/token_extraction.md](mdc:docs/token_extraction.md).
+
+- **DO:**
+  ```python
+  # ✅ DO: Always set enable_thinking=False
+  text = tokenizer.apply_chat_template(messages, enable_thinking=False)
+  ```
+  - Document the non-thinking mode policy in all relevant files.
+  - Add runtime checks to raise errors if thinking mode is attempted.
+
+- **DON'T:**
+  ```python
+  # ❌ DON'T: Enable or reference thinking mode
+  text = tokenizer.apply_chat_template(messages, enable_thinking=True)  # Forbidden
+  # ❌ DON'T: Document or suggest thinking mode in README or docs
+  # ❌ DON'T: Allow <think>...</think> blocks in any workflow
+  ```
+
+- **Rule Maintenance:**
+  - Update this rule if Qwen3-4B or project policy changes.
+  - Add new DO/DON'T examples if new mistakes or patterns emerge.
+  - Cross-reference this rule in any new code or documentation that touches Qwen3-4B usage.
+
+- **References:**
+  - [src/models/qwen3_loader.py](mdc:src/models/qwen3_loader.py) (enforcement logic)
+  - [README.md](mdc:README.md)
+  - [docs/analysis.md](mdc:docs/analysis.md)
+  - [docs/templates.md](mdc:docs/templates.md)
+  - [docs/data_format.md](mdc:docs/data_format.md)
+  - [docs/token_extraction.md](mdc:docs/token_extraction.md)

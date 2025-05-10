@@ -3,12 +3,12 @@
 # Status: pending
 # Dependencies: 12
 # Priority: medium
-# Description: Optimize the Lightning.AI Studios setup for maximum performance, efficient GPU usage, cost management, and maintainability, while implementing best practices for organization, monitoring, and future scalability, with specific focus on Qwen3-4B model requirements.
+# Description: Optimize the Lightning.AI Studios setup for maximum performance, efficient GPU usage, cost management, and maintainability, while implementing best practices for organization, monitoring, and future scalability, with specific focus on Qwen3-4B model requirements in non-thinking mode only.
 # Details:
-Review the current Lightning.AI Studios configuration post-migration (from Task 12) and identify bottlenecks in data loading, model training, and evaluation workflows. Implement dataset optimizations to minimize GPU idle time and reduce cloud costs by ensuring fast data transfer and leveraging Lightning's optimize operator where appropriate[1][2]. Adjust GPU allocation and sleep settings to balance performance with cost efficiency, using Lightning's built-in controls and best practices. Organize Studios and components following Lightning.AI's recommended structure for clarity and maintainability[3]. Set up comprehensive monitoring tools tailored for Qwen3-4B's specific requirements, including monitoring for both thinking and non-thinking modes, English-only token filtering performance, and sampling parameter effectiveness (Temperature=0.6, TopP=0.95, TopK=20, MinP=0). Establish automated alerts for resource usage anomalies and mode-specific issues. Document and automate regular maintenance procedures, including dependency updates and Studio health checks. Plan for future scaling by enabling multi-GPU support, low-precision training, and efficient configuration management using YAML recipes and parameter-efficient finetuning methods[5].
+Review the current Lightning.AI Studios configuration post-migration (from Task 12) and identify bottlenecks in data loading, model training, and evaluation workflows. Implement dataset optimizations to minimize GPU idle time and reduce cloud costs by ensuring fast data transfer and leveraging Lightning's optimize operator where appropriate[1][2]. Adjust GPU allocation and sleep settings to balance performance with cost efficiency, using Lightning's built-in controls and best practices. Organize Studios and components following Lightning.AI's recommended structure for clarity and maintainability[3]. Set up comprehensive monitoring tools tailored for Qwen3-4B's specific requirements in non-thinking mode only (enable_thinking=False), including monitoring for English-only token filtering performance, and sampling parameter effectiveness (Temperature=0.6, TopP=0.95, TopK=20, MinP=0). Establish automated alerts for resource usage anomalies. Document and automate regular maintenance procedures, including dependency updates and Studio health checks. Plan for future scaling by enabling multi-GPU support, low-precision training, and efficient configuration management using YAML recipes and parameter-efficient finetuning methods[5].
 
 # Test Strategy:
-Verify that all Studios demonstrate improved performance by benchmarking training and evaluation times before and after optimization. Confirm reduced GPU idle time and lower cloud costs through resource usage reports. Ensure GPU sleep settings are correctly applied and tested for both cost savings and rapid wake-up. Review Studio organization for adherence to best practices and clarity. Validate that monitoring dashboards are operational for both thinking and non-thinking modes, with specific metrics for token filtering performance, sampling parameter effectiveness, and mode-specific performance. Test that alerts trigger appropriately for mode-specific issues. Verify comprehensive logging is implemented for both modes. Test latency monitoring for mode switching and cache effectiveness tracking. Validate maintenance scripts and procedures for reliability. Simulate scaling scenarios (e.g., multi-GPU, larger datasets) to confirm readiness for future growth.
+Verify that all Studios demonstrate improved performance by benchmarking training and evaluation times before and after optimization. Confirm reduced GPU idle time and lower cloud costs through resource usage reports. Ensure GPU sleep settings are correctly applied and tested for both cost savings and rapid wake-up. Review Studio organization for adherence to best practices and clarity. Validate that monitoring dashboards are operational for non-thinking mode only, with specific metrics for token filtering performance, sampling parameter effectiveness, and performance. Test that alerts trigger appropriately for resource usage issues. Verify comprehensive logging is implemented for non-thinking mode. Validate maintenance scripts and procedures for reliability. Simulate scaling scenarios (e.g., multi-GPU, larger datasets) to confirm readiness for future growth.
 
 # Subtasks:
 ## 1. Optimize Dataset for Performance [pending]
@@ -31,31 +31,43 @@ Implement a structured organization of Studios to enhance clarity and facilitate
 
 ## 4. Setup Qwen3-4B Specific Monitoring and Alerts [pending]
 ### Dependencies: 13.3
-### Description: Set up comprehensive monitoring tools tailored for Qwen3-4B's specific requirements, including monitoring for both thinking and non-thinking modes.
+### Description: Set up comprehensive monitoring tools tailored for Qwen3-4B's specific requirements in non-thinking mode only.
 ### Details:
-Configure monitoring tools to track performance metrics specific to Qwen3-4B, including English-only token filtering performance, sampling parameter effectiveness (Temperature=0.6, TopP=0.95, TopK=20, MinP=0), mode-specific performance metrics, token filtering accuracy, cache effectiveness, and latency for mode switching. Set up alerts for mode-specific issues and resource usage anomalies.
+Configure monitoring tools to track performance metrics specific to Qwen3-4B in non-thinking mode only (enable_thinking=False), including English-only token filtering performance, sampling parameter effectiveness (Temperature=0.6, TopP=0.95, TopK=20, MinP=0), performance metrics, token filtering accuracy, and cache effectiveness. Set up alerts for resource usage anomalies.
 
 ## 5. Implement Comprehensive Logging for Qwen3-4B [pending]
 ### Dependencies: 13.4
-### Description: Implement comprehensive logging system for Qwen3-4B's thinking and non-thinking modes.
+### Description: Implement comprehensive logging system for Qwen3-4B in non-thinking mode only.
 ### Details:
-Set up detailed logging for both thinking and non-thinking modes, capturing token filtering operations, sampling parameter applications, mode transitions, and error events.
+Set up detailed logging for non-thinking mode only, capturing token filtering operations, sampling parameter applications, and error events.
 
 ## 6. Create Performance Dashboards for Qwen3-4B [pending]
 ### Dependencies: 13.4, 13.5
-### Description: Develop dedicated performance dashboards for monitoring Qwen3-4B in both thinking and non-thinking modes.
+### Description: Develop dedicated performance dashboards for monitoring Qwen3-4B in non-thinking mode only.
 ### Details:
-Create visual dashboards that display real-time metrics for token filtering performance, sampling parameter effectiveness, mode-specific performance, resource usage, cache effectiveness, and error rates.
+Create visual dashboards that display real-time metrics for token filtering performance, sampling parameter effectiveness, performance, resource usage, cache effectiveness, and error rates for non-thinking mode only.
 
 ## 7. Document and Automate Maintenance [pending]
 ### Dependencies: 13.4, 13.5, 13.6
 ### Description: Document and automate regular maintenance procedures, including dependency updates and Studio health checks.
 ### Details:
-Create documentation and automate scripts for regular maintenance tasks to ensure Studio health and efficiency, with specific procedures for Qwen3-4B model maintenance.
+Create documentation and automate scripts for regular maintenance tasks to ensure Studio health and efficiency, with specific procedures for Qwen3-4B model maintenance in non-thinking mode only.
 
 ## 8. Monitor Token Filtering Accuracy and Performance [pending]
 ### Dependencies: 13.4
 ### Description: Implement specific monitoring for English-only token filtering performance and accuracy.
 ### Details:
 Set up metrics to track token filtering accuracy, performance impact, and error rates specifically for English-only filtering in Qwen3-4B.
+
+## 9. Verify Non-Thinking Mode Configuration [pending]
+### Dependencies: 13.3
+### Description: Ensure all Qwen3-4B configurations explicitly set enable_thinking=False and remove any thinking mode references.
+### Details:
+Audit all configuration files, code, and documentation to ensure thinking mode is never enabled. Replace any dual-mode monitoring with non-thinking mode specific monitoring. Remove any references to <think> blocks or thinking mode functionality.
+
+## 10. Update Documentation to Reflect Non-Thinking Mode Only Policy [pending]
+### Dependencies: 13.9
+### Description: Update all documentation to clearly state that only non-thinking mode is supported for Qwen3-4B.
+### Details:
+Review and update all documentation, including README files, inline comments, and maintenance guides to explicitly state that only non-thinking mode (enable_thinking=False) is supported per project policy.
 

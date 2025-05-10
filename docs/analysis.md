@@ -2,6 +2,10 @@
 
 This document describes the analysis tools available in the project for understanding template patterns and performance metrics.
 
+**Clarification:** Spelling data is used for training, but evaluation is strictly limited to character position and character count tasks. Spelling is never used as an evaluation metric. All evaluation metrics, scripts, and documentation must focus exclusively on position and count.
+
+**Project Policy:** Qwen3-4B is always used in non-thinking mode (enable_thinking=False) for all analysis and evaluation. Thinking mode is strictly prohibited and enforced in code. Any attempt to use thinking mode will raise an error.
+
 ## Updated Workflow (Post-Task 14.1)
 
 - All analysis scripts use the Qwen3-4B **tokenizer** by default for data and template analysis.
@@ -202,3 +206,9 @@ Potential areas for enhancement:
 - See `docs/token_extraction.md` for token extraction methodology.
 - See `docs/data_format.md` for data format specifications.
 - See Taskmaster tasks #14 and #15 for migration and compatibility conversion.
+
+## Evaluation Metrics
+
+- Only position and character count metrics are used for evaluation.
+- Spelling is never used as an evaluation metric.
+- **Qwen3-4B is always used in non-thinking mode.**

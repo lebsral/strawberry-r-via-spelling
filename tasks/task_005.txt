@@ -7,15 +7,13 @@
 # Details:
 1. Set up DsPy for multi-shot prompting
 2. Create Python scripts to evaluate the Qwen3-4B model
-3. Test on both primary metrics (letter count, letter position) using multi-token words
+3. Test ONLY on position and character count metrics using multi-token words
 4. Ensure output format is correct (single integer for character count or single letter for character position)
 5. Document the baseline performance for comparison
 
 Qwen3-4B Configuration:
-- Implement both thinking and non-thinking modes for evaluation
-- Configure sampling parameters: Temperature=0.6, TopP=0.95, TopK=20, MinP=0 for thinking mode
+- Configure model with enable_thinking=False (non-thinking mode only)
 - Focus evaluation on English-only token subset
-- Compare performance between thinking and non-thinking modes
 
 Lightning.AI Studios Integration:
 - Create a dedicated evaluation Studio following the "one Studio, one task" principle
@@ -25,13 +23,13 @@ Lightning.AI Studios Integration:
 - Use shared filesystem for accessing models and datasets
 
 Data Sources:
-- Training data: Spelling variations with multicharacter tokens
-- Evaluation data: Multi-token words for position and character count questions
+- Training data: Spelling variations with multicharacter tokens (for training only)
+- Evaluation data: Multi-token words for position and character count questions ONLY
 
 Evaluation Approach:
 - Focus on measuring transfer learning effectiveness from spelling training to position/count tasks
 - No traditional train/val/test split since evaluation uses different data
-- Separate evaluation pipeline for position and count metrics
+- Separate evaluation pipeline for position and count metrics ONLY
 - Implement evaluation metrics using TorchMetrics for optimized distributed evaluation
 
 File Structure:
@@ -67,22 +65,20 @@ from lightning.app import LightningApp, LightningWork
 from lightning.app.components import TracerPythonScript
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Evaluate Qwen3-4B model on spelling tasks")
+    parser = argparse.ArgumentParser(description="Evaluate Qwen3-4B model on letter count and position tasks")
     parser.add_argument("--model", type=str, default="Qwen/Qwen3-4B", help="Model to evaluate")
     parser.add_argument("--output_dir", type=str, default="results/evaluation", help="Directory to save results")
     parser.add_argument("--log_wandb", action="store_true", help="Whether to log results to W&B")
     parser.add_argument("--use_lightning", action="store_true", help="Whether to use Lightning.AI for distributed evaluation")
     parser.add_argument("--gpu_tier", type=str, default="T4", choices=["CPU", "T4", "A100"], help="GPU tier to use for evaluation")
-    parser.add_argument("--thinking_mode", action="store_true", help="Whether to use thinking mode for Qwen3")
     return parser.parse_args()
 
 class EvaluationWork(LightningWork):
-    def __init__(self, model_name, output_dir, log_wandb=False, gpu_tier="T4", thinking_mode=False):
+    def __init__(self, model_name, output_dir, log_wandb=False, gpu_tier="T4"):
         super().__init__(cloud_compute={"gpu_type": gpu_tier.lower() if gpu_tier != "CPU" else None})
         self.model_name = model_name
         self.output_dir = output_dir
         self.log_wandb = log_wandb
-        self.thinking_mode = thinking_mode
         
     def run(self):
         # Create output directories
@@ -111,21 +107,13 @@ class EvaluationWork(LightningWork):
         def generate_answer(model, tokenizer, question, max_length=10):
             inputs = tokenizer(question, return_tensors="pt").to(model.device)
             
-            # Configure generation parameters based on thinking mode
+            # Configure generation parameters (non-thinking mode only)
             generation_config = {
                 "max_new_tokens": max_length,
-                "do_sample": True if self.thinking_mode else False,
+                "do_sample": False,
                 "pad_token_id": tokenizer.pad_token_id,
+                "enable_thinking": False  # Explicitly disable thinking mode
             }
-            
-            # Add thinking mode specific parameters
-            if self.thinking_mode:
-                generation_config.update({
-                    "temperature": 0.6,
-                    "top_p": 0.95,
-                    "top_k": 20,
-                    "min_p": 0,
-                })
             
             with torch.no_grad():
                 outputs = model.generate(
@@ -201,7 +189,7 @@ class EvaluationWork(LightningWork):
             
             return accuracy, results
         
-        # Run evaluation
+        # Run evaluation - only for count and position tasks
         count_accuracy, count_results = evaluate_letter_count(model, tokenizer, eval_dataset)
         position_accuracy, position_results = evaluate_letter_position(model, tokenizer, eval_dataset)
         
@@ -210,7 +198,6 @@ class EvaluationWork(LightningWork):
             wandb.log({
                 "letter_count_accuracy": count_accuracy,
                 "letter_position_accuracy": position_accuracy,
-                "thinking_mode": self.thinking_mode,
                 "count_examples": wandb.Table(dataframe=pd.DataFrame(count_results[:20])),
                 "position_examples": wandb.Table(dataframe=pd.DataFrame(position_results[:20]))
             })
@@ -218,28 +205,23 @@ class EvaluationWork(LightningWork):
         # Save results locally
         metrics_data = {
             "model": self.model_name,
-            "thinking_mode": self.thinking_mode,
             "letter_count_accuracy": count_accuracy,
             "letter_position_accuracy": position_accuracy,
             "count_results": count_results,
             "position_results": position_results
         }
         
-        # Create a filename that includes the thinking mode information
-        mode_suffix = "thinking" if self.thinking_mode else "standard"
-        metrics_filename = f"metrics_{mode_suffix}.json"
-        
-        with open(f"{self.output_dir}/data/{metrics_filename}", "w") as f:
+        with open(f"{self.output_dir}/data/metrics.json", "w") as f:
             json.dump(metrics_data, f, indent=2)
         
         # Generate visualizations
         from src.evaluation.visualization import create_accuracy_chart, create_error_analysis
-        create_accuracy_chart(metrics_data, f"{self.output_dir}/figures/accuracy_{mode_suffix}.png")
-        create_error_analysis(metrics_data, f"{self.output_dir}/figures/error_analysis_{mode_suffix}.png")
+        create_accuracy_chart(metrics_data, f"{self.output_dir}/figures/accuracy.png")
+        create_error_analysis(metrics_data, f"{self.output_dir}/figures/error_analysis.png")
         
         # Generate HTML report
         from src.evaluation.report import generate_html_report
-        generate_html_report(metrics_data, f"{self.output_dir}/reports/baseline_report_{mode_suffix}.html")
+        generate_html_report(metrics_data, f"{self.output_dir}/reports/baseline_report.html")
         
         print(f"Evaluation complete. Results saved to {self.output_dir}")
 
@@ -252,8 +234,7 @@ def main():
             model_name=args.model,
             output_dir=args.output_dir,
             log_wandb=args.log_wandb,
-            gpu_tier=args.gpu_tier,
-            thinking_mode=args.thinking_mode
+            gpu_tier=args.gpu_tier
         )
         app = LightningApp(eval_work)
         app.run()
@@ -281,21 +262,13 @@ def main():
         def generate_answer(model, tokenizer, question, max_length=10):
             inputs = tokenizer(question, return_tensors="pt").to(model.device)
             
-            # Configure generation parameters based on thinking mode
+            # Configure generation parameters (non-thinking mode only)
             generation_config = {
                 "max_new_tokens": max_length,
-                "do_sample": True if args.thinking_mode else False,
+                "do_sample": False,
                 "pad_token_id": tokenizer.pad_token_id,
+                "enable_thinking": False  # Explicitly disable thinking mode
             }
-            
-            # Add thinking mode specific parameters
-            if args.thinking_mode:
-                generation_config.update({
-                    "temperature": 0.6,
-                    "top_p": 0.95,
-                    "top_k": 20,
-                    "min_p": 0,
-                })
             
             with torch.no_grad():
                 outputs = model.generate(
@@ -371,7 +344,7 @@ def main():
             
             return accuracy, results
         
-        # Run evaluation
+        # Run evaluation - only for count and position tasks
         count_accuracy, count_results = evaluate_letter_count(model, tokenizer, eval_dataset)
         position_accuracy, position_results = evaluate_letter_position(model, tokenizer, eval_dataset)
         
@@ -380,7 +353,6 @@ def main():
             wandb.log({
                 "letter_count_accuracy": count_accuracy,
                 "letter_position_accuracy": position_accuracy,
-                "thinking_mode": args.thinking_mode,
                 "count_examples": wandb.Table(dataframe=pd.DataFrame(count_results[:20])),
                 "position_examples": wandb.Table(dataframe=pd.DataFrame(position_results[:20]))
             })
@@ -388,28 +360,23 @@ def main():
         # Save results locally
         metrics_data = {
             "model": model_name,
-            "thinking_mode": args.thinking_mode,
             "letter_count_accuracy": count_accuracy,
             "letter_position_accuracy": position_accuracy,
             "count_results": count_results,
             "position_results": position_results
         }
         
-        # Create a filename that includes the thinking mode information
-        mode_suffix = "thinking" if args.thinking_mode else "standard"
-        metrics_filename = f"metrics_{mode_suffix}.json"
-        
-        with open(f"{args.output_dir}/data/{metrics_filename}", "w") as f:
+        with open(f"{args.output_dir}/data/metrics.json", "w") as f:
             json.dump(metrics_data, f, indent=2)
         
         # Generate visualizations
         from src.evaluation.visualization import create_accuracy_chart, create_error_analysis
-        create_accuracy_chart(metrics_data, f"{args.output_dir}/figures/accuracy_{mode_suffix}.png")
-        create_error_analysis(metrics_data, f"{args.output_dir}/figures/error_analysis_{mode_suffix}.png")
+        create_accuracy_chart(metrics_data, f"{args.output_dir}/figures/accuracy.png")
+        create_error_analysis(metrics_data, f"{args.output_dir}/figures/error_analysis.png")
         
         # Generate HTML report
         from src.evaluation.report import generate_html_report
-        generate_html_report(metrics_data, f"{args.output_dir}/reports/baseline_report_{mode_suffix}.html")
+        generate_html_report(metrics_data, f"{args.output_dir}/reports/baseline_report.html")
         
         print(f"Evaluation complete. Results saved to {args.output_dir}")
 
@@ -419,33 +386,35 @@ if __name__ == "__main__":
 
 # Test Strategy:
 1. Verify the evaluation scripts run without errors with Qwen3-4B model
-2. Test command-line arguments for flexibility, including Lightning.AI specific arguments and thinking mode toggle
+2. Test command-line arguments for flexibility, including Lightning.AI specific arguments
 3. Confirm output format is correct (single integer for count, single letter for position)
-4. Check that results are properly logged to W&B when specified, including thinking mode parameter
-5. Verify baseline performance metrics are saved to `results/evaluation/data/metrics_thinking.json` and `results/evaluation/data/metrics_standard.json`
-6. Ensure visualizations are correctly generated in `results/evaluation/figures/` for both thinking and standard modes
-7. Validate HTML reports are generated in `results/evaluation/reports/` for both thinking and standard modes
+4. Check that results are properly logged to W&B when specified
+5. Verify baseline performance metrics are saved to `results/evaluation/data/metrics.json`
+6. Ensure visualizations are correctly generated in `results/evaluation/figures/`
+7. Validate HTML reports are generated in `results/evaluation/reports/`
 8. Test error handling for edge cases
 9. Analyze error patterns in Qwen3-4B model predictions and document in `results/evaluation/data/analysis.json`
 10. Ensure documentation is complete in `docs/evaluation.md`, `docs/metrics.md`, `docs/baseline_results.md`, and `docs/lightning_studio_setup.md`
 11. Verify that the Python scripts can be imported and used as modules by other components
-12. Confirm the evaluation correctly uses multi-token words for position and count tasks
+12. Confirm the evaluation correctly uses multi-token words for position and count tasks ONLY
 13. Validate that the evaluation framework properly measures transfer learning effectiveness
 14. Test for correlation analysis between spelling training and position/count task performance
 15. Verify Lightning.AI Studio setup and configuration works correctly with Qwen3-4B's memory requirements
 16. Test GPU switching functionality (CPU → T4 → A100) for cost optimization
 17. Validate TorchMetrics integration for distributed evaluation
-18. Test automated job submission for batch evaluations with both thinking and non-thinking modes
+18. Test automated job submission for batch evaluations
 19. Verify environment isolation and dependency management in Lightning.AI Studio
-20. Compare performance between thinking and non-thinking modes to determine optimal configuration
+20. Verify that thinking mode is never enabled in any configuration or code path
 21. Test English-only token subset focus in evaluation
+22. Verify no spelling evaluation is included in any part of the evaluation process
+23. Confirm all metrics, reports, and visualizations focus exclusively on position and count tasks
 
 # Subtasks:
 ## 1. Evaluation Framework Setup [pending]
 ### Dependencies: None
 ### Description: Establish the hierarchical evaluation framework structure for NLP model assessment
 ### Details:
-Create a modular evaluation framework that supports both automated and human evaluation components. Implement a transfer learning evaluation approach using multi-token words for position and count tasks. Ensure the framework can handle diverse linguistic structures and edge cases. Set up configuration files for evaluation parameters and thresholds.
+Create a modular evaluation framework that supports both automated and human evaluation components. Implement a transfer learning evaluation approach using multi-token words for position and count tasks only. Ensure the framework can handle diverse linguistic structures and edge cases. Set up configuration files for evaluation parameters and thresholds.
 
 ## 2. Metrics Definition and Implementation [pending]
 ### Dependencies: 5.1
@@ -469,19 +438,19 @@ Create an evaluator that tests the model's ability to identify letter positions 
 ### Dependencies: 5.2, 5.3, 5.4
 ### Description: Develop comprehensive visualization tools for evaluation results
 ### Details:
-Create interactive dashboards showing performance across all metrics. Implement comparison visualizations between model versions. Design visualizations to show transfer learning effectiveness from spelling training to position/count tasks. Include error distribution visualizations. Ensure all visualizations are exportable in multiple formats (PNG, PDF, interactive HTML).
+Create interactive dashboards showing performance across position and count metrics only. Implement comparison visualizations between model versions. Design visualizations to show transfer learning effectiveness from spelling training to position/count tasks. Include error distribution visualizations. Ensure all visualizations are exportable in multiple formats (PNG, PDF, interactive HTML).
 
 ## 6. Error Analysis Framework [pending]
 ### Dependencies: 5.3, 5.4, 5.5
 ### Description: Implement systematic error analysis capabilities
 ### Details:
-Develop tools to categorize and analyze error patterns. Create clustering algorithms to group similar errors. Implement analysis of correlation between spelling training and position/count task performance. Design interfaces for domain experts to review and annotate errors. Include recommendation generation for model improvements based on error patterns.
+Develop tools to categorize and analyze error patterns for position and count tasks only. Create clustering algorithms to group similar errors. Implement analysis of correlation between spelling training and position/count task performance. Design interfaces for domain experts to review and annotate errors. Include recommendation generation for model improvements based on error patterns.
 
 ## 7. Documentation and Reporting [pending]
 ### Dependencies: 5.1, 5.2, 5.5, 5.6
 ### Description: Create comprehensive documentation and automated reporting
 ### Details:
-Document the entire evaluation framework architecture with focus on transfer learning approach. Create user guides for running evaluations. Implement automated report generation with executive summaries and detailed technical appendices. Include benchmark comparisons against industry standards. Design templates for different stakeholder audiences (technical, management, etc.).
+Document the entire evaluation framework architecture with focus on transfer learning approach from spelling training to position/count tasks. Create user guides for running evaluations. Implement automated report generation with executive summaries and detailed technical appendices. Include benchmark comparisons against industry standards. Design templates for different stakeholder audiences (technical, management, etc.).
 
 ## 8. Integration with External Components [pending]
 ### Dependencies: 5.1, 5.2, 5.5, 5.7
@@ -519,15 +488,27 @@ Implement batch job submission system for running multiple evaluations. Create j
 ### Details:
 Document Lightning.AI Studio setup process. Create tutorials for running evaluations in Lightning.AI. Document GPU switching functionality and cost optimization strategies. Include troubleshooting guides for common issues. Create reference documentation for all Lightning.AI specific configuration options.
 
-## 14. Qwen3-4B Thinking Mode Implementation [pending]
+## 16. Non-Thinking Mode Configuration [pending]
 ### Dependencies: 5.1, 5.2
-### Description: Implement and evaluate Qwen3-4B's thinking mode capabilities
+### Description: Ensure Qwen3-4B is properly configured with non-thinking mode
 ### Details:
-Configure Qwen3-4B's thinking mode with specified parameters (Temperature=0.6, TopP=0.95, TopK=20, MinP=0). Implement comparison framework to evaluate performance differences between thinking and non-thinking modes. Create visualization tools to highlight performance differences. Document best practices for using thinking mode in different evaluation scenarios.
+Configure Qwen3-4B with enable_thinking=False to ensure compliance with project policy. Verify all code paths explicitly disable thinking mode. Update all configuration files to reflect non-thinking mode only. Document the non-thinking mode configuration in all relevant documentation. Create validation tests to ensure thinking mode is never enabled.
 
 ## 15. English-only Token Subset Focus [pending]
-### Dependencies: 5.1, 5.14
+### Dependencies: 5.1, 5.16
 ### Description: Configure evaluation to focus on English-only token subset
 ### Details:
 Implement filtering mechanisms to focus evaluation on English-only token subset. Create analysis tools to measure performance differences between full vocabulary and English-only subset. Document impact of token subset focus on evaluation results. Implement visualization tools to highlight performance differences across token subsets.
+
+## 17. Position and Count Task Filtering [pending]
+### Dependencies: 5.1, 5.2
+### Description: Ensure evaluation focuses exclusively on position and count tasks
+### Details:
+Implement strict filtering to ensure only position and count tasks are evaluated. Create validation checks to verify no spelling evaluation is included. Update all configuration files to exclude spelling tasks. Document the focus on position and count tasks in all relevant documentation. Create validation tests to ensure no spelling evaluation occurs.
+
+## 18. Evaluation Report Refactoring [pending]
+### Dependencies: 5.5, 5.7
+### Description: Refactor reporting to focus exclusively on position and count metrics
+### Details:
+Update all reporting templates to focus exclusively on position and count metrics. Remove any references to spelling evaluation from reports. Create new visualization templates specific to position and count tasks. Ensure all metrics and analyses in reports relate only to position and count tasks. Update documentation to reflect the focus on position and count tasks only.
 
