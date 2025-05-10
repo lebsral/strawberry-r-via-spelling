@@ -262,7 +262,7 @@ All data formats in this project are designed for compatibility with the Qwen3-4
 
 ## Integration with Token Extraction
 
-- The English-only token subset is generated using the process described in `docs/token_extraction.md`.
+- The canonical English token list is now `data/processed/english_tokens.json` (JSON with a `tokens` key). The legacy .txt output has been removed.
 - All data processing scripts must load and use this subset for filtering and validation.
 
 ## Evaluation Considerations

@@ -1961,7 +1961,7 @@
           "description": "Develop and refactor the token extraction pipeline to use the new extraction script, ensuring it is optimized for efficiency and maintains functional consistency with the previous implementation.",
           "dependencies": [],
           "details": "This involves rewriting or updating the extraction logic, integrating any new requirements, and ensuring the script is ready for validation. Focus on minimizing token usage and maintaining coherent context as per the new model's needs.",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 2,

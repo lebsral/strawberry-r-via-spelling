@@ -83,7 +83,7 @@ english_tokens = [token for token in qwen_tokenizer.get_vocab() if english_token
 ```python
 import json
 with open('english_tokens.json', 'w') as f:
-    json.dump(english_tokens, f)
+    json.dump({'tokens': english_tokens}, f)
 ```
 
 ## Example: Data Preparation with transformers
@@ -123,8 +123,8 @@ print(encodings.input_ids)
 
 ## Scripts and Utilities
 
-- See `scripts/extract_english_tokens.py` (to be created/updated) for a full implementation.
-- All downstream scripts should reference the generated `english_tokens.json`.
+- See `scripts/extract_english_tokens.py` for the canonical implementation. All downstream scripts should reference the generated `english_tokens.json` (JSON with a `tokens` key).
+- All downstream scripts should reference the generated `english_tokens.json` (JSON with a `tokens` key).
 
 ## Related Tasks
 - See Taskmaster tasks #14 and #15 for migration and compatibility conversion.

@@ -8,6 +8,7 @@ This project explores whether training a language model (LLM) on spelling tasks 
 
 - The project uses the Qwen3-4B model exclusively, always in non-thinking mode (`enable_thinking=False`). Thinking mode is strictly prohibited and enforced in code. Any attempt to use thinking mode will raise an error.
 - **Tokenizer-only workflows are the default for all data preparation and token extraction tasks.**
+- **The English token extraction script now outputs only `data/processed/english_tokens.json` (as a dict with a `tokens` key). The legacy `.txt` output has been removed. All downstream code and analysis should use the `.json` file.**
 - The full model is only loaded for inference or evaluation, not for data prep.
 - Scripts and imports are enforced to follow the `src/` layout, and a Cursor rule prevents import errors (see `.cursor/rules/module_imports.mdc`).
 - Only the English token subset (~50k tokens, see `english_tokens.json`) is used for all experiments.
@@ -204,8 +205,7 @@ pip install torch transformers datasets wandb dspy lightning matplotlib seaborn 
 **Local (Mac/Apple Silicon):**
 ```sh
 uv pip install transformers ollama
-python scripts/token_extraction.py --model Qwen3-4B --input data/raw/words.txt --output data/processed/tokens.json
-ollama run qwen3-4b:quantized --input data/processed/tokens.json
+python scripts/extract_english_tokens.py
 ```
 
 **Cloud (Colab):**
@@ -341,6 +341,7 @@ The data loader provides:
 - Validation/Test sets: Generated from external word lists
 - Examples saved in JSON format with metadata
 - See `docs/data_format.md` for detailed specifications
+- **The canonical English token list is now `data/processed/english_tokens.json` (JSON with a `tokens` key).**
 
 ### 10. Analysis Tools
 

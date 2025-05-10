@@ -11,7 +11,7 @@
 - Run the new extraction script and verify that the output JSON contains only tokens matching the defined English-only criteria. - Manually inspect a random sample of extracted tokens to confirm correctness. - Execute automated tests to ensure no non-English characters are present in the subset. - Confirm that all downstream scripts and documentation reference the new Qwen3-4B English token subset and that no GPT-2-specific code or outputs remain. - Review documentation for completeness and clarity regarding the new extraction process and criteria.
 
 # Subtasks:
-## 1. Implement the New Token Extraction Script [pending]
+## 1. Implement the New Token Extraction Script [done]
 ### Dependencies: None
 ### Description: Develop and refactor the token extraction pipeline to use the new extraction script, ensuring it is optimized for efficiency and maintains functional consistency with the previous implementation.
 ### Details:
