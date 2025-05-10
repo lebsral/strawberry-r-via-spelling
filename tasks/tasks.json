@@ -1359,14 +1359,14 @@
     {
       "id": 11,
       "title": "Lightning.AI Studio Migration Planning and Setup",
-      "description": "Plan and implement the migration of the evaluation framework to Lightning.AI Studios, leveraging features like isolated environments, GPU switching, and the plugin system. This includes initial Studio setup, environment configuration, and structuring components for data preparation, model training, and evaluation.",
+      "description": "Plan and implement the migration of the evaluation framework to Lightning.AI Studios, leveraging features like isolated environments, GPU switching, and the plugin system. This includes initial Studio setup, environment configuration, and structuring components for model training and evaluation, while maintaining data preparation locally on Mac (Apple Silicon).",
       "status": "pending",
       "dependencies": [
         1
       ],
       "priority": "high",
-      "details": "Begin by reviewing Lightning.AI Studio documentation to understand its persistent cloud environment, isolated workspace capabilities, GPU management, and plugin architecture. Design a migration plan that maps each component of the current evaluation framework (data preparation, model training, evaluation, etc.) to a corresponding Studio workspace or plugin. Set up a new Studio instance, configure the environment with all necessary dependencies (ensuring compatibility with the existing Python setup from Task 1), and enable GPU switching as required. Establish isolated environments for each component to ensure modularity and reproducibility. Integrate Lightning.AI plugins where beneficial, and document the Studio structure, environment variables, and resource allocation strategies. Ensure the setup supports iterative development and easy scaling for future needs.",
-      "testStrategy": "Verify that the Studio instance is accessible and persistent, with all required dependencies installed and functioning. Confirm that each component (data prep, model training, evaluation) runs in its own isolated environment and can access GPU resources as configured. Test the plugin system by integrating at least one relevant plugin and ensuring it operates as expected. Validate that the Studio structure supports modular workflows and that documentation is clear and complete. Run end-to-end tests for each workflow to ensure successful execution and reproducibility within the Studio environment.",
+      "details": "Begin by reviewing Lightning.AI Studio documentation to understand its persistent cloud environment, isolated workspace capabilities, GPU management, and plugin architecture. Design a migration plan that maps components of the current evaluation framework (model training, evaluation, etc.) to a corresponding Studio workspace or plugin, while keeping data preparation local on Mac (Apple Silicon). Set up a new Studio instance, configure the environment with all necessary dependencies (ensuring compatibility with the existing Python setup from Task 1), and enable GPU switching as required. Establish isolated environments for each cloud component to ensure modularity and reproducibility. Integrate Lightning.AI plugins where beneficial, and document the Studio structure, environment variables, and resource allocation strategies. For local data preparation, ensure the setup includes the Qwen3-4B tokenizer with English-only token subset and adheres to the non-thinking mode policy. Document the interface between local data preparation and cloud-based components. Ensure the overall setup supports iterative development and easy scaling for future needs.",
+      "testStrategy": "Verify that the Studio instance is accessible and persistent, with all required dependencies installed and functioning. Confirm that cloud components (model training, evaluation) run in isolated environments and can access GPU resources as configured. Test the plugin system by integrating at least one relevant plugin and ensuring it operates as expected. For local data preparation, verify that the Qwen3-4B tokenizer with English-only token subset works correctly on Mac (Apple Silicon) and adheres to the non-thinking mode policy. Test the interface between local data preparation and cloud components to ensure seamless data transfer. Validate that the overall structure supports modular workflows and that documentation is clear and complete. Run end-to-end tests for each workflow to ensure successful execution and reproducibility.",
       "subtasks": [
         {
           "id": 1,
@@ -1379,14 +1379,14 @@
         },
         {
           "id": 2,
-          "title": "Data Preparation Studio Setup and Configuration",
-          "description": "Set up and configure a dedicated Lightning.AI Studio for data preparation tasks with appropriate environment and dependencies.",
+          "title": "Local Data Preparation Setup on Mac (Apple Silicon)",
+          "description": "Set up and configure a local environment on Mac (Apple Silicon) for data preparation tasks with appropriate dependencies and Qwen3-4B tokenizer.",
           "dependencies": [
             1
           ],
-          "details": "Create a new Lightning.AI Studio dedicated to data preparation tasks. Configure the environment with all necessary dependencies ensuring compatibility with the existing Python setup. Set up appropriate storage using the teamspace drive for persistent data storage. Configure environment variables and secrets for data access. Document the Studio configuration, sleep mode settings, and resource allocation to optimize costs when not in use.",
+          "details": "Configure a local Python environment on Mac (Apple Silicon) dedicated to data preparation tasks. Install all necessary dependencies ensuring compatibility with Apple Silicon architecture. Set up the Qwen3-4B tokenizer with English-only token subset following the project's non-thinking mode policy. Configure appropriate local storage for datasets and processed data. Implement data processing workflows that can be executed locally. Document the local environment configuration, data processing steps, and interface specifications for transferring processed data to Lightning.AI Studios for training and evaluation.",
           "status": "pending",
-          "testStrategy": "Verify successful Studio creation with all dependencies installed. Test data access and processing capabilities with sample datasets."
+          "testStrategy": "Verify successful local environment setup with all dependencies installed. Test Qwen3-4B tokenizer functionality with English-only token subset. Validate data processing workflows with sample datasets. Test data export/transfer mechanisms to ensure compatibility with Lightning.AI Studios."
         },
         {
           "id": 3,
@@ -1435,6 +1435,30 @@
           "details": "Review all documentation, code, and configurations created during the Lightning.AI Studio migration to ensure strict compliance with the project policy of using only non-thinking mode (enable_thinking=False) for Qwen3. Remove or refactor any references to thinking mode or <think> blocks in all materials. Create clear documentation that explicitly states non-thinking mode is the only supported configuration. Implement verification checks in deployment scripts to prevent accidental enabling of thinking mode. Add configuration validation steps to CI/CD pipelines to enforce this policy. Create a compliance checklist for team members to verify adherence to this policy during development and deployment.",
           "status": "pending",
           "testStrategy": "Perform a comprehensive audit of all documentation, code, and configurations to verify no references to thinking mode exist. Test deployment scripts with intentionally incorrect configurations (enable_thinking=True) to ensure they fail appropriately. Validate that CI/CD pipelines correctly identify and prevent configurations that would enable thinking mode. Have team members use the compliance checklist during a test deployment to verify its effectiveness."
+        },
+        {
+          "id": 7,
+          "title": "Data Transfer Interface Between Local Environment and Lightning.AI Studios",
+          "description": "Develop and document a robust interface for transferring processed data from the local Mac environment to Lightning.AI Studios.",
+          "dependencies": [
+            2,
+            3
+          ],
+          "details": "Design and implement a reliable mechanism for transferring processed data from the local Mac (Apple Silicon) environment to Lightning.AI Studios for training and evaluation. Consider options such as cloud storage integration (S3, GCS), direct API uploads, or other appropriate transfer methods. Ensure the interface handles large datasets efficiently and maintains data integrity. Implement appropriate authentication and security measures. Create automation scripts to streamline the transfer process. Document the complete data flow from local processing to cloud usage, including file formats, directory structures, and versioning strategies.",
+          "status": "pending",
+          "testStrategy": "Test data transfer with various dataset sizes to verify reliability and performance. Validate that transferred data maintains integrity and can be correctly loaded in Lightning.AI Studios. Test automation scripts with different scenarios. Verify security measures by attempting unauthorized access. Document transfer times and resource usage for different dataset sizes to establish performance benchmarks."
+        },
+        {
+          "id": 8,
+          "title": "Optional: Data Preparation Studio Setup for Future Migration",
+          "description": "Create a plan for future migration of data preparation tasks from local environment to Lightning.AI Studio when needed.",
+          "dependencies": [
+            1,
+            2
+          ],
+          "details": "Develop a detailed plan for future migration of data preparation tasks from the local Mac environment to Lightning.AI Studio when needed. Document the current local data preparation workflow in detail to facilitate future migration. Identify potential challenges in migrating from Apple Silicon to cloud environment, particularly regarding the Qwen3-4B tokenizer and English-only token subset. Create a checklist of requirements and configurations needed for a successful migration. Outline a testing strategy to ensure equivalent results between local and cloud-based data preparation. Document this as an optional future task that can be implemented when scaling requirements exceed local capabilities.",
+          "status": "pending",
+          "testStrategy": "Review the migration plan with team members to identify potential gaps or challenges. Create a small proof-of-concept test that demonstrates equivalent results between local and cloud-based data preparation using a sample dataset."
         }
       ]
     },
