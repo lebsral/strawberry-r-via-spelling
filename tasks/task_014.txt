@@ -362,7 +362,7 @@ References:
 - Qwen3 example notebook: https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Qwen3_(14B)-Reasoning-Conversational.ipynb
 </info added on 2025-05-10T12:00:04.119Z>
 
-## 5. Integrate Qwen3-4B into existing codebase and document changes [pending]
+## 5. Integrate Qwen3-4B into existing codebase and document changes [done]
 ### Dependencies: 14.1, 14.2, 14.3, 14.4
 ### Description: Refactor the existing codebase to fully support Qwen3-4B in non-thinking mode, including model loading, configuration, and inference logic, with comprehensive documentation.
 ### Details:

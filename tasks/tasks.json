@@ -1748,7 +1748,7 @@
             4
           ],
           "details": "Update model factory or loading mechanisms to recognize and properly initialize Qwen3-4B. Modify configuration schemas to include Qwen3-4B specific parameters (context length of 32,768, GQA attention heads configuration, etc.). Create migration guides for developers explaining how to transition to Qwen3-4B. Document all new features, parameters, and configuration options with examples, ensuring all documentation explicitly states that only non-thinking mode is supported. Update API documentation to reflect changes in behavior and capabilities.",
-          "status": "pending",
+          "status": "done",
           "testStrategy": "Perform end-to-end testing of the integrated solution, verifying all components work together correctly with both simple and complex prompts, and that non-thinking mode is consistently enforced."
         },
         {

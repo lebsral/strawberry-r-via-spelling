@@ -1,8 +1,13 @@
 ---
-description:
-globs:
+description: Ensure Python scripts in scripts/ are run with the correct import path (PYTHONPATH or -m) to avoid import errors
+globs: scripts/*.py
 alwaysApply: false
 ---
+
+- **File Type:** Python Script
+- **Directory:** scripts/
+- **Description:** This rule ensures correct import paths are used in scripts that need to import from the src/ directory.
+
 - **Always run scripts in a src/ layout using the `-m` flag from the project root, or ensure the project root is on `sys.path` or `PYTHONPATH`.**
   - **DO:**
     - Run scripts as modules:
