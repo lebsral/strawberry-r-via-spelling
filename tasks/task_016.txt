@@ -93,7 +93,7 @@ The Mac/Apple Silicon installation instructions should include:
 The documentation should be concise yet comprehensive, with clear distinction between required steps and optional optimizations. Consider creating a dedicated Mac-specific document or a clearly labeled section in the README.md.
 </info added on 2025-05-10T14:14:39.024Z>
 
-## 3. Document Ollama integration for local inference [pending]
+## 3. Document Ollama integration for local inference [done]
 ### Dependencies: 16.1
 ### Description: Add comprehensive documentation on setting up and using Ollama for local model inference
 ### Details:

@@ -65,6 +65,8 @@ This project explores whether training a language model (LLM) on spelling tasks 
 ## Getting Started
 
 > **Mac M1/M2 Users:** For a detailed, up-to-date setup guide (including troubleshooting and performance tips), see [docs/apple_silicon_setup.md](docs/apple_silicon_setup.md).
+> 
+> **Local Quantized Inference:** For step-by-step instructions and troubleshooting for Ollama, see [docs/ollama_integration.md](docs/ollama_integration.md).
 
 ### 1. Environment Setup (Mac/Apple Silicon)
 

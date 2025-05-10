@@ -1917,7 +1917,7 @@
             1
           ],
           "details": "Create step-by-step instructions for installing Ollama, configuring it for the project, and running local inference. Include examples of common commands, performance expectations, resource requirements, and troubleshooting tips. Document how to verify successful setup and integration with the project.",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 4,
