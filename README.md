@@ -64,6 +64,8 @@ This project explores whether training a language model (LLM) on spelling tasks 
 
 ## Getting Started
 
+> **Mac M1/M2 Users:** For a detailed, up-to-date setup guide (including troubleshooting and performance tips), see [docs/apple_silicon_setup.md](docs/apple_silicon_setup.md).
+
 ### 1. Environment Setup (Mac/Apple Silicon)
 
 **Use [uv](https://github.com/astral-sh/uv) for Python environment and package management.**

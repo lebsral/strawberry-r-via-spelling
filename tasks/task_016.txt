@@ -17,7 +17,7 @@ Add explicit instructions for using Ollama for local quantized inference and tra
 Verify that a new developer can follow the updated scripts and documentation to set up a working environment from scratch on both local Mac (Apple Silicon) and cloud environments. Test that developers can successfully install transformers (>=4.51.0) and Ollama locally, and run the new token extraction scripts with Qwen3-4B. Verify that the documentation clearly distinguishes which operations should be performed locally versus in the cloud. Confirm that all references to model requirements and workflows are accurate and that no outdated instructions remain. Test the local quantized inference workflow with Ollama. Solicit feedback from at least one team member not involved in the update to ensure clarity and completeness.
 
 # Subtasks:
-## 1. Update README and main onboarding documentation [in-progress]
+## 1. Update README and main onboarding documentation [done]
 ### Dependencies: None
 ### Description: Revise the main README.md and onboarding documentation to reflect current environment setup requirements for Qwen3-4B compatibility
 ### Details:
@@ -53,11 +53,45 @@ The documentation update should focus on creating a clear distinction between lo
    - Make the distinction between environments unambiguous for new users
 </info added on 2025-05-10T14:07:49.788Z>
 
-## 2. Create Mac/Apple Silicon specific installation instructions [pending]
+## 2. Create Mac/Apple Silicon specific installation instructions [done]
 ### Dependencies: 16.1
 ### Description: Develop detailed installation instructions specifically for Mac users with Apple Silicon processors
 ### Details:
 Document the specific steps, packages, and configurations needed for Apple Silicon Macs. Include troubleshooting for common issues, performance optimization tips, and any workarounds needed for compatibility. Test the instructions on an M1/M2 machine if possible to verify accuracy.
+<info added on 2025-05-10T14:14:39.024Z>
+Document the specific steps, packages, and configurations needed for Apple Silicon Macs. Include troubleshooting for common issues, performance optimization tips, and any workarounds needed for compatibility. Test the instructions on an M1/M2 machine if possible to verify accuracy.
+
+The Mac/Apple Silicon installation instructions should include:
+
+1. Step-by-step environment setup:
+   - Detailed instructions for using `uv` and virtualenv specifically on Apple Silicon
+   - Clear guidance on installing core dependencies with proper architecture (arm64)
+   - Instructions for Ollama installation for local quantized inference
+
+2. Troubleshooting section for common Apple Silicon issues:
+   - Solutions for torch/transformers installation errors (ensuring proper Apple Silicon wheels)
+   - Fixing Homebrew and system dependency issues (libomp, openssl)
+   - Resolving Jupyter/Matplotlib backend issues specific to macOS
+
+3. Performance optimization tips:
+   - Instructions for obtaining and using Apple Silicon-optimized wheels for torch/transformers
+   - Guidance on avoiding Python under Rosetta 2 emulation
+   - Best practices for using `uv` to create faster, reproducible environments
+   - Tips for leveraging MPS (Metal Performance Shaders) acceleration
+
+4. Verification steps:
+   - A test script to verify torch, transformers, and Ollama imports
+   - Commands to confirm correct Python architecture (arm64)
+   - Instructions to print torch device info to confirm MPS availability
+   - Simple inference test to verify end-to-end functionality
+
+5. Reference table:
+   - Common errors and their solutions
+   - Required vs. optional dependencies
+   - Version compatibility information
+
+The documentation should be concise yet comprehensive, with clear distinction between required steps and optional optimizations. Consider creating a dedicated Mac-specific document or a clearly labeled section in the README.md.
+</info added on 2025-05-10T14:14:39.024Z>
 
 ## 3. Document Ollama integration for local inference [pending]
 ### Dependencies: 16.1
