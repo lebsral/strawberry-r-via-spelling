@@ -1,6 +1,6 @@
 # Task ID: 17
 # Title: Refactor Token Extraction Pipeline for Qwen3-4B English Subset
-# Status: pending
+# Status: done
 # Dependencies: 2
 # Priority: high
 # Description: Replace all GPT-2 token extraction scripts and outputs with a new process that extracts the English-only token subset from the Qwen3-4B tokenizer. Validate, document, and update all downstream references to use the new extraction process and outputs.
@@ -17,13 +17,22 @@
 ### Details:
 This involves rewriting or updating the extraction logic, integrating any new requirements, and ensuring the script is ready for validation. Focus on minimizing token usage and maintaining coherent context as per the new model's needs.
 
-## 2. Validate and Document the Extraction Output [pending]
+## 2. Validate and Document the Extraction Output [done]
 ### Dependencies: 17.1
 ### Description: Test the new extraction script to ensure its output matches expected results and document the extraction process, output format, and any changes from the previous version.
 ### Details:
 Perform thorough validation using representative data, compare outputs with the previous pipeline, and document the new script's behavior, usage instructions, and output specifications for future reference.
+<info added on 2025-05-10T15:55:02.233Z>
+Perform thorough validation using representative data, compare outputs with the previous pipeline, and document the new script's behavior, usage instructions, and output specifications for future reference.
 
-## 3. Update Downstream References and Scripts [pending]
+The validation and documentation for the new English token extraction script have been completed successfully. The validation process confirmed that the output file `data/processed/english_tokens.json` exists and contains the expected JSON structure with a `tokens` key containing a list of English-only tokens (strictly alphabetic). The output format was verified to be compatible with all downstream scripts and notebooks, including `src/data/create_notebook.py`. The output also adheres to the specifications documented in `docs/token_extraction.md` and `docs/data_format.md`. All legacy `.txt` output references have been removed from the codebase and documentation.
+
+Documentation has been thoroughly updated across all relevant files (`README.md`, `docs/token_extraction.md`, `docs/data_format.md`) to reflect the new canonical JSON output format and provide clear usage instructions. Example code snippets and workflow notes now exclusively reference the `.json` file format. Comprehensive documentation of the extraction process, output format specifications, and downstream usage patterns has been added to both the script docstring and the external documentation files.
+
+The extraction pipeline has been fully validated and documented, with no outstanding issues identified. This completes the validation and documentation phase of the token extraction pipeline refactoring for the Qwen3-4B English subset.
+</info added on 2025-05-10T15:55:02.233Z>
+
+## 3. Update Downstream References and Scripts [done]
 ### Dependencies: 17.2
 ### Description: Identify and update all downstream scripts and references that depend on the token extraction pipeline to ensure compatibility with the new extraction script and output format.
 ### Details:

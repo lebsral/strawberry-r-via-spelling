@@ -1949,7 +1949,7 @@
       "description": "Replace all GPT-2 token extraction scripts and outputs with a new process that extracts the English-only token subset from the Qwen3-4B tokenizer. Validate, document, and update all downstream references to use the new extraction process and outputs.",
       "details": "1. Analyze the Qwen3-4B tokenizer using the latest Hugging Face 'transformers' library to extract its full vocabulary. 2. Define clear criteria for identifying 'English-only' tokens (e.g., tokens composed exclusively of ASCII letters and common English punctuation, excluding tokens with non-English characters or symbols). 3. Implement a new extraction script (preferably in Python) that filters the Qwen3-4B vocabulary to produce the English-only token subset, saving the result in a well-documented JSON format. 4. Validate the extracted subset by sampling and manually inspecting tokens, and by running automated checks for non-English characters. 5. Update all downstream scripts, references, and documentation to use the new Qwen3-4B English token subset and extraction process, removing all GPT-2-specific logic and outputs. 6. Provide comprehensive documentation describing the extraction criteria, process, and usage of the new subset.",
       "testStrategy": "- Run the new extraction script and verify that the output JSON contains only tokens matching the defined English-only criteria. - Manually inspect a random sample of extracted tokens to confirm correctness. - Execute automated tests to ensure no non-English characters are present in the subset. - Confirm that all downstream scripts and documentation reference the new Qwen3-4B English token subset and that no GPT-2-specific code or outputs remain. - Review documentation for completeness and clarity regarding the new extraction process and criteria.",
-      "status": "pending",
+      "status": "done",
       "dependencies": [
         2
       ],
@@ -1970,8 +1970,8 @@
           "dependencies": [
             1
           ],
-          "details": "Perform thorough validation using representative data, compare outputs with the previous pipeline, and document the new script's behavior, usage instructions, and output specifications for future reference.",
-          "status": "pending"
+          "details": "Perform thorough validation using representative data, compare outputs with the previous pipeline, and document the new script's behavior, usage instructions, and output specifications for future reference.\n<info added on 2025-05-10T15:55:02.233Z>\nPerform thorough validation using representative data, compare outputs with the previous pipeline, and document the new script's behavior, usage instructions, and output specifications for future reference.\n\nThe validation and documentation for the new English token extraction script have been completed successfully. The validation process confirmed that the output file `data/processed/english_tokens.json` exists and contains the expected JSON structure with a `tokens` key containing a list of English-only tokens (strictly alphabetic). The output format was verified to be compatible with all downstream scripts and notebooks, including `src/data/create_notebook.py`. The output also adheres to the specifications documented in `docs/token_extraction.md` and `docs/data_format.md`. All legacy `.txt` output references have been removed from the codebase and documentation.\n\nDocumentation has been thoroughly updated across all relevant files (`README.md`, `docs/token_extraction.md`, `docs/data_format.md`) to reflect the new canonical JSON output format and provide clear usage instructions. Example code snippets and workflow notes now exclusively reference the `.json` file format. Comprehensive documentation of the extraction process, output format specifications, and downstream usage patterns has been added to both the script docstring and the external documentation files.\n\nThe extraction pipeline has been fully validated and documented, with no outstanding issues identified. This completes the validation and documentation phase of the token extraction pipeline refactoring for the Qwen3-4B English subset.\n</info added on 2025-05-10T15:55:02.233Z>",
+          "status": "done"
         },
         {
           "id": 3,
@@ -1981,7 +1981,7 @@
             2
           ],
           "details": "Audit all dependent codebases, update integration points, and perform end-to-end testing to confirm that downstream processes function correctly with the refactored pipeline.",
-          "status": "pending"
+          "status": "done"
         }
       ]
     },
