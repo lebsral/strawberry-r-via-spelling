@@ -2088,6 +2088,15 @@
           ],
           "details": "Create scripts that leverage the Hugging Face transformers library to locally validate that all generated data uses only tokens from the Qwen3-4B English-only subset. Document the installation and usage of these tools, ensuring they can be run in standard local environments without cloud-specific optimizations like Unsloth or xformers.",
           "status": "pending"
+        },
+        {
+          "id": 6,
+          "title": "Recreate all token analysis outputs for Qwen3-4B migration",
+          "description": "Re-run and regenerate all token analysis outputs in results/token_analysis/ to reflect the Qwen3-4B migration. This includes all CSVs, figures, and HTML reports, ensuring all scripts use the Qwen3-4B tokenizer, the English-only token subset, and the new dataset splits. Remove or replace any legacy outputs that do not comply with the new standards described in README.md and docs/analysis.md.",
+          "details": "- Delete or archive all previous analysis outputs in results/token_analysis/ that were generated before the Qwen3-4B migration.\n- Re-run src/analysis/template_analysis.py and src/analysis/template_performance.py using the new dataset splits (data/processed/train_spelling.json, val_char_questions.json, test_char_questions.json, and multi-token splits).\n- Ensure all outputs (CSVs, PNGs, HTML reports) are regenerated and reflect the Qwen3-4B tokenizer and English-only token subset.\n- Update all visualizations and reports to indicate non-thinking mode and compliance with new project policy.\n- Confirm that all separator and template category conventions match the latest documentation.\n- Remove any references to thinking mode or legacy tokenization in the outputs.\n- Document the process and any issues encountered in the subtask details.",
+          "status": "pending",
+          "dependencies": [],
+          "parentTaskId": 19
         }
       ]
     }
