@@ -286,11 +286,36 @@ Add the following to project documentation:
 This approach will be particularly important for the next subtask "Analyze and extract English-only tokens from Qwen3-4B tokenizer" which requires extensive tokenizer operations but no model inference.
 </info added on 2025-05-10T10:03:45.695Z>
 
-## 2. Analyze and extract English-only tokens from Qwen3-4B tokenizer [pending]
+## 2. Analyze and extract English-only tokens from Qwen3-4B tokenizer [done]
 ### Dependencies: 14.1
 ### Description: Develop a methodology to identify and extract English tokens from the Qwen3-4B tokenizer, creating a filtered subset for English-only operations.
 ### Details:
 Load the Qwen3-4B tokenizer and analyze its vocabulary. Develop criteria for identifying English tokens (e.g., using regex patterns, Unicode ranges, or language detection algorithms). Create a script that extracts and saves the English token subset. Document the extraction methodology, criteria used, and statistical analysis of the results (total tokens, percentage of English tokens, etc.).
+<info added on 2025-05-10T10:14:27.786Z>
+Load the Qwen3-4B tokenizer and analyze its vocabulary. Develop criteria for identifying English tokens (e.g., using regex patterns, Unicode ranges, or language detection algorithms). Create a script that extracts and saves the English token subset. Document the extraction methodology, criteria used, and statistical analysis of the results (total tokens, percentage of English tokens, etc.).
+
+Implementation Plan:
+1. Load the Qwen3-4B tokenizer using the existing function `load_qwen3_tokenizer_only()` in `src/models/qwen3_loader.py`.
+2. Access the tokenizer's vocabulary via `tokenizer.get_vocab()`.
+3. Develop criteria for identifying English tokens:
+   - Use regex to match tokens containing only English alphabet characters (A-Z, a-z), common English punctuation, and optionally numbers.
+   - Optionally, use Unicode ranges to further filter out non-English scripts.
+   - Consider using the `regex` library for advanced pattern matching.
+4. Write a script (suggested location: `scripts/extract_english_tokens.py`) that:
+   - Loads the tokenizer
+   - Iterates over the vocabulary
+   - Applies the English-token criteria
+   - Saves the filtered English tokens to a file (e.g., `data/processed/english_tokens_qwen3.txt`)
+   - Outputs statistics: total tokens, number and percentage of English tokens
+5. Document the methodology and criteria in the script docstring and output a summary report.
+6. For validation, encode/decode a sample English sentence using both the full and filtered token sets, and compare results.
+
+Special considerations:
+- Handle subwords and tokens with special characters appropriately
+- Account for byte-level or BPE encoding in the tokenizer
+- Apply Unicode normalization for edge cases
+- Ensure the filtered token set maintains coherence for English text processing
+</info added on 2025-05-10T10:14:27.786Z>
 
 ## 3. Implement thinking/non-thinking mode support [pending]
 ### Dependencies: 14.1
