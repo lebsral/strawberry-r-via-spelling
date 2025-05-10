@@ -48,48 +48,83 @@ Qwen3-4B's tokenizer supports multiple languages, but only about 50,000 tokens a
 - The experiment focuses on English spelling, position, and count tasks.
 - Using only English tokens ensures the model is not biased by non-English vocabulary and improves evaluation clarity.
 
-## Extraction Methodology
+## Why Use Hugging Face Transformers?
 
-1. **Load the Qwen3-4B Tokenizer**
-   - Use the `transformers` library (>=4.51.0) to load the Qwen3-4B tokenizer.
-   - Example:
-     ```python
-     from transformers import AutoTokenizer
-     tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen3-4B")
-     ```
+- **Tokenizer-Only Workflows:** All data preparation and token extraction use the Qwen3-4B tokenizer from `transformers` to ensure compatibility and reproducibility.
+- **Model Compatibility:** Ensures all data, templates, and evaluation are aligned with the Qwen3-4B vocabulary and tokenization logic.
+- **Cross-Platform:** Works on Mac/Apple Silicon, Linux, and cloud environments.
+- **Community Standard:** Well-documented, widely used, and actively maintained.
 
-2. **Identify English Tokens**
-   - Iterate through the tokenizer's vocabulary.
-   - For each token, check if it consists only of English alphabetic characters (A-Z, a-z) and common English punctuation.
-   - Exclude tokens containing non-English characters or symbols.
-   - Example:
-     ```python
-     import re
-     english_token_pattern = re.compile(r'^[A-Za-z]+$')
-     english_tokens = [token for token in tokenizer.get_vocab() if english_token_pattern.match(token)]
-     ```
+## Version Compatibility
+- **transformers >= 4.51.0** is required for Qwen3-4B support and Apple Silicon compatibility.
+- Always check your installed version:
+  ```sh
+  python -c 'import transformers; print(transformers.__version__)'
+  ```
 
-3. **Save the English Token Subset**
-   - Store the filtered English tokens in a JSON file for use in data processing and evaluation.
-   - Example:
-     ```python
-     import json
-     with open('english_tokens.json', 'w') as f:
-         json.dump(english_tokens, f)
-     ```
+## Step-by-Step: Extracting English-Only Tokens
 
-4. **Integrate with Data Processing**
-   - Update all data processing scripts to use only the English token subset for training and evaluation.
-   - See `docs/data_format.md` for how this affects data structure.
+### 1. Load the Qwen3-4B Tokenizer
+```python
+from transformers import AutoTokenizer
+
+# Use the official Hugging Face repo or your local path
+qwen_tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen3-4B")
+```
+
+### 2. Identify English Tokens
+```python
+import re
+english_token_pattern = re.compile(r'^[A-Za-z]+$')
+english_tokens = [token for token in qwen_tokenizer.get_vocab() if english_token_pattern.match(token)]
+```
+
+### 3. Save the English Token Subset
+```python
+import json
+with open('english_tokens.json', 'w') as f:
+    json.dump(english_tokens, f)
+```
+
+## Example: Data Preparation with transformers
+
+### Tokenizing a List of Words
+```python
+words = ["apple", "banana", "strawberry"]
+encodings = qwen_tokenizer(words, padding=True, truncation=True, return_tensors="pt")
+print(encodings.input_ids)
+```
+
+### Expected Input/Output Formats
+- **Input:** List of words or sentences (e.g., from `data/raw/words.txt`)
+- **Output:** Tokenized IDs, attention masks, or JSON files with token lists (e.g., `data/processed/tokens.json`)
+
+## Using transformers in Scripts
+- All scripts in this project that require tokenization or data prep should import and use the Qwen3-4B tokenizer as shown above.
+- For batch processing, use the tokenizer's built-in batching and padding features.
+- Always validate that all tokens are in the English-only subset for your experiments.
+
+## Troubleshooting
+
+| Problem | Solution |
+|---------|----------|
+| ImportError: No module named 'transformers' | Install with `uv pip install transformers` |
+| Version mismatch or missing Qwen3-4B | Upgrade transformers: `uv pip install -U transformers` |
+| OOV (out-of-vocabulary) tokens | Ensure you are using the English-only subset and the correct tokenizer version |
+| Slow tokenization on large files | Use batch tokenization and avoid unnecessary loops |
+| Apple Silicon: torch/transformers install fails | See [apple_silicon_setup.md](apple_silicon_setup.md) |
+
+## References
+- [Hugging Face Transformers Documentation](https://huggingface.co/docs/transformers/en/index)
+- [README: Environment Setup](../README.md#1-environment-setup-macapple-silicon)
+- [Apple Silicon Setup Guide](apple_silicon_setup.md)
+
+**This is the canonical reference for all transformers-based data preparation in this project.**
 
 ## Scripts and Utilities
 
 - See `scripts/extract_english_tokens.py` (to be created/updated) for a full implementation.
 - All downstream scripts should reference the generated `english_tokens.json`.
-
-## References
-- [Qwen3-4B Model Card](https://huggingface.co/Qwen/Qwen3-4B)
-- [Unsloth Qwen3-4B Blog](https://unsloth.ai/blog/qwen3)
 
 ## Related Tasks
 - See Taskmaster tasks #14 and #15 for migration and compatibility conversion.

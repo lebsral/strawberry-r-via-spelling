@@ -99,7 +99,7 @@ The documentation should be concise yet comprehensive, with clear distinction be
 ### Details:
 Create step-by-step instructions for installing Ollama, configuring it for the project, and running local inference. Include examples of common commands, performance expectations, resource requirements, and troubleshooting tips. Document how to verify successful setup and integration with the project.
 
-## 4. Update transformers documentation for data preparation [pending]
+## 4. Update transformers documentation for data preparation [done]
 ### Dependencies: 16.1
 ### Description: Revise documentation related to using transformers library for data preparation and token extraction scripts
 ### Details:

@@ -1927,7 +1927,7 @@
             1
           ],
           "details": "Update all documentation related to the transformers library usage, focusing on data preparation workflows and token extraction scripts. Include code examples, expected inputs/outputs, and guidance on handling different data formats. Ensure compatibility with the latest transformers version and Qwen3-4B model.",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 5,
