@@ -1,0 +1,52 @@
+# Task ID: 14
+# Title: Migrate to Qwen3-4B Model with English Token Filtering and Mode Support
+# Status: pending
+# Dependencies: None
+# Priority: high
+# Description: Analyze and integrate the Qwen3-4B model into the codebase, extract English-only tokens from its tokenizer, and update model loading, configuration, and inference logic to support Qwen3-4B’s unique features, including thinking/non-thinking modes and specific sampling parameters.
+# Details:
+1. Review the Qwen3-4B model documentation and Hugging Face integration requirements, ensuring compatibility with the latest transformers library (>=4.51.0) to avoid loading errors.
+2. Analyze the Qwen3-4B tokenizer to identify and extract the set of English-only tokens. Implement a script or utility to filter these tokens, documenting the extraction process and results.
+3. Refactor the model loading and configuration code to support Qwen3-4B, including device mapping, torch_dtype, and context length settings as per model specs.
+4. Update inference logic to handle Qwen3-4B’s thinking and non-thinking modes by leveraging the tokenizer’s `apply_chat_template` with `enable_thinking` parameter, and implement parsing logic to separate thinking content from final output (e.g., using the </think> token ID).
+5. Ensure that sampling parameters for thinking mode are set as follows: Temperature=0.6, TopP=0.95, TopK=20, MinP=0. Make these configurable and document their usage.
+6. Update documentation and code comments to reflect all changes, including migration steps, new configuration options, and any model-specific considerations.
+
+# Test Strategy:
+- Verify that the codebase loads Qwen3-4B without errors and that model inference works in both thinking and non-thinking modes, producing expected outputs.
+- Confirm that the English-only token extraction utility correctly identifies and outputs the relevant tokens, and validate the results against known English token sets.
+- Test that the sampling parameters are correctly applied during inference in thinking mode, and that outputs change as expected when parameters are varied.
+- Ensure that the separation of thinking and content outputs works by running sample prompts and checking that both sections are parsed and displayed correctly.
+- Review updated documentation for clarity and completeness, and perform code review to ensure maintainability and adherence to project standards.
+
+# Subtasks:
+## 1. Set up Qwen3-4B model with transformers library [pending]
+### Dependencies: None
+### Description: Configure the development environment with the latest transformers library (>=4.51.0) and implement basic model loading for Qwen3-4B to ensure compatibility.
+### Details:
+Install or update transformers to version 4.51.0 or higher to avoid the 'KeyError: qwen3' error. Create a basic implementation to load the Qwen3-4B model using AutoModelForCausalLM and AutoTokenizer from the Hugging Face transformers library. Configure proper device mapping and torch_dtype settings for optimal performance. Test basic model loading and simple inference to verify setup.
+
+## 2. Analyze and extract English-only tokens from Qwen3-4B tokenizer [pending]
+### Dependencies: 14.1
+### Description: Develop a methodology to identify and extract English tokens from the Qwen3-4B tokenizer, creating a filtered subset for English-only operations.
+### Details:
+Load the Qwen3-4B tokenizer and analyze its vocabulary. Develop criteria for identifying English tokens (e.g., using regex patterns, Unicode ranges, or language detection algorithms). Create a script that extracts and saves the English token subset. Document the extraction methodology, criteria used, and statistical analysis of the results (total tokens, percentage of English tokens, etc.).
+
+## 3. Implement thinking/non-thinking mode support [pending]
+### Dependencies: 14.1
+### Description: Update the inference logic to handle Qwen3-4B's thinking and non-thinking modes, including parsing logic for separating thinking content from final output.
+### Details:
+Modify the chat template application to use the 'enable_thinking' parameter in the tokenizer's apply_chat_template method. Implement parsing logic to identify and separate thinking content from final output using the </think> token ID (151668). Create utility functions to extract thinking content and final response from generation results. Add configuration options to enable/disable thinking mode based on use case requirements.
+
+## 4. Configure model-specific sampling parameters [pending]
+### Dependencies: 14.3
+### Description: Implement and configure the specific sampling parameters required for Qwen3-4B, particularly for thinking mode operation.
+### Details:
+Create a configuration system for Qwen3-4B sampling parameters with defaults set to: Temperature=0.6, TopP=0.95, TopK=20, MinP=0 for thinking mode. Make these parameters configurable through API or configuration files. Implement parameter validation to ensure values are within acceptable ranges. Update the model generation code to apply these parameters during inference.
+
+## 5. Integrate Qwen3-4B into existing codebase and document changes [pending]
+### Dependencies: 14.1, 14.2, 14.3, 14.4
+### Description: Refactor the existing codebase to fully support Qwen3-4B, including model loading, configuration, and inference logic, with comprehensive documentation.
+### Details:
+Update model factory or loading mechanisms to recognize and properly initialize Qwen3-4B. Modify configuration schemas to include Qwen3-4B specific parameters (context length of 32,768, GQA attention heads configuration, etc.). Create migration guides for developers explaining how to transition to Qwen3-4B. Document all new features, parameters, and configuration options with examples. Update API documentation to reflect changes in behavior and capabilities.
+

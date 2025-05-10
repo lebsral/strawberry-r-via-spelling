@@ -1,0 +1,31 @@
+# Task ID: 17
+# Title: Refactor Token Extraction Pipeline for Qwen3-4B English Subset
+# Status: pending
+# Dependencies: 2
+# Priority: high
+# Description: Replace all GPT-2 token extraction scripts and outputs with a new process that extracts the English-only token subset from the Qwen3-4B tokenizer. Validate, document, and update all downstream references to use the new extraction process and outputs.
+# Details:
+1. Analyze the Qwen3-4B tokenizer using the latest Hugging Face 'transformers' library to extract its full vocabulary. 2. Define clear criteria for identifying 'English-only' tokens (e.g., tokens composed exclusively of ASCII letters and common English punctuation, excluding tokens with non-English characters or symbols). 3. Implement a new extraction script (preferably in Python) that filters the Qwen3-4B vocabulary to produce the English-only token subset, saving the result in a well-documented JSON format. 4. Validate the extracted subset by sampling and manually inspecting tokens, and by running automated checks for non-English characters. 5. Update all downstream scripts, references, and documentation to use the new Qwen3-4B English token subset and extraction process, removing all GPT-2-specific logic and outputs. 6. Provide comprehensive documentation describing the extraction criteria, process, and usage of the new subset.
+
+# Test Strategy:
+- Run the new extraction script and verify that the output JSON contains only tokens matching the defined English-only criteria. - Manually inspect a random sample of extracted tokens to confirm correctness. - Execute automated tests to ensure no non-English characters are present in the subset. - Confirm that all downstream scripts and documentation reference the new Qwen3-4B English token subset and that no GPT-2-specific code or outputs remain. - Review documentation for completeness and clarity regarding the new extraction process and criteria.
+
+# Subtasks:
+## 1. Implement the New Token Extraction Script [pending]
+### Dependencies: None
+### Description: Develop and refactor the token extraction pipeline to use the new extraction script, ensuring it is optimized for efficiency and maintains functional consistency with the previous implementation.
+### Details:
+This involves rewriting or updating the extraction logic, integrating any new requirements, and ensuring the script is ready for validation. Focus on minimizing token usage and maintaining coherent context as per the new model's needs.
+
+## 2. Validate and Document the Extraction Output [pending]
+### Dependencies: 17.1
+### Description: Test the new extraction script to ensure its output matches expected results and document the extraction process, output format, and any changes from the previous version.
+### Details:
+Perform thorough validation using representative data, compare outputs with the previous pipeline, and document the new script's behavior, usage instructions, and output specifications for future reference.
+
+## 3. Update Downstream References and Scripts [pending]
+### Dependencies: 17.2
+### Description: Identify and update all downstream scripts and references that depend on the token extraction pipeline to ensure compatibility with the new extraction script and output format.
+### Details:
+Audit all dependent codebases, update integration points, and perform end-to-end testing to confirm that downstream processes function correctly with the refactored pipeline.
+

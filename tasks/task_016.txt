@@ -1,0 +1,11 @@
+# Task ID: 16
+# Title: Update Environment Setup Scripts and Onboarding Docs for Qwen3-4B and Token Extraction
+# Status: pending
+# Dependencies: 1
+# Priority: high
+# Description: Revise all environment setup scripts and onboarding documentation to ensure compatibility with Qwen3-4B and the new English-only token extraction process, including updated installation instructions for transformers (>=4.51.0) and usage guidance for new token extraction scripts.
+# Details:
+Review all existing environment setup scripts (e.g., shell scripts, Python setup files) and onboarding documentation to ensure they reference and support Qwen3-4B as the default model. Update instructions to include installation or upgrade steps for the transformers library (version 4.51.0 or higher), specifying any required flags or compatibility notes. Integrate clear, step-by-step guidance for using the new English-only token extraction scripts, including prerequisites, example commands, and troubleshooting tips. Reference the new workflow and model requirements throughout, ensuring that all documentation is consistent and unambiguous. Coordinate with the team to verify that all changes align with the latest project standards and dependencies established in Task 1.
+
+# Test Strategy:
+Verify that a new developer can follow the updated scripts and documentation to set up a working environment from scratch, successfully install or upgrade transformers to >=4.51.0, and run the new token extraction scripts with Qwen3-4B. Confirm that all references to model requirements and workflows are accurate and that no outdated instructions remain. Solicit feedback from at least one team member not involved in the update to ensure clarity and completeness.

@@ -1,0 +1,31 @@
+# Task ID: 19
+# Title: Revalidate and Update Template-Generated Training Data for Qwen3-4B English Token Subset
+# Status: pending
+# Dependencies: 4, 18
+# Priority: high
+# Description: Audit all template-generated training data to ensure strict compatibility with the Qwen3-4B English-only token subset, updating templates, separators, and formatting scripts as necessary. Regenerate non-compliant data and revise documentation to reflect all changes.
+# Details:
+Begin by auditing all existing template-generated training data, focusing on tokenization compatibility with the Qwen3-4B English-only token subset as established in Task 18. Review and update all data generation templates, separator styles, and formatting scripts to ensure they produce outputs that exclusively use valid English tokens recognized by the Qwen3-4B tokenizer. For any data that fails validation, regenerate it using the updated templates and scripts. Ensure that all formatting (including separators, prompt structures, and metadata) adheres to the new requirements. Update internal documentation to describe the revised templates, formatting conventions, and validation procedures. Coordinate with the teams responsible for dataset splits and downstream consumers to ensure seamless integration of the updated data.
+
+# Test Strategy:
+1. Run automated tokenization checks on all template-generated data to confirm exclusive use of Qwen3-4B English-only tokens. 2. Manually inspect a representative sample of data for correct template application, separator usage, and formatting. 3. Verify that all scripts and templates have been updated and are producing compliant outputs. 4. Confirm that all previously non-compliant data has been regenerated and replaced. 5. Review updated documentation for completeness and clarity. 6. Ensure downstream data consumers can ingest and process the revised datasets without errors.
+
+# Subtasks:
+## 1. Audit and Update Templates/Scripts for Tokenizer Compatibility [pending]
+### Dependencies: None
+### Description: Review all existing templates and scripts to identify non-compliant data generation patterns. Update them to ensure compatibility with the tokenizer and maintain audit trails for changes.
+### Details:
+This includes examining current data handling processes, identifying sensitive or non-compliant data streams, and updating templates/scripts to align with tokenizer requirements. Ensure all changes are logged for compliance and future audits.
+
+## 2. Regenerate Non-Compliant Data [pending]
+### Dependencies: 19.1
+### Description: Use the updated templates/scripts to regenerate any previously generated data that does not meet tokenizer compatibility standards.
+### Details:
+After updating the templates/scripts, identify all instances of non-compliant data and systematically regenerate them using the new, compliant processes. Ensure that regenerated data is properly mapped and stored according to tokenization best practices.
+
+## 3. Revise Documentation and Downstream Integration [pending]
+### Dependencies: 19.2
+### Description: Update all relevant documentation and notify or adjust downstream systems and integrations to reflect the changes in data generation and tokenization processes.
+### Details:
+Revise user guides, technical documentation, and integration instructions to reflect the new processes. Communicate changes to stakeholders and ensure downstream systems are tested and updated as needed to handle the revised data formats.
+

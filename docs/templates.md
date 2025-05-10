@@ -1,7 +1,8 @@
-# Template System Documentation
+# Template System Documentation (Qwen3-4B)
 
 ## Overview
-The template system provides a flexible way to generate diverse training examples for spelling tasks. It supports multiple template categories, styles, and token separation methods.
+
+All template generation and token separation strategies in this project are designed for compatibility with the Qwen3-4B tokenizer and the English-only token subset. This ensures that all generated examples are valid for the model and experiment.
 
 ## Template Structure
 Templates are organized in `configs/templates/categories.json` with the following hierarchy:
@@ -28,12 +29,10 @@ Example:
 "{letters} — that spells '{word}.'"
 ```
 
-## Categories
-Current template categories include:
-- `spelling_first`: Templates that present the spelling before the word
-- `word_first`: Templates that present the word before its spelling
-- `educational`: Templates with an educational or instructional tone
-- `playful`: Templates with a more casual, fun tone
+## Template Categories
+
+- All templates must produce input and output sequences that tokenize cleanly with Qwen3-4B and use only tokens from the English-only subset (see `english_tokens.json`).
+- Template categories (e.g., `spelling_first`, `word_first`) remain the same, but all examples must be validated for token compatibility.
 
 ## Styles
 Each category supports multiple styles:
@@ -42,14 +41,35 @@ Each category supports multiple styles:
 - `educational`: Teaching-focused templates
 - `formal`: Professional or academic templates
 
-## Token Separation
-The system supports various token separation styles:
-- None: Letters without separation
-- Space: Letters separated by spaces
-- Comma: Letters separated by commas
-- Dash: Letters separated by dashes
-- Dots: Letters separated by dots
-- Arrow: Letters separated by arrows
+## Separator Styles
+
+- Only use separator styles (space, comma, dash, etc.) that are represented in the English-only token subset.
+- Avoid using separators or punctuation that are not present in `english_tokens.json`.
+
+## Example Template (Qwen3-4B Compatible)
+
+```json
+{
+  "input": "How do you spell banana?",
+  "output": "B A N A N A",
+  "template_category": "spelling_first",
+  "separator_style": "space"
+}
+```
+
+## Validation
+
+- All template-generated examples should be tokenized with Qwen3-4B and checked to ensure all tokens are in the English-only subset.
+- If a template or separator produces out-of-vocabulary tokens, update the template or filter the example.
+
+## Integration with Data Processing
+
+- Template generation scripts must load and use `english_tokens.json` to validate all generated examples.
+- See `docs/data_format.md` for data structure requirements.
+
+## References
+- See `docs/token_extraction.md` for token extraction methodology.
+- See `docs/data_format.md` for data format specifications.
 
 ## Example Generation
 The `ExampleGenerator` class handles example generation with features:

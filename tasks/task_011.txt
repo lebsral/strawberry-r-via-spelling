@@ -1,0 +1,43 @@
+# Task ID: 11
+# Title: Lightning.AI Studio Migration Planning and Setup
+# Status: pending
+# Dependencies: 1
+# Priority: high
+# Description: Plan and implement the migration of the evaluation framework to Lightning.AI Studios, leveraging features like isolated environments, GPU switching, and the plugin system. This includes initial Studio setup, environment configuration, and structuring components for data preparation, model training, and evaluation.
+# Details:
+Begin by reviewing Lightning.AI Studio documentation to understand its persistent cloud environment, isolated workspace capabilities, GPU management, and plugin architecture. Design a migration plan that maps each component of the current evaluation framework (data preparation, model training, evaluation, etc.) to a corresponding Studio workspace or plugin. Set up a new Studio instance, configure the environment with all necessary dependencies (ensuring compatibility with the existing Python setup from Task 1), and enable GPU switching as required. Establish isolated environments for each component to ensure modularity and reproducibility. Integrate Lightning.AI plugins where beneficial, and document the Studio structure, environment variables, and resource allocation strategies. Ensure the setup supports iterative development and easy scaling for future needs.
+
+# Test Strategy:
+Verify that the Studio instance is accessible and persistent, with all required dependencies installed and functioning. Confirm that each component (data prep, model training, evaluation) runs in its own isolated environment and can access GPU resources as configured. Test the plugin system by integrating at least one relevant plugin and ensuring it operates as expected. Validate that the Studio structure supports modular workflows and that documentation is clear and complete. Run end-to-end tests for each workflow to ensure successful execution and reproducibility within the Studio environment.
+
+# Subtasks:
+## 1. Lightning.AI Studio Documentation Review and Migration Planning [pending]
+### Dependencies: None
+### Description: Thoroughly review Lightning.AI documentation to understand Studio capabilities and create a comprehensive migration plan for the evaluation framework.
+### Details:
+Review Lightning.AI documentation focusing on persistent cloud environments, isolated workspaces, GPU management, and plugin architecture. Create a detailed migration plan mapping each component of the current evaluation framework to appropriate Studio workspaces following the 'one Studio, one task' principle. Document how data preparation, model training, evaluation, and deployment components will be structured across separate Studios. Include considerations for resource allocation, environment variables, and secrets management.
+
+## 2. Data Preparation Studio Setup and Configuration [pending]
+### Dependencies: 11.1
+### Description: Set up and configure a dedicated Lightning.AI Studio for data preparation tasks with appropriate environment and dependencies.
+### Details:
+Create a new Lightning.AI Studio dedicated to data preparation tasks. Configure the environment with all necessary dependencies ensuring compatibility with the existing Python setup. Set up appropriate storage using the teamspace drive for persistent data storage. Configure environment variables and secrets for data access. Document the Studio configuration, sleep mode settings, and resource allocation to optimize costs when not in use.
+
+## 3. Model Training Studio Setup with GPU Configuration [pending]
+### Dependencies: 11.1
+### Description: Establish a dedicated Lightning.AI Studio for model training with GPU support and appropriate resource allocation.
+### Details:
+Create a separate Lightning.AI Studio specifically for model training tasks. Configure GPU access and switching capabilities based on training requirements. Install all necessary training dependencies and frameworks. Set up environment variables for training parameters. Configure appropriate storage access for training data and model artifacts. Document GPU usage patterns, sleep mode settings, and cost optimization strategies.
+
+## 4. Evaluation Framework Studio Implementation [pending]
+### Dependencies: 11.1, 11.3
+### Description: Develop a dedicated Lightning.AI Studio for model evaluation with appropriate metrics tracking and visualization capabilities.
+### Details:
+Set up a Lightning.AI Studio dedicated to model evaluation tasks. Configure the environment with necessary evaluation dependencies. Implement access to trained models from the model training Studio. Set up metrics tracking and visualization tools. Configure appropriate CPU/GPU resources based on evaluation needs. Document the evaluation workflow, environment configuration, and integration points with other Studios.
+
+## 5. Lightning.AI Plugin Integration and Deployment Studio Setup [pending]
+### Dependencies: 11.1, 11.3, 11.4
+### Description: Integrate relevant Lightning.AI plugins and establish a deployment Studio for productionizing models with specific focus on Qwen3-4B requirements.
+### Details:
+Research and integrate beneficial Lightning.AI plugins across all Studios. Set up a dedicated deployment Studio for serving trained models, with specific configurations for Qwen3-4B. Configure dual deployment environments for Qwen3-4B's thinking and non-thinking modes. Implement proper sampling parameters (Temperature=0.6, TopP=0.95, TopK=20, MinP=0) for Qwen3-4B. Set up English-only token subset filtering in production environments. Optimize deployment for Qwen3's specific tokenizer patterns. Establish mode-specific endpoints and configurations for thinking/non-thinking modes. Implement robust error handling for token filtering operations. Configure monitoring systems to track mode-specific metrics. Implement proper resource allocation strategies based on Qwen3-4B's requirements. Set up efficient model loading, initialization, and caching strategies for both modes. Configure scaling mechanisms based on mode-specific load patterns. Document the plugin architecture, deployment workflow, and maintenance procedures. Ensure the setup supports iterative development and easy scaling for future needs.
+

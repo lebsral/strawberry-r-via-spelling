@@ -224,16 +224,19 @@ def create_datasets(tokens_file="gpt2_letter_tokens.json", examples_per_token=15
 
     # Letter count questions
     for i, token in enumerate(random.sample(tokens, 1000)):
-        letter = random.choice(string.ascii_lowercase)
-        count = token.lower().count(letter)
+        # Pick a random letter that actually appears in the word
+        letters_in_word = set(token.lower())
+        if letters_in_word:
+            letter = random.choice(list(letters_in_word))
+            count = token.lower().count(letter)
 
-        questions.append({
-            "id": f"count_{i}",
-            "question": f"How many {letter}'s are in the word '{token}'?",
-            "answer": str(count),
-            "question_type": "letter_count",
-            "word": token
-        })
+            questions.append({
+                "id": f"count_{i}",
+                "question": f"How many '{letter}'s are there in the word '{token}'?",
+                "answer": str(count),
+                "question_type": "letter_count",
+                "word": token
+            })
 
     # Letter position questions
     for i, token in enumerate(random.sample(tokens, 1000)):

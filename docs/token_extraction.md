@@ -1,105 +1,56 @@
-# GPT-2 Token Extraction Process
-
-This document describes the process of extracting multi-character, letter-based tokens from the GPT-2 vocabulary and the validation of the extracted tokens.
+# Qwen3-4B Token Extraction and English-Only Subset
 
 ## Overview
 
-The project extracts letter-based tokens from GPT-2's vocabulary to analyze how the model tokenizes words and subwords. This information is crucial for understanding the model's handling of spelling-related tasks.
+Qwen3-4B's tokenizer supports multiple languages, but only about 50,000 tokens are English. For this project, we extract and use only the English tokens for all training and evaluation.
 
-## Token Extraction Process
+## Why English-Only?
 
-### Implementation Details
+- The experiment focuses on English spelling, position, and count tasks.
+- Using only English tokens ensures the model is not biased by non-English vocabulary and improves evaluation clarity.
 
-The token extraction is implemented in `src/data/token_extractor.py` and follows these steps:
+## Extraction Methodology
 
-1. Load the GPT-2 tokenizer vocabulary
-2. Filter tokens based on criteria:
-   - Multi-character tokens only (length ≥ 2)
-   - Letter-based tokens (containing alphabetic characters)
-   - Exclude special tokens and non-word characters
+1. **Load the Qwen3-4B Tokenizer**
+   - Use the `transformers` library (>=4.51.0) to load the Qwen3-4B tokenizer.
+   - Example:
+     ```python
+     from transformers import AutoTokenizer
+     tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen3-4B")
+     ```
 
-### Output Format
+2. **Identify English Tokens**
+   - Iterate through the tokenizer's vocabulary.
+   - For each token, check if it consists only of English alphabetic characters (A-Z, a-z) and common English punctuation.
+   - Exclude tokens containing non-English characters or symbols.
+   - Example:
+     ```python
+     import re
+     english_token_pattern = re.compile(r'^[A-Za-z]+$')
+     english_tokens = [token for token in tokenizer.get_vocab() if english_token_pattern.match(token)]
+     ```
 
-Extracted tokens are saved in JSON format at `data/processed/gpt2_letter_tokens.json` with the following structure:
+3. **Save the English Token Subset**
+   - Store the filtered English tokens in a JSON file for use in data processing and evaluation.
+   - Example:
+     ```python
+     import json
+     with open('english_tokens.json', 'w') as f:
+         json.dump(english_tokens, f)
+     ```
 
-```json
-{
-  "tokens": [
-    {
-      "token": "string",
-      "token_id": number,
-      "char_length": number
-    }
-  ]
-}
-```
+4. **Integrate with Data Processing**
+   - Update all data processing scripts to use only the English token subset for training and evaluation.
+   - See `docs/data_format.md` for how this affects data structure.
 
-## Validation
+## Scripts and Utilities
 
-Based on the validation analysis performed using our template analysis scripts:
+- See `scripts/extract_english_tokens.py` (to be created/updated) for a full implementation.
+- All downstream scripts should reference the generated `english_tokens.json`.
 
-1. Most common token patterns are well-represented
-2. Token sequence lengths follow expected distributions
-3. Template variations maintain consistent structure
+## References
+- [Qwen3-4B Model Card](https://huggingface.co/Qwen/Qwen3-4B)
+- [Unsloth Qwen3-4B Blog](https://unsloth.ai/blog/qwen3)
 
-### Running Validation
-
-1. Install required packages:
-
-```bash
-pip install -r requirements.txt
-```
-
-2. Run the template analysis script:
-
-```bash
-python -m src.analysis.template_analysis \
-  --data-dir data/processed \
-  --output-dir results/token_analysis \
-  --log-level INFO
-```
-
-3. Review the generated HTML report in `results/token_analysis/reports/`
-
-### Dependencies
-
-Required packages (installed via requirements.txt):
-
-- seaborn (for visualizations)
-- scikit-learn (for metrics)
-- matplotlib (for plotting)
-
-## Usage
-
-To reproduce the token extraction and validation:
-
-1. Run the extraction script:
-
-   ```bash
-   python src/data/token_extractor.py
-   ```
-
-2. Run the validation notebook:
-
-   ```bash
-   jupyter notebook notebooks/token_validation.ipynb
-   ```
-
-## Dependencies
-
-The token extraction and validation process requires:
-
-- transformers (for GPT-2 tokenizer)
-- pandas (for data analysis)
-- matplotlib (for visualization)
-- seaborn (for enhanced plotting)
-- jupyter (for running validation notebook)
-
-## Future Improvements
-
-Potential areas for enhancement:
-
-1. Additional token metadata (e.g., frequency in common text)
-2. More detailed statistical analysis
-3. Token clustering by patterns
-4. Integration with spelling task generation
+## Related Tasks
+- See Taskmaster tasks #14 and #15 for migration and compatibility conversion.

@@ -1,0 +1,52 @@
+# Base configuration for model evaluation
+
+# Model settings
+model:
+  name: "gpt2"  # Base model to evaluate
+  max_new_tokens: 10  # Reduced for direct answers
+  do_sample: false  # Use greedy decoding for deterministic results
+  num_beams: 1  # Single beam for simple answers
+
+# Evaluation settings
+evaluation:
+  batch_size: 8  # Reduced batch size for memory management
+  max_examples: null  # null means evaluate all examples
+  metrics:
+    - "letter_count_accuracy"
+    - "letter_position_accuracy"
+
+  # Specific task settings
+  letter_count:
+    extract_method: "first_number"  # Extract first number from response
+    max_retries: 3  # Number of retries if no valid number found
+
+  letter_position:
+    extract_method: "first_char"  # Extract first character from response
+    case_sensitive: false  # Ignore case when comparing positions
+
+# Data settings
+data:
+  dataset_name: "test_dataset"  # Name of the dataset
+  split: "test"  # Dataset split to use
+  cache_dir: ".cache"
+
+# Output settings
+output:
+  base_dir: "results/evaluation"  # Base directory for outputs
+  subdirs:
+    data: "data"
+    figures: "figures"
+    reports: "reports"
+  files:
+    metrics: "metrics.json"
+    analysis: "analysis.json"
+    report: "baseline_report.html"
+  save_predictions: true  # Whether to save model predictions
+
+# Logging settings
+logging:
+  level: "INFO"  # Logging level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+  wandb:  # Weights & Biases logging
+    enabled: false
+    project: "spelling_evaluation"
+    run_name: "gpt2_evaluation"

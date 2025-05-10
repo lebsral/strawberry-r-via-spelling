@@ -1,0 +1,31 @@
+# Task ID: 18
+# Title: Recreate All Dataset Splits Using Qwen3-4B English-Only Token Subset
+# Status: pending
+# Dependencies: 3, 17
+# Priority: high
+# Description: Regenerate the training, validation, and test datasets using the Qwen3-4B English-only token subset, ensuring compatibility with the new tokenizer and updating all metadata and data structures to match the revised format.
+# Details:
+Leverage the updated token extraction pipeline from Task 17 to process all raw data and regenerate the training, validation, and test splits exclusively using the Qwen3-4B English-only token subset. For each split, re-tokenize all examples with the Qwen3-4B tokenizer (as available via Hugging Face Transformers) and verify that every example is fully compatible—i.e., all tokens are present in the English-only subset, and no legacy or out-of-vocabulary tokens remain. Update all dataset metadata (e.g., token counts, vocabulary statistics, data format descriptors) to reflect the new tokenization. Ensure that the data structures, file formats, and split boundaries strictly follow the updated requirements, and that all downstream consumers of the data are notified of the changes. Document any edge cases or data exclusions resulting from incompatibility with the new tokenizer.
+
+# Test Strategy:
+1. For each dataset split, confirm that all examples are tokenized exclusively with the Qwen3-4B English-only token subset and that no out-of-vocabulary or legacy tokens are present. 2. Validate that the number of examples and split boundaries match the intended design and that no data leakage occurs between splits. 3. Check that all metadata fields (e.g., token counts, vocabulary lists, format descriptors) are accurate and up-to-date. 4. Run automated compatibility tests to ensure all downstream scripts and pipelines can load and process the new datasets without errors. 5. Manually inspect a sample of examples from each split to confirm correct tokenization and data structure. 6. Document and review any data exclusions or format changes with the team before final sign-off.
+
+# Subtasks:
+## 1. Regenerate Dataset Splits with New Token Subset [pending]
+### Dependencies: None
+### Description: Process the dataset with the new tokenizer subset and create appropriate train/test/validation splits
+### Details:
+Use the train_test_split() function to create appropriate dataset splits with the new tokenization. Consider using a 80/10/10 split for train/validation/test or adjust based on project requirements. Ensure proper shuffling of data before splitting. For large datasets, consider using sharding techniques to manage memory efficiently.
+
+## 2. Validate Dataset Compatibility and Metadata [pending]
+### Dependencies: 18.1
+### Description: Verify the regenerated dataset splits maintain compatibility with models and contain correct metadata
+### Details:
+Compare token distributions between old and new datasets. Verify schema consistency across all splits. Check for potential data leakage between splits. Validate that tokenization is consistent and properly cached to avoid redundant processing. Run basic model inference tests to ensure compatibility with existing models.
+
+## 3. Update Downstream Consumers and Documentation [pending]
+### Dependencies: 18.2
+### Description: Communicate changes and update all systems that consume the dataset
+### Details:
+Update pipeline configurations to use the new dataset splits. Modify any hardcoded references to the old dataset structure. Update documentation with new dataset statistics and tokenization details. Communicate changes to all stakeholders, including information about potential impacts on model performance. Create examples showing how to properly load and use the new dataset splits.
+

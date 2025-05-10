@@ -4,11 +4,23 @@ This document describes the analysis tools available in the project for understa
 
 ## Overview
 
-The project includes two main analysis scripts:
-1. Template Analysis (`template_analysis.py`) - Analyzes template characteristics and distributions
-2. Performance Analysis (`template_performance.py`) - Analyzes model performance across different template variations
+All analysis scripts and evaluation tools in this project are designed for the Qwen3-4B model, using only the English-only token subset. Analyses must account for both thinking and non-thinking modes, as well as the specific sampling parameters required for Qwen3-4B.
 
-Both scripts use shared visualization utilities from `visualization_utils.py` for consistent styling and report generation.
+## Tokenizer and Token Subset
+
+- All input and output sequences for analysis must be tokenized with Qwen3-4B.
+- Only tokens present in the English-only subset (see `english_tokens.json`) are considered valid for analysis.
+- Any analysis of token distribution, sequence length, or template patterns must use this subset.
+
+## Mode-Specific Evaluation
+
+- Qwen3-4B supports two modes:
+  - **Thinking Mode:** Model generates intermediate reasoning before the final answer. Use sampling parameters: Temperature=0.6, TopP=0.95, TopK=20, MinP=0.
+  - **Non-Thinking Mode:** Model generates direct answers without intermediate reasoning.
+- All evaluation scripts must:
+  - Specify the mode for each experiment.
+  - Parse and separate thinking content from final output when in thinking mode.
+  - Compare performance metrics across both modes.
 
 ## Template Analysis
 
@@ -152,3 +164,34 @@ Potential areas for enhancement:
 - Real-time analysis capabilities
 - Custom template category support
 - Advanced statistical analysis 
+
+## Example Analysis Workflow
+
+1. **Run Template Analysis**
+   ```sh
+   python -m src.analysis.template_analysis \
+     --data-dir data/processed \
+     --output-dir results/token_analysis \
+     --batch-size 32
+   ```
+   - Ensure all scripts use Qwen3-4B tokenizer and reference `english_tokens.json`.
+
+2. **Run Performance Analysis**
+   ```sh
+   python -m src.analysis.template_performance \
+     --data-dir data/processed \
+     --output-dir results/token_analysis \
+     --batch-size 32 \
+     --mode thinking  # or --mode non-thinking
+   ```
+   - Compare metrics for both modes.
+
+## Reporting
+
+- All reports and visualizations should indicate the mode (thinking/non-thinking) and confirm use of the English-only token subset.
+- Include mode-specific performance breakdowns and error analyses.
+
+## References
+- See `docs/token_extraction.md` for token extraction methodology.
+- See `docs/data_format.md` for data format specifications.
+- See Taskmaster tasks #14 and #15 for migration and compatibility conversion.

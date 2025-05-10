@@ -193,3 +193,60 @@ The data loader yields batches in the following format:
    - Vary separator styles for diversity
    - Test with different word lengths
    - Validate output formatting
+
+# Data Format Specifications for Qwen3-4B
+
+## Overview
+
+All data formats in this project are designed for compatibility with the Qwen3-4B tokenizer and use only the English-only token subset (~50k tokens). This ensures that all training, validation, and evaluation are performed exclusively on English tokens, matching the experimental design and model requirements.
+
+## Data Structure
+
+- **Input Sequences:**
+  - All input sequences are tokenized using the Qwen3-4B tokenizer.
+  - Only tokens present in the English-only subset (see `english_tokens.json`) are allowed.
+  - Any data containing non-English tokens is filtered out during preprocessing.
+
+- **Metadata:**
+  - Each example includes metadata specifying the template category, separator style, and tokenization details.
+  - Metadata fields:
+    - `template_category`: e.g., `spelling_first`, `word_first`
+    - `separator_style`: e.g., `space`, `comma`, `dash`
+    - `tokenizer`: always `Qwen3-4B`
+    - `token_subset`: always `english_only`
+
+- **Output Sequences:**
+  - Output sequences are also tokenized with Qwen3-4B and restricted to the English-only subset.
+
+## Example JSON Structure
+
+```json
+{
+  "input": "How do you spell apple?",
+  "output": "A P P L E",
+  "template_category": "spelling_first",
+  "separator_style": "space",
+  "tokenizer": "Qwen3-4B",
+  "token_subset": "english_only"
+}
+```
+
+## Data Loading and Batching
+
+- All data loaders and batching utilities must use the Qwen3-4B tokenizer and reference `english_tokens.json` to ensure only valid tokens are processed.
+- Batching should group sequences of similar length for efficiency, as before.
+- Any sequence containing out-of-vocabulary tokens (not in the English-only subset) should be excluded or flagged.
+
+## Integration with Token Extraction
+
+- The English-only token subset is generated using the process described in `docs/token_extraction.md`.
+- All data processing scripts must load and use this subset for filtering and validation.
+
+## Evaluation Considerations
+
+- All evaluation scripts must ensure that both predictions and references use only the English token subset.
+- Mode-specific evaluation (thinking/non-thinking) should be documented in `docs/analysis.md`.
+
+## References
+- See `docs/token_extraction.md` for extraction methodology.
+- See `docs/analysis.md` for evaluation details.

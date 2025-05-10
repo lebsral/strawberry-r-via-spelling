@@ -1,0 +1,67 @@
+# Task ID: 12
+# Title: Migrate Evaluation Framework Components to Lightning.AI Studios
+# Status: pending
+# Dependencies: 11
+# Priority: high
+# Description: Migrate all core evaluation framework components—including data preparation scripts, training workflows, and evaluation systems—into their respective Lightning.AI Studios, ensuring full functionality and leveraging Lightning.AI features.
+# Details:
+Begin by auditing existing data preparation, training, and evaluation components to identify dependencies and required resources. For each component, refactor code and workflows as needed to fit Lightning.AI Studio paradigms, such as modular Studio apps. Migrate data preparation scripts into a dedicated Studio, ensuring compatibility with Lightning.AI's persistent storage for datasets and intermediate results. Move training workflows into Studios that utilize GPU switching, configuring resource allocation and environment variables for optimal performance. Transition evaluation systems into Studios, integrating with the plugin system for extensibility and automation. Throughout migration, maintain existing functionality and adapt interfaces to Lightning.AI's UI/UX standards. Document all changes, update configuration files, and ensure seamless integration between Studios. Address any deprecated or incompatible features by leveraging Lightning.AI alternatives or plugins.
+
+# Test Strategy:
+Verify that each migrated component (data preparation, training, evaluation) runs successfully within its respective Lightning.AI Studio, producing expected outputs. Test GPU switching by running training workflows on different GPU types and confirming correct resource usage. Validate persistent storage by saving and retrieving datasets and intermediate results across Studio sessions. Assess plugin integration by installing and running at least one relevant plugin in the evaluation Studio. Perform end-to-end tests to ensure the entire workflow—from data preparation through evaluation—operates as intended. Compare results with pre-migration outputs to confirm parity. Review documentation for completeness and accuracy.
+
+# Subtasks:
+## 1. Audit and Analyze Existing Evaluation Framework Components [pending]
+### Dependencies: None
+### Description: Conduct a comprehensive audit of all current data preparation scripts, training workflows, and evaluation systems to identify dependencies, required resources, and potential compatibility issues with Lightning.AI Studios.
+### Details:
+Review codebases, document external dependencies, assess data storage needs, and map out current workflows to inform migration planning.
+
+## 2. Migrate Data Preparation Scripts to Lightning.AI Studio [pending]
+### Dependencies: 12.1
+### Description: Refactor and migrate all data preparation scripts into a dedicated Lightning.AI Studio, ensuring compatibility with Lightning.AI's persistent storage and modular app architecture.
+### Details:
+Adapt scripts to utilize Lightning.AI's storage APIs, modularize code as Studio apps, and ensure intermediate results are correctly handled.
+
+## 3. Migrate Training Workflows with GPU Switching and Resource Optimization [pending]
+### Dependencies: 12.2
+### Description: Transition training workflows into Lightning.AI Studios, implementing GPU switching, configuring resource allocation, and setting environment variables for optimal performance.
+### Details:
+Refactor training code to leverage Lightning.AI's resource management features, ensure compatibility with Studio paradigms, and document environment configurations.
+
+## 4. Migrate and Integrate Evaluation Systems with Plugin Support [pending]
+### Dependencies: 12.3
+### Description: Move evaluation systems into Lightning.AI Studios, integrating with the plugin system for extensibility and automation, and adapting interfaces to Lightning.AI's UI/UX standards.
+### Details:
+Refactor evaluation logic as modular Studio apps, implement plugin hooks, and update UI components for seamless user experience.
+
+## 5. System Integration, Testing, and Documentation [pending]
+### Dependencies: 12.4
+### Description: Ensure seamless integration between all migrated Studios, address deprecated or incompatible features, and document all changes and updated configurations.
+### Details:
+Conduct system-wide integration tests, resolve any migration issues, and update technical documentation and configuration files.
+
+## 6. Implement Qwen3-4B Thinking and Non-Thinking Mode Optimization [pending]
+### Dependencies: 12.3
+### Description: Optimize both thinking and non-thinking modes of Qwen3-4B within the Lightning.AI Studios framework.
+### Details:
+Develop and implement efficient mode switching mechanisms between thinking and non-thinking modes. Configure resource allocation optimization based on the active mode. Implement performance monitoring systems for both modes to track efficiency metrics.
+
+## 7. Implement English-Only Token Filtering for Qwen3-4B [pending]
+### Dependencies: 12.2
+### Description: Develop and integrate efficient English-only token filtering for Qwen3-4B within the Lightning.AI Studios environment.
+### Details:
+Design and implement memory-optimized token filtering algorithms for English-only subset. Develop efficient error handling mechanisms for token filtering edge cases. Optimize tokenizer performance specifically for the English-only subset.
+
+## 8. Optimize Sampling Parameters for Qwen3-4B [pending]
+### Dependencies: 12.3
+### Description: Configure and optimize sampling parameter settings (Temperature=0.6, TopP=0.95, TopK=20, MinP=0) for Qwen3-4B in Lightning.AI Studios.
+### Details:
+Implement the specified sampling parameter configurations. Develop efficient batch processing mechanisms that maintain optimal sampling parameters across both thinking and non-thinking modes.
+
+## 9. Implement Caching Strategies for Qwen3-4B [pending]
+### Dependencies: 12.6
+### Description: Design and implement efficient caching strategies for both thinking and non-thinking modes of Qwen3-4B.
+### Details:
+Develop mode-specific caching mechanisms that optimize for the different usage patterns of thinking and non-thinking modes. Optimize model loading and initialization processes to leverage caching for faster startup times.
+

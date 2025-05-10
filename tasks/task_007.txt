@@ -3,7 +3,7 @@
 # Status: pending
 # Dependencies: 6
 # Priority: high
-# Description: Set up Unsloth for optimized LoRA fine-tuning of the GPT-2 model with memory efficiency optimizations in a cloud GPU environment (Google Colab or Lightning.ai), using Python scripts instead of notebooks for better maintainability and version control. Configure the system to handle separate training (spelling variations) and evaluation (position/count) datasets.
+# Description: Set up Unsloth for optimized LoRA fine-tuning of the Qwen3-4B model with memory efficiency optimizations in a cloud GPU environment (Google Colab or Lightning.ai), using Python scripts instead of notebooks for better maintainability and version control. Configure the system to handle separate training (spelling variations) and evaluation (position/count) datasets, with special attention to Qwen3's tokenizer and English-only token subset.
 # Details:
 **NOTE: This task requires a cloud GPU environment. Do not attempt on local Mac.**
 
@@ -11,19 +11,27 @@
 2. Set up Unsloth-specific environment requirements in the cloud environment
 3. Configure memory-efficient QLoRA training
 4. Set up Flash Attention 2 if available on cloud GPU hardware
-5. Implement proper tokenization for instruction fine-tuning
+5. Implement proper tokenization for instruction fine-tuning with Qwen3-4B's tokenizer
 6. Configure GPU memory optimizations
 7. Set up separate handling for spelling training data and position/count evaluation data
 8. Implement efficient evaluation of position/count tasks during training
+9. Leverage Lightning.AI Studios for data preparation and processing
+10. Filter and validate data based on Qwen3's English-only token subset
+11. Handle multi-token words appropriately in Qwen3's tokenization patterns
+12. Prepare data for both thinking and non-thinking modes
 
 File Structure:
 - Environment setup: `src/unsloth/environment.py`
 - Model loading and configuration: `src/unsloth/model.py`
 - Dataset preparation: `src/unsloth/dataset.py`
+- Lightning DataModules: `src/unsloth/datamodules.py`
 - Training setup: `src/unsloth/trainer.py`
 - Training monitoring: `src/unsloth/monitor.py`
 - HTML report generation: `src/unsloth/report.py`
 - Evaluation utilities: `src/unsloth/evaluation.py`
+- Data validation: `src/unsloth/data_validation.py`
+- Qwen3 tokenizer utilities: `src/unsloth/qwen3_tokenizer.py`
+- Token filtering utilities: `src/unsloth/token_filter.py`
 
 Output Structure:
 - `results/unsloth/figures/` (All PNG/PDF visualizations)
@@ -31,6 +39,8 @@ Output Structure:
 - `results/unsloth/data/` (Training metrics)
 - `results/unsloth/configs/` (Model configurations)
 - `results/unsloth/evaluation/` (Position/count evaluation results)
+- `results/unsloth/data_versions/` (Data version tracking)
+- `results/unsloth/token_analysis/` (Qwen3 token usage analysis)
 
 Implementation:
 ```python
@@ -54,7 +64,7 @@ def optimize_gpu_memory():
 # Load model with Unsloth optimizations
 def load_unsloth_model(config):
     model, tokenizer = FastLanguageModel.from_pretrained(
-        model_name="gpt2",
+        model_name="Qwen/Qwen3-4B",  # Updated to Qwen3-4B
         max_seq_length=512,
         dtype=torch.bfloat16 if torch.cuda.is_bf16_supported() else torch.float16,
         load_in_4bit=True,  # Use 4-bit quantization to reduce memory usage
@@ -77,23 +87,76 @@ def load_unsloth_model(config):
     
     return model, tokenizer
 
-# Prepare spelling dataset for Unsloth
-def prepare_spelling_dataset(dataset, tokenizer):
+# Get English-only token subset for Qwen3
+def get_english_token_subset(tokenizer):
+    # This function identifies the English-only token subset in Qwen3's vocabulary
+    # Implementation depends on Qwen3's specific tokenization patterns
+    english_tokens = []
+    for token_id in range(len(tokenizer)):
+        token = tokenizer.decode([token_id])
+        # Apply filtering logic to identify English-only tokens
+        # This is a simplified example - actual implementation would be more complex
+        if all(c.isascii() for c in token):
+            english_tokens.append(token_id)
+    
+    return set(english_tokens)
+
+# Analyze multi-token word handling in Qwen3
+def analyze_multi_token_words(tokenizer, common_words):
+    results = {}
+    for word in common_words:
+        tokens = tokenizer.encode(word, add_special_tokens=False)
+        results[word] = {
+            "token_count": len(tokens),
+            "tokens": [tokenizer.decode([t]) for t in tokens]
+        }
+    return results
+
+# Prepare spelling dataset for Unsloth with Qwen3 tokenizer
+def prepare_spelling_dataset(dataset, tokenizer, config):
+    # Get English token subset if filtering is enabled
+    english_tokens = get_english_token_subset(tokenizer) if config["use_english_only"] else None
+    
     def formatting_prompts_func(examples):
         questions = examples["question"]
         answers = examples["answer"]
-
-        # Special Unsloth prompt format
-        prompts = [
-            f"<human>: {question}\n<assistant>: "
-            for question in questions
-        ]
+        
+        # Format based on thinking mode configuration
+        if config["use_thinking_mode"]:
+            # Special Qwen3 prompt format with thinking mode
+            prompts = [
+                f"<human>: {question}\n<assistant>: <thinking>\nLet me analyze this spelling question carefully.\n</thinking>\n"
+                for question in questions
+            ]
+        else:
+            # Standard prompt format without thinking mode
+            prompts = [
+                f"<human>: {question}\n<assistant>: "
+                for question in questions
+            ]
 
         # Format responses with EOS token
         formatted_responses = [
             f"{answer}{tokenizer.eos_token}"
             for answer in answers
         ]
+        
+        # Validate tokens if English-only filtering is enabled
+        if english_tokens:
+            valid_examples = []
+            valid_responses = []
+            
+            for prompt, response in zip(prompts, formatted_responses):
+                prompt_tokens = tokenizer.encode(prompt, add_special_tokens=False)
+                response_tokens = tokenizer.encode(response, add_special_tokens=False)
+                
+                # Check if all tokens are in the English subset
+                if all(t in english_tokens for t in prompt_tokens + response_tokens):
+                    valid_examples.append(prompt)
+                    valid_responses.append(response)
+                    
+            prompts = valid_examples
+            formatted_responses = valid_responses
 
         return {
             "prompt": prompts,
@@ -101,30 +164,75 @@ def prepare_spelling_dataset(dataset, tokenizer):
         }
     
     formatted_dataset = dataset.map(formatting_prompts_func, batched=True)
+    
+    # Analyze multi-token word handling
+    if config["analyze_tokenization"]:
+        common_words = [example["answer"] for example in dataset[:100]]
+        tokenization_analysis = analyze_multi_token_words(tokenizer, common_words)
+        
+        # Save analysis to file
+        import json
+        with open("results/unsloth/token_analysis/multi_token_analysis.json", "w") as f:
+            json.dump(tokenization_analysis, f, indent=2)
+    
     return formatted_dataset
 
-# Prepare position/count dataset for evaluation
-def prepare_position_count_dataset(dataset, tokenizer):
+# Prepare position/count dataset for evaluation with Qwen3 tokenizer
+def prepare_position_count_dataset(dataset, tokenizer, config):
+    # Get English token subset if filtering is enabled
+    english_tokens = get_english_token_subset(tokenizer) if config["use_english_only"] else None
+    
     def formatting_prompts_func(examples):
         questions = examples["question"]
         answers = examples["answer"]
 
-        # Special Unsloth prompt format for position/count tasks
-        prompts = [
-            f"<human>: {question}\n<assistant>: "
-            for question in questions
-        ]
+        # Format based on thinking mode configuration
+        if config["use_thinking_mode"]:
+            # Special Qwen3 prompt format with thinking mode for position/count tasks
+            prompts = [
+                f"<human>: {question}\n<assistant>: <thinking>\nI need to carefully analyze the positions and counts in this question.\n</thinking>\n"
+                for question in questions
+            ]
+        else:
+            # Standard prompt format without thinking mode
+            prompts = [
+                f"<human>: {question}\n<assistant>: "
+                for question in questions
+            ]
 
         # Format responses with EOS token
         formatted_responses = [
             f"{answer}{tokenizer.eos_token}"
             for answer in answers
         ]
+        
+        # Validate tokens if English-only filtering is enabled
+        if english_tokens:
+            valid_examples = []
+            valid_responses = []
+            valid_task_types = []
+            
+            for prompt, response, task_type in zip(prompts, formatted_responses, 
+                                                 examples.get("task_type", ["position_count"] * len(questions))):
+                prompt_tokens = tokenizer.encode(prompt, add_special_tokens=False)
+                response_tokens = tokenizer.encode(response, add_special_tokens=False)
+                
+                # Check if all tokens are in the English subset
+                if all(t in english_tokens for t in prompt_tokens + response_tokens):
+                    valid_examples.append(prompt)
+                    valid_responses.append(response)
+                    valid_task_types.append(task_type)
+                    
+            prompts = valid_examples
+            formatted_responses = valid_responses
+            task_types = valid_task_types
+        else:
+            task_types = examples.get("task_type", ["position_count"] * len(questions))
 
         return {
             "prompt": prompts,
             "completion": formatted_responses,
-            "task_type": examples.get("task_type", ["position_count"] * len(questions))
+            "task_type": task_types
         }
     
     formatted_dataset = dataset.map(formatting_prompts_func, batched=True)
@@ -209,10 +317,10 @@ def train_with_unsloth(config_path):
     spelling_dataset = load_dataset("YOUR-USERNAME/llm-spelling-dataset")
     position_count_dataset = load_dataset("YOUR-USERNAME/llm-position-count-dataset")
     
-    # Prepare datasets for Unsloth
-    train_dataset = prepare_spelling_dataset(spelling_dataset["train"], tokenizer)
-    val_dataset = prepare_spelling_dataset(spelling_dataset["validation"], tokenizer)
-    eval_dataset = prepare_position_count_dataset(position_count_dataset["validation"], tokenizer)
+    # Prepare datasets for Unsloth with Qwen3 tokenizer
+    train_dataset = prepare_spelling_dataset(spelling_dataset["train"], tokenizer, config)
+    val_dataset = prepare_spelling_dataset(spelling_dataset["validation"], tokenizer, config)
+    eval_dataset = prepare_position_count_dataset(position_count_dataset["validation"], tokenizer, config)
     
     # Create trainer
     trainer = create_unsloth_trainer(model, tokenizer, train_dataset, val_dataset, eval_dataset, config)
@@ -270,6 +378,18 @@ def generate_evaluation_report(spelling_results, position_count_results, config)
 16. Test the transfer performance from spelling training to position/count evaluation
 17. Validate that memory usage remains optimized when handling both datasets
 18. Test the custom evaluation callback for position/count tasks
+19. Verify Lightning.AI Studio setup and configuration for data preparation
+20. Test data validation and quality check mechanisms
+21. Validate data versioning and tracking functionality
+22. Test Lightning DataModules integration with Unsloth training pipeline
+23. Verify efficient data streaming and caching mechanisms in Lightning.AI environment
+24. Test Qwen3-4B tokenizer handling for multi-token words
+25. Verify English-only token subset filtering functionality
+26. Test data preparation in both thinking and non-thinking modes
+27. Validate token analysis reporting for Qwen3 tokenization patterns
+28. Test compatibility of prepared data with Qwen3's tokenization requirements
+29. Verify that filtered datasets maintain sufficient size for effective training
+30. Test the impact of English-only token filtering on model performance
 
 # Subtasks:
 ## 1. Environment Setup with Optimizations [pending]
@@ -298,14 +418,29 @@ File location:
 
 ## 3. Dataset Preparation for Unsloth [pending]
 ### Dependencies: 7.1
-### Description: Prepare and optimize training datasets for efficient processing with Unsloth in cloud environment
+### Description: Prepare and optimize training datasets for efficient processing with Unsloth using Lightning.AI Studios, with special handling for Qwen3-4B's tokenizer and English-only token subset
 ### Details:
-Format dataset according to Unsloth requirements in Google Colab or Lightning.ai. Implement efficient tokenization with proper sequence length handling. Set up data processing pipeline with appropriate num_proc parameter. Configure dataset caching mechanisms to reduce memory overhead. Validate dataset loading with performance metrics.
+Create a dedicated Lightning.AI Studio for data preparation following the "one Studio, one task" principle. Format dataset according to Unsloth and Qwen3-4B requirements using Lightning.AI's shared filesystem for efficient data storage and access. Implement Lightning DataModules for better integration with the training pipeline. Set up automated data validation and quality checks to ensure data integrity. Configure proper environment isolation and dependency management in the Studio. Use CPU-optimized instances for data processing tasks to optimize costs. Implement efficient data streaming and caching mechanisms. Set up automated data versioning and tracking for reproducibility.
 
-File location:
+Specific Qwen3-4B requirements:
+1. Implement functions to identify and filter for English-only token subset
+2. Create analysis tools for multi-token word handling in Qwen3's tokenization patterns
+3. Set up data preparation for both thinking and non-thinking modes
+4. Implement validation to ensure data compatibility with Qwen3's tokenization requirements
+5. Create reporting tools to analyze token usage patterns in the dataset
+
+File locations:
 - Dataset preparation: `src/unsloth/dataset.py`
+- Lightning DataModules: `src/unsloth/datamodules.py`
+- Data validation: `src/unsloth/data_validation.py`
+- Qwen3 tokenizer utilities: `src/unsloth/qwen3_tokenizer.py`
+- Token filtering utilities: `src/unsloth/token_filter.py`
 
-**NOTE: This task requires a cloud GPU environment (Google Colab or Lightning.ai). Do not attempt on local Mac.**
+Output locations:
+- `results/unsloth/data_versions/` (Data version tracking)
+- `results/unsloth/token_analysis/` (Qwen3 token usage analysis)
+
+**NOTE: This task requires a Lightning.AI Studio environment. Documentation should include detailed setup instructions.**
 
 ## 4. Trainer Setup with Memory Optimizations [pending]
 ### Dependencies: 7.2, 7.3
@@ -350,13 +485,21 @@ File locations:
 
 ## 7. Dual Dataset Handling Implementation [pending]
 ### Dependencies: 7.3
-### Description: Implement efficient handling of both spelling training data and position/count evaluation data
+### Description: Implement efficient handling of both spelling training data and position/count evaluation data with Qwen3-4B tokenizer support
 ### Details:
-Create separate data processing pipelines for spelling and position/count datasets. Implement efficient data loading and caching mechanisms for both datasets. Configure memory-efficient data handling during training and evaluation phases. Implement dataset-specific tokenization and formatting. Validate dual dataset handling with performance metrics.
+Create separate data processing pipelines for spelling and position/count datasets. Implement efficient data loading and caching mechanisms for both datasets. Configure memory-efficient data handling during training and evaluation phases. Implement dataset-specific tokenization and formatting for Qwen3-4B. Validate dual dataset handling with performance metrics.
+
+Qwen3-4B specific requirements:
+1. Implement English-only token subset filtering for both datasets
+2. Handle multi-token words appropriately in both datasets
+3. Support both thinking and non-thinking modes in data preparation
+4. Create analysis tools to validate token usage patterns
+5. Implement efficient caching of tokenized data to improve performance
 
 File location:
 - Dataset preparation: `src/unsloth/dataset.py`
 - Dual dataset handler: `src/unsloth/dual_dataset.py`
+- Qwen3 tokenizer utilities: `src/unsloth/qwen3_tokenizer.py`
 
 **NOTE: This task requires a cloud GPU environment (Google Colab or Lightning.ai). Do not attempt on local Mac.**
 
@@ -375,4 +518,65 @@ Output locations:
 - `results/unsloth/figures/` (Transfer performance visualizations)
 
 **NOTE: This task requires a cloud GPU environment (Google Colab or Lightning.ai). Do not attempt on local Mac.**
+
+## 9. Lightning.AI Studio Documentation [pending]
+### Dependencies: 7.3
+### Description: Create comprehensive documentation for Lightning.AI Studio setup and configuration
+### Details:
+Document the complete setup process for Lightning.AI Studios for data preparation. Include detailed instructions for environment configuration, dependency management, and resource allocation. Document the shared filesystem usage and data versioning approach. Create step-by-step guides for setting up CPU-optimized instances for data processing. Document the integration between Lightning DataModules and Unsloth training pipeline. Include troubleshooting guides and best practices for efficient data processing in Lightning.AI environment.
+
+File location:
+- `docs/lightning_studio_setup.md`
+- `docs/data_processing_guide.md`
+
+**NOTE: This documentation should be comprehensive enough for new team members to set up and use Lightning.AI Studios for data preparation.**
+
+## 10. Qwen3 Tokenizer Analysis and Optimization [pending]
+### Dependencies: 7.3
+### Description: Analyze and optimize data processing for Qwen3-4B's tokenizer patterns
+### Details:
+Create comprehensive analysis tools for Qwen3-4B's tokenization patterns. Implement visualization utilities for token usage patterns. Develop optimization strategies for multi-token words. Create efficient filtering mechanisms for English-only token subset. Implement validation tools to ensure data compatibility with Qwen3's tokenization requirements.
+
+Specific tasks:
+1. Create token frequency analysis tools for Qwen3-4B vocabulary
+2. Implement visualization utilities for token distribution in datasets
+3. Develop optimization strategies for handling multi-token words
+4. Create efficient filtering mechanisms for English-only token subset
+5. Implement validation tools to ensure data compatibility with Qwen3's tokenization
+6. Analyze impact of thinking vs. non-thinking modes on token usage
+
+File locations:
+- Qwen3 tokenizer utilities: `src/unsloth/qwen3_tokenizer.py`
+- Token analysis tools: `src/unsloth/token_analysis.py`
+- Visualization utilities: `src/unsloth/token_visualization.py`
+
+Output locations:
+- `results/unsloth/token_analysis/` (Qwen3 token usage analysis)
+- `results/unsloth/figures/token_distribution/` (Token distribution visualizations)
+
+**NOTE: While analysis can be done locally, validation should be performed with the actual Qwen3-4B tokenizer in a cloud environment.**
+
+## 11. Thinking Mode Implementation [pending]
+### Dependencies: 7.3, 7.7
+### Description: Implement support for both thinking and non-thinking modes in data preparation
+### Details:
+Create flexible data preparation pipelines that support both thinking and non-thinking modes. Implement configuration options for switching between modes. Develop analysis tools to compare performance between modes. Create visualization utilities for token usage patterns in different modes.
+
+Specific tasks:
+1. Implement thinking mode formatting with <thinking> tags for Qwen3-4B
+2. Create non-thinking mode formatting for direct response generation
+3. Develop configuration options for switching between modes
+4. Implement analysis tools to compare performance between modes
+5. Create visualization utilities for token usage patterns in different modes
+
+File locations:
+- Dataset preparation: `src/unsloth/dataset.py`
+- Thinking mode utilities: `src/unsloth/thinking_mode.py`
+- Configuration handling: `src/unsloth/config.py`
+
+Output locations:
+- `results/unsloth/thinking_analysis/` (Thinking mode analysis)
+- `results/unsloth/figures/thinking_comparison/` (Thinking mode comparison visualizations)
+
+**NOTE: This task requires testing in a cloud GPU environment with the actual Qwen3-4B model.**
 

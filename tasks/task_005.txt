@@ -3,13 +3,26 @@
 # Status: pending
 # Dependencies: 3
 # Priority: medium
-# Description: Evaluate the base GPT-2 model on letter count and position tasks to establish a performance baseline for transfer learning effectiveness.
+# Description: Evaluate the Qwen3-4B model on letter count and position tasks to establish a performance baseline for transfer learning effectiveness, leveraging Lightning.AI Studios for efficient computation and experiment tracking.
 # Details:
 1. Set up DsPy for multi-shot prompting
-2. Create Python scripts to evaluate the base GPT-2 model
+2. Create Python scripts to evaluate the Qwen3-4B model
 3. Test on both primary metrics (letter count, letter position) using multi-token words
 4. Ensure output format is correct (single integer for character count or single letter for character position)
 5. Document the baseline performance for comparison
+
+Qwen3-4B Configuration:
+- Implement both thinking and non-thinking modes for evaluation
+- Configure sampling parameters: Temperature=0.6, TopP=0.95, TopK=20, MinP=0 for thinking mode
+- Focus evaluation on English-only token subset
+- Compare performance between thinking and non-thinking modes
+
+Lightning.AI Studios Integration:
+- Create a dedicated evaluation Studio following the "one Studio, one task" principle
+- Utilize GPU switching feature (CPU → T4 → A100) for cost-effective evaluation
+- Ensure sufficient memory allocation for Qwen3-4B model requirements
+- Leverage Lightning.AI plugins for experiment tracking and visualization
+- Use shared filesystem for accessing models and datasets
 
 Data Sources:
 - Training data: Spelling variations with multicharacter tokens
@@ -19,11 +32,13 @@ Evaluation Approach:
 - Focus on measuring transfer learning effectiveness from spelling training to position/count tasks
 - No traditional train/val/test split since evaluation uses different data
 - Separate evaluation pipeline for position and count metrics
+- Implement evaluation metrics using TorchMetrics for optimized distributed evaluation
 
 File Structure:
 - Main framework: `src/evaluation/framework.py`
 - Metrics definitions: `src/evaluation/metrics.py`
 - Evaluation config: `configs/evaluation/base_config.yaml`
+- Lightning.AI Studio config: `configs/evaluation/lightning_studio.yaml`
 - Letter count evaluator: `src/evaluation/letter_count.py`
 - Letter position evaluator: `src/evaluation/letter_position.py`
 - Common utilities: `src/evaluation/utils.py`
@@ -39,175 +54,391 @@ File Structure:
 Implementation:
 ```python
 import torch
-from transformers import GPT2LMHeadModel, GPT2Tokenizer
+from transformers import AutoModelForCausalLM, AutoTokenizer
 import dspy
 import wandb
 import argparse
 import os
 import json
 import pandas as pd
+import torchmetrics
+from lightning.pytorch import loggers as pl_loggers
+from lightning.app import LightningApp, LightningWork
+from lightning.app.components import TracerPythonScript
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Evaluate baseline GPT-2 model on spelling tasks")
-    parser.add_argument("--model", type=str, default="gpt2", help="Model to evaluate")
+    parser = argparse.ArgumentParser(description="Evaluate Qwen3-4B model on spelling tasks")
+    parser.add_argument("--model", type=str, default="Qwen/Qwen3-4B", help="Model to evaluate")
     parser.add_argument("--output_dir", type=str, default="results/evaluation", help="Directory to save results")
     parser.add_argument("--log_wandb", action="store_true", help="Whether to log results to W&B")
+    parser.add_argument("--use_lightning", action="store_true", help="Whether to use Lightning.AI for distributed evaluation")
+    parser.add_argument("--gpu_tier", type=str, default="T4", choices=["CPU", "T4", "A100"], help="GPU tier to use for evaluation")
+    parser.add_argument("--thinking_mode", action="store_true", help="Whether to use thinking mode for Qwen3")
     return parser.parse_args()
+
+class EvaluationWork(LightningWork):
+    def __init__(self, model_name, output_dir, log_wandb=False, gpu_tier="T4", thinking_mode=False):
+        super().__init__(cloud_compute={"gpu_type": gpu_tier.lower() if gpu_tier != "CPU" else None})
+        self.model_name = model_name
+        self.output_dir = output_dir
+        self.log_wandb = log_wandb
+        self.thinking_mode = thinking_mode
+        
+    def run(self):
+        # Create output directories
+        os.makedirs(f"{self.output_dir}/data", exist_ok=True)
+        os.makedirs(f"{self.output_dir}/figures", exist_ok=True)
+        os.makedirs(f"{self.output_dir}/reports", exist_ok=True)
+        
+        # Initialize W&B if requested
+        if self.log_wandb:
+            wandb.init(project="llm-spelling-finetuning", name="qwen3-baseline-evaluation")
+        
+        # Load Qwen3-4B model and tokenizer
+        model = AutoModelForCausalLM.from_pretrained(self.model_name, device_map="auto", trust_remote_code=True)
+        model.eval()
+        tokenizer = AutoTokenizer.from_pretrained(self.model_name, trust_remote_code=True)
+        
+        # Load evaluation dataset with multi-token words
+        from datasets import load_dataset
+        eval_dataset = load_dataset("YOUR-USERNAME/llm-spelling-dataset", split="evaluation")
+        
+        # Initialize TorchMetrics for evaluation
+        letter_count_accuracy = torchmetrics.Accuracy(task="multiclass", num_classes=20)  # Assuming max 20 characters
+        letter_position_accuracy = torchmetrics.Accuracy(task="multiclass", num_classes=26)  # A-Z positions
+        
+        # Define generation function with Qwen3-specific parameters
+        def generate_answer(model, tokenizer, question, max_length=10):
+            inputs = tokenizer(question, return_tensors="pt").to(model.device)
+            
+            # Configure generation parameters based on thinking mode
+            generation_config = {
+                "max_new_tokens": max_length,
+                "do_sample": True if self.thinking_mode else False,
+                "pad_token_id": tokenizer.pad_token_id,
+            }
+            
+            # Add thinking mode specific parameters
+            if self.thinking_mode:
+                generation_config.update({
+                    "temperature": 0.6,
+                    "top_p": 0.95,
+                    "top_k": 20,
+                    "min_p": 0,
+                })
+            
+            with torch.no_grad():
+                outputs = model.generate(
+                    inputs.input_ids,
+                    **generation_config
+                )
+            
+            response = tokenizer.decode(outputs[0][len(inputs.input_ids[0]):], skip_special_tokens=True)
+            
+            # Extract just the first token/character for letter position or first number for letter count
+            if "How many" in question:
+                # Extract first number
+                import re
+                numbers = re.findall(r'\d+', response)
+                return numbers[0] if numbers else response.strip()
+            else:
+                # Extract first character
+                return response.strip()[0] if response.strip() else ""
+        
+        # Evaluate on letter count questions
+        def evaluate_letter_count(model, tokenizer, dataset):
+            correct = 0
+            total = 0
+            results = []
+            
+            for item in dataset:
+                if item["question_type"] != "letter_count":
+                    continue
+                    
+                prediction = generate_answer(model, tokenizer, item["question"])
+                is_correct = prediction == item["answer"]
+                
+                results.append({
+                    "question": item["question"],
+                    "expected": item["answer"],
+                    "prediction": prediction,
+                    "correct": is_correct
+                })
+                
+                correct += int(is_correct)
+                total += 1
+            
+            accuracy = correct / total if total > 0 else 0
+            print(f"Letter Count Accuracy: {accuracy:.4f} ({correct}/{total})")
+            
+            return accuracy, results
+        
+        # Evaluate on letter position questions
+        def evaluate_letter_position(model, tokenizer, dataset):
+            correct = 0
+            total = 0
+            results = []
+            
+            for item in dataset:
+                if item["question_type"] != "letter_position":
+                    continue
+                    
+                prediction = generate_answer(model, tokenizer, item["question"])
+                is_correct = prediction.lower() == item["answer"].lower()
+                
+                results.append({
+                    "question": item["question"],
+                    "expected": item["answer"],
+                    "prediction": prediction,
+                    "correct": is_correct
+                })
+                
+                correct += int(is_correct)
+                total += 1
+            
+            accuracy = correct / total if total > 0 else 0
+            print(f"Letter Position Accuracy: {accuracy:.4f} ({correct}/{total})")
+            
+            return accuracy, results
+        
+        # Run evaluation
+        count_accuracy, count_results = evaluate_letter_count(model, tokenizer, eval_dataset)
+        position_accuracy, position_results = evaluate_letter_position(model, tokenizer, eval_dataset)
+        
+        # Log results to W&B if requested
+        if self.log_wandb:
+            wandb.log({
+                "letter_count_accuracy": count_accuracy,
+                "letter_position_accuracy": position_accuracy,
+                "thinking_mode": self.thinking_mode,
+                "count_examples": wandb.Table(dataframe=pd.DataFrame(count_results[:20])),
+                "position_examples": wandb.Table(dataframe=pd.DataFrame(position_results[:20]))
+            })
+        
+        # Save results locally
+        metrics_data = {
+            "model": self.model_name,
+            "thinking_mode": self.thinking_mode,
+            "letter_count_accuracy": count_accuracy,
+            "letter_position_accuracy": position_accuracy,
+            "count_results": count_results,
+            "position_results": position_results
+        }
+        
+        # Create a filename that includes the thinking mode information
+        mode_suffix = "thinking" if self.thinking_mode else "standard"
+        metrics_filename = f"metrics_{mode_suffix}.json"
+        
+        with open(f"{self.output_dir}/data/{metrics_filename}", "w") as f:
+            json.dump(metrics_data, f, indent=2)
+        
+        # Generate visualizations
+        from src.evaluation.visualization import create_accuracy_chart, create_error_analysis
+        create_accuracy_chart(metrics_data, f"{self.output_dir}/figures/accuracy_{mode_suffix}.png")
+        create_error_analysis(metrics_data, f"{self.output_dir}/figures/error_analysis_{mode_suffix}.png")
+        
+        # Generate HTML report
+        from src.evaluation.report import generate_html_report
+        generate_html_report(metrics_data, f"{self.output_dir}/reports/baseline_report_{mode_suffix}.html")
+        
+        print(f"Evaluation complete. Results saved to {self.output_dir}")
 
 def main():
     args = parse_args()
     
-    # Create output directories
-    os.makedirs(f"{args.output_dir}/data", exist_ok=True)
-    os.makedirs(f"{args.output_dir}/figures", exist_ok=True)
-    os.makedirs(f"{args.output_dir}/reports", exist_ok=True)
-    
-    # Initialize W&B if requested
-    if args.log_wandb:
-        wandb.init(project="llm-spelling-finetuning", name="baseline-evaluation")
-    
-    # Load base model and tokenizer
-    model_name = args.model
-    model = GPT2LMHeadModel.from_pretrained(model_name)
-    model.eval()
-    tokenizer = GPT2Tokenizer.from_pretrained(model_name)
-    tokenizer.pad_token = tokenizer.eos_token
-    
-    # Load evaluation dataset with multi-token words
-    from datasets import load_dataset
-    eval_dataset = load_dataset("YOUR-USERNAME/llm-spelling-dataset", split="evaluation")
-    
-    # Define generation function
-    def generate_answer(model, tokenizer, question, max_length=10):
-        inputs = tokenizer(question, return_tensors="pt")
-        with torch.no_grad():
-            outputs = model.generate(
-                inputs.input_ids,
-                max_length=len(inputs.input_ids[0]) + max_length,
-                pad_token_id=tokenizer.eos_token_id,
-                do_sample=False
-            )
-        response = tokenizer.decode(outputs[0][len(inputs.input_ids[0]):], skip_special_tokens=True)
-        # Extract just the first token/character for letter position or first number for letter count
-        if "How many" in question:
-            # Extract first number
-            import re
-            numbers = re.findall(r'\d+', response)
-            return numbers[0] if numbers else response.strip()
-        else:
-            # Extract first character
-            return response.strip()[0] if response.strip() else ""
-    
-    # Evaluate on letter count questions
-    def evaluate_letter_count(model, tokenizer, dataset):
-        correct = 0
-        total = 0
-        results = []
+    if args.use_lightning:
+        # Use Lightning.AI for distributed evaluation
+        eval_work = EvaluationWork(
+            model_name=args.model,
+            output_dir=args.output_dir,
+            log_wandb=args.log_wandb,
+            gpu_tier=args.gpu_tier,
+            thinking_mode=args.thinking_mode
+        )
+        app = LightningApp(eval_work)
+        app.run()
+    else:
+        # Create output directories
+        os.makedirs(f"{args.output_dir}/data", exist_ok=True)
+        os.makedirs(f"{args.output_dir}/figures", exist_ok=True)
+        os.makedirs(f"{args.output_dir}/reports", exist_ok=True)
         
-        for item in dataset:
-            if item["question_type"] != "letter_count":
-                continue
+        # Initialize W&B if requested
+        if args.log_wandb:
+            wandb.init(project="llm-spelling-finetuning", name="qwen3-baseline-evaluation")
+        
+        # Load Qwen3-4B model and tokenizer
+        model_name = args.model
+        model = AutoModelForCausalLM.from_pretrained(model_name, device_map="auto", trust_remote_code=True)
+        model.eval()
+        tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
+        
+        # Load evaluation dataset with multi-token words
+        from datasets import load_dataset
+        eval_dataset = load_dataset("YOUR-USERNAME/llm-spelling-dataset", split="evaluation")
+        
+        # Define generation function with Qwen3-specific parameters
+        def generate_answer(model, tokenizer, question, max_length=10):
+            inputs = tokenizer(question, return_tensors="pt").to(model.device)
+            
+            # Configure generation parameters based on thinking mode
+            generation_config = {
+                "max_new_tokens": max_length,
+                "do_sample": True if args.thinking_mode else False,
+                "pad_token_id": tokenizer.pad_token_id,
+            }
+            
+            # Add thinking mode specific parameters
+            if args.thinking_mode:
+                generation_config.update({
+                    "temperature": 0.6,
+                    "top_p": 0.95,
+                    "top_k": 20,
+                    "min_p": 0,
+                })
+            
+            with torch.no_grad():
+                outputs = model.generate(
+                    inputs.input_ids,
+                    **generation_config
+                )
+            
+            response = tokenizer.decode(outputs[0][len(inputs.input_ids[0]):], skip_special_tokens=True)
+            
+            # Extract just the first token/character for letter position or first number for letter count
+            if "How many" in question:
+                # Extract first number
+                import re
+                numbers = re.findall(r'\d+', response)
+                return numbers[0] if numbers else response.strip()
+            else:
+                # Extract first character
+                return response.strip()[0] if response.strip() else ""
+        
+        # Evaluate on letter count questions
+        def evaluate_letter_count(model, tokenizer, dataset):
+            correct = 0
+            total = 0
+            results = []
+            
+            for item in dataset:
+                if item["question_type"] != "letter_count":
+                    continue
+                    
+                prediction = generate_answer(model, tokenizer, item["question"])
+                is_correct = prediction == item["answer"]
                 
-            prediction = generate_answer(model, tokenizer, item["question"])
-            is_correct = prediction == item["answer"]
-            
-            results.append({
-                "question": item["question"],
-                "expected": item["answer"],
-                "prediction": prediction,
-                "correct": is_correct
-            })
-            
-            correct += int(is_correct)
-            total += 1
-        
-        accuracy = correct / total if total > 0 else 0
-        print(f"Letter Count Accuracy: {accuracy:.4f} ({correct}/{total})")
-        
-        return accuracy, results
-    
-    # Evaluate on letter position questions
-    def evaluate_letter_position(model, tokenizer, dataset):
-        correct = 0
-        total = 0
-        results = []
-        
-        for item in dataset:
-            if item["question_type"] != "letter_position":
-                continue
+                results.append({
+                    "question": item["question"],
+                    "expected": item["answer"],
+                    "prediction": prediction,
+                    "correct": is_correct
+                })
                 
-            prediction = generate_answer(model, tokenizer, item["question"])
-            is_correct = prediction.lower() == item["answer"].lower()
+                correct += int(is_correct)
+                total += 1
             
-            results.append({
-                "question": item["question"],
-                "expected": item["answer"],
-                "prediction": prediction,
-                "correct": is_correct
+            accuracy = correct / total if total > 0 else 0
+            print(f"Letter Count Accuracy: {accuracy:.4f} ({correct}/{total})")
+            
+            return accuracy, results
+        
+        # Evaluate on letter position questions
+        def evaluate_letter_position(model, tokenizer, dataset):
+            correct = 0
+            total = 0
+            results = []
+            
+            for item in dataset:
+                if item["question_type"] != "letter_position":
+                    continue
+                    
+                prediction = generate_answer(model, tokenizer, item["question"])
+                is_correct = prediction.lower() == item["answer"].lower()
+                
+                results.append({
+                    "question": item["question"],
+                    "expected": item["answer"],
+                    "prediction": prediction,
+                    "correct": is_correct
+                })
+                
+                correct += int(is_correct)
+                total += 1
+            
+            accuracy = correct / total if total > 0 else 0
+            print(f"Letter Position Accuracy: {accuracy:.4f} ({correct}/{total})")
+            
+            return accuracy, results
+        
+        # Run evaluation
+        count_accuracy, count_results = evaluate_letter_count(model, tokenizer, eval_dataset)
+        position_accuracy, position_results = evaluate_letter_position(model, tokenizer, eval_dataset)
+        
+        # Log results to W&B if requested
+        if args.log_wandb:
+            wandb.log({
+                "letter_count_accuracy": count_accuracy,
+                "letter_position_accuracy": position_accuracy,
+                "thinking_mode": args.thinking_mode,
+                "count_examples": wandb.Table(dataframe=pd.DataFrame(count_results[:20])),
+                "position_examples": wandb.Table(dataframe=pd.DataFrame(position_results[:20]))
             })
-            
-            correct += int(is_correct)
-            total += 1
         
-        accuracy = correct / total if total > 0 else 0
-        print(f"Letter Position Accuracy: {accuracy:.4f} ({correct}/{total})")
-        
-        return accuracy, results
-    
-    # Run evaluation
-    count_accuracy, count_results = evaluate_letter_count(model, tokenizer, eval_dataset)
-    position_accuracy, position_results = evaluate_letter_position(model, tokenizer, eval_dataset)
-    
-    # Log results to W&B if requested
-    if args.log_wandb:
-        wandb.log({
+        # Save results locally
+        metrics_data = {
+            "model": model_name,
+            "thinking_mode": args.thinking_mode,
             "letter_count_accuracy": count_accuracy,
             "letter_position_accuracy": position_accuracy,
-            "count_examples": wandb.Table(dataframe=pd.DataFrame(count_results[:20])),
-            "position_examples": wandb.Table(dataframe=pd.DataFrame(position_results[:20]))
-        })
-    
-    # Save results locally
-    metrics_data = {
-        "letter_count_accuracy": count_accuracy,
-        "letter_position_accuracy": position_accuracy,
-        "count_results": count_results,
-        "position_results": position_results
-    }
-    
-    with open(f"{args.output_dir}/data/metrics.json", "w") as f:
-        json.dump(metrics_data, f, indent=2)
-    
-    # Generate visualizations
-    from src.evaluation.visualization import create_accuracy_chart, create_error_analysis
-    create_accuracy_chart(metrics_data, f"{args.output_dir}/figures/accuracy.png")
-    create_error_analysis(metrics_data, f"{args.output_dir}/figures/error_analysis.png")
-    
-    # Generate HTML report
-    from src.evaluation.report import generate_html_report
-    generate_html_report(metrics_data, f"{args.output_dir}/reports/baseline_report.html")
-    
-    print(f"Evaluation complete. Results saved to {args.output_dir}")
+            "count_results": count_results,
+            "position_results": position_results
+        }
+        
+        # Create a filename that includes the thinking mode information
+        mode_suffix = "thinking" if args.thinking_mode else "standard"
+        metrics_filename = f"metrics_{mode_suffix}.json"
+        
+        with open(f"{args.output_dir}/data/{metrics_filename}", "w") as f:
+            json.dump(metrics_data, f, indent=2)
+        
+        # Generate visualizations
+        from src.evaluation.visualization import create_accuracy_chart, create_error_analysis
+        create_accuracy_chart(metrics_data, f"{args.output_dir}/figures/accuracy_{mode_suffix}.png")
+        create_error_analysis(metrics_data, f"{args.output_dir}/figures/error_analysis_{mode_suffix}.png")
+        
+        # Generate HTML report
+        from src.evaluation.report import generate_html_report
+        generate_html_report(metrics_data, f"{args.output_dir}/reports/baseline_report_{mode_suffix}.html")
+        
+        print(f"Evaluation complete. Results saved to {args.output_dir}")
 
 if __name__ == "__main__":
     main()
 ```
 
 # Test Strategy:
-1. Verify the evaluation scripts run without errors
-2. Test command-line arguments for flexibility
+1. Verify the evaluation scripts run without errors with Qwen3-4B model
+2. Test command-line arguments for flexibility, including Lightning.AI specific arguments and thinking mode toggle
 3. Confirm output format is correct (single integer for count, single letter for position)
-4. Check that results are properly logged to W&B when specified
-5. Verify baseline performance metrics are saved to `results/evaluation/data/metrics.json`
-6. Ensure visualizations are correctly generated in `results/evaluation/figures/`
-7. Validate HTML reports are generated in `results/evaluation/reports/`
+4. Check that results are properly logged to W&B when specified, including thinking mode parameter
+5. Verify baseline performance metrics are saved to `results/evaluation/data/metrics_thinking.json` and `results/evaluation/data/metrics_standard.json`
+6. Ensure visualizations are correctly generated in `results/evaluation/figures/` for both thinking and standard modes
+7. Validate HTML reports are generated in `results/evaluation/reports/` for both thinking and standard modes
 8. Test error handling for edge cases
-9. Analyze error patterns in baseline model predictions and document in `results/evaluation/data/analysis.json`
-10. Ensure documentation is complete in `docs/evaluation.md`, `docs/metrics.md`, and `docs/baseline_results.md`
+9. Analyze error patterns in Qwen3-4B model predictions and document in `results/evaluation/data/analysis.json`
+10. Ensure documentation is complete in `docs/evaluation.md`, `docs/metrics.md`, `docs/baseline_results.md`, and `docs/lightning_studio_setup.md`
 11. Verify that the Python scripts can be imported and used as modules by other components
 12. Confirm the evaluation correctly uses multi-token words for position and count tasks
 13. Validate that the evaluation framework properly measures transfer learning effectiveness
 14. Test for correlation analysis between spelling training and position/count task performance
+15. Verify Lightning.AI Studio setup and configuration works correctly with Qwen3-4B's memory requirements
+16. Test GPU switching functionality (CPU → T4 → A100) for cost optimization
+17. Validate TorchMetrics integration for distributed evaluation
+18. Test automated job submission for batch evaluations with both thinking and non-thinking modes
+19. Verify environment isolation and dependency management in Lightning.AI Studio
+20. Compare performance between thinking and non-thinking modes to determine optimal configuration
+21. Test English-only token subset focus in evaluation
 
 # Subtasks:
 ## 1. Evaluation Framework Setup [pending]
@@ -263,4 +494,40 @@ Develop APIs for integration with model training pipelines. Implement webhooks f
 ### Description: Implement analysis of transfer learning from spelling training to position/count tasks
 ### Details:
 Develop metrics to quantify transfer learning effectiveness. Create visualization tools to show correlation between spelling training and position/count task performance. Implement statistical analysis to identify significant patterns. Design experiments to test different transfer learning hypotheses. Document findings in comprehensive reports.
+
+## 10. Lightning.AI Studio Setup [pending]
+### Dependencies: 5.1
+### Description: Configure dedicated Lightning.AI Studio for evaluation tasks
+### Details:
+Create a dedicated evaluation Studio following the "one Studio, one task" principle. Configure proper environment isolation and dependency management. Set up shared filesystem access for models and datasets. Implement GPU switching functionality (CPU → T4 → A100) for cost optimization. Create configuration files for Lightning.AI Studio setup.
+
+## 11. TorchMetrics Integration [pending]
+### Dependencies: 5.2, 5.10
+### Description: Implement evaluation metrics using TorchMetrics for optimized distributed evaluation
+### Details:
+Refactor existing metrics to use TorchMetrics for better performance in distributed environments. Implement custom TorchMetrics classes for specialized evaluation needs. Ensure metrics are properly synchronized across distributed processes. Add support for metric serialization and deserialization for result persistence.
+
+## 12. Automated Job Submission [pending]
+### Dependencies: 5.10, 5.11
+### Description: Set up automated job submission for batch evaluations
+### Details:
+Implement batch job submission system for running multiple evaluations. Create job templates for different evaluation scenarios. Set up job scheduling and prioritization. Implement notification system for job completion. Design job monitoring dashboard for tracking evaluation progress.
+
+## 13. Lightning.AI Documentation [pending]
+### Dependencies: 5.10, 5.11, 5.12
+### Description: Create comprehensive documentation for Lightning.AI Studio setup and usage
+### Details:
+Document Lightning.AI Studio setup process. Create tutorials for running evaluations in Lightning.AI. Document GPU switching functionality and cost optimization strategies. Include troubleshooting guides for common issues. Create reference documentation for all Lightning.AI specific configuration options.
+
+## 14. Qwen3-4B Thinking Mode Implementation [pending]
+### Dependencies: 5.1, 5.2
+### Description: Implement and evaluate Qwen3-4B's thinking mode capabilities
+### Details:
+Configure Qwen3-4B's thinking mode with specified parameters (Temperature=0.6, TopP=0.95, TopK=20, MinP=0). Implement comparison framework to evaluate performance differences between thinking and non-thinking modes. Create visualization tools to highlight performance differences. Document best practices for using thinking mode in different evaluation scenarios.
+
+## 15. English-only Token Subset Focus [pending]
+### Dependencies: 5.1, 5.14
+### Description: Configure evaluation to focus on English-only token subset
+### Details:
+Implement filtering mechanisms to focus evaluation on English-only token subset. Create analysis tools to measure performance differences between full vocabulary and English-only subset. Document impact of token subset focus on evaluation results. Implement visualization tools to highlight performance differences across token subsets.
 

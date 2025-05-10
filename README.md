@@ -4,10 +4,17 @@
 
 This project explores whether training a language model (LLM) on spelling tasks improves its ability to answer position and count questions about words. The experiment is structured using Taskmaster for rigorous, task-driven development and reproducibility.
 
+## Qwen3-4B Migration
+
+- The project now uses the Qwen3-4B model, which supports both thinking and non-thinking modes.
+- Only the English token subset (~50k tokens) is used for all experiments.
+- Model configuration uses specific sampling parameters: Temperature=0.6, TopP=0.95, TopK=20, MinP=0 (for thinking mode).
+- All scripts, data, and evaluation are Qwen3-4B-specific.
+
 ## Goals
 
 - Build a dataset for spelling, position, and count questions.
-- Train and fine-tune a GPT-2 model (or similar) using Unsloth and LoRA optimizations.
+- Train and fine-tune a Qwen3-4B model using Unsloth and LoRA optimizations.
 - Evaluate if spelling training improves model performance on position and count metrics using a true hold-out set.
 
 ## Project Structure
@@ -148,7 +155,7 @@ Whenever you add new packages, always run `uv pip freeze > requirements.txt` aga
 
 ### 5. Dataset Creation
 
-The project uses a template-based system to generate diverse training examples:
+The project uses a template-based system to generate diverse training examples. All tokenization and example generation use the Qwen3-4B tokenizer and the English-only token subset.
 
 #### Template System
 
@@ -231,7 +238,7 @@ The data loader provides:
 
 ### 6. Analysis Tools
 
-The project includes two main analysis scripts for understanding template patterns and performance:
+All analysis scripts use the Qwen3-4B tokenizer and support both thinking and non-thinking modes. See `docs/analysis.md` for details.
 
 #### Template Analysis (`src/analysis/template_analysis.py`)
 
@@ -273,10 +280,10 @@ Both scripts use shared visualization utilities from `src/analysis/visualization
 
 ### 7. Model Training & Evaluation
 
-- **Local Mac:** Only run code that does not require GPU, Unsloth, or xformers.
-- **For Unsloth-based fine-tuning or any GPU-dependent workflow:**
-  - Use [Google Colab](https://colab.research.google.com/) or [Lightning.ai](https://lightning.ai/lars/home).
-  - See the section below for cloud workflow instructions.
+- All training and evaluation use Qwen3-4B and the English-only token subset.
+- Select the correct mode (thinking/non-thinking) and configure sampling parameters as described above.
+- For Unsloth-based fine-tuning or any GPU-dependent workflow, use [Google Colab](https://colab.research.google.com/) or [Lightning.ai](https://lightning.ai/lars/home).
+- See the section below for cloud workflow instructions.
 - Experiments are tracked with W&B.
 - Evaluation focuses on position and count question metrics, using the hold-out set for true generalization measurement.
 
@@ -336,6 +343,8 @@ Both scripts use shared visualization utilities from `src/analysis/visualization
 - `.env.example` — Environment variable template
 - `.env` — Local environment (not committed)
 - `README.md` — Project documentation
+- `docs/token_extraction.md` — Qwen3-4B token extraction and English-only subset documentation
+- `docs/analysis.md` — Analysis tools and mode-specific evaluation
 
 ## Contribution Guidelines
 
