@@ -13,6 +13,7 @@ This project explores whether training a language model (LLM) on spelling tasks 
 - Only the English token subset (~50k tokens) is used for all experiments.
 - Model configuration uses specific sampling parameters: Temperature=0.6, TopP=0.95, TopK=20, MinP=0 (for non-thinking mode).
 - All scripts, data, and evaluation are Qwen3-4B-specific.
+- **Project policy audit (2024-06-11):** The entire codebase, documentation, and configuration were audited. All code, configs, and docs strictly enforce non-thinking mode. No references to thinking mode remain except as explicit prohibitions. See `/docs/analysis.md`, `/docs/templates.md`, `/docs/data_format.md`, and `/docs/token_extraction.md` for details.
 
 ## Task 14.1: Qwen3-4B Model Setup (Status: DONE)
 
@@ -250,7 +251,7 @@ The data loader provides:
 
 ### 6. Analysis Tools
 
-All analysis scripts use the Qwen3-4B tokenizer and support both thinking and non-thinking modes. See `docs/analysis.md` for details.
+All analysis scripts use the Qwen3-4B tokenizer and support only non-thinking mode. See `/docs/analysis.md` for details.
 
 #### Template Analysis (`src/analysis/template_analysis.py`)
 

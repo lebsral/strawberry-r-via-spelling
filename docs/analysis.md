@@ -6,6 +6,8 @@ This document describes the analysis tools available in the project for understa
 
 **Project Policy:** Qwen3-4B is always used in non-thinking mode (enable_thinking=False) for all analysis and evaluation. Thinking mode is strictly prohibited and enforced in code. Any attempt to use thinking mode will raise an error.
 
+**Audit (2024-06-11):** The codebase, documentation, and configuration were audited. No references to thinking mode remain except as explicit prohibitions. All analysis tools, scripts, and documentation are compliant. See the README for summary and policy details.
+
 ## Updated Workflow (Post-Task 14.1)
 
 - All analysis scripts use the Qwen3-4B **tokenizer** by default for data and template analysis.

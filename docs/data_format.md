@@ -257,6 +257,8 @@ All data formats in this project are designed for compatibility with the Qwen3-4
 
 **Project Policy:** Qwen3-4B is always used in non-thinking mode (enable_thinking=False) for all data processing and evaluation. Thinking mode is strictly prohibited and enforced in code. Any attempt to use thinking mode will raise an error.
 
+**Audit (2024-06-11):** The codebase, documentation, and configuration were audited. No references to thinking mode remain except as explicit prohibitions. All data processing tools, scripts, and documentation are compliant. See the README for summary and policy details.
+
 ## Evaluation Fields
 
 - Only position and character count are used for evaluation.
