@@ -11,13 +11,13 @@ This task involves converting all existing training datasets and evaluation fram
 To verify task completion, perform the following: (1) Run the updated training pipeline with the converted datasets and confirm that the model trains without errors; (2) Execute the evaluation framework with non-thinking mode only (enable_thinking=False), ensuring that all metrics are reported correctly and that the results are consistent with the original experiment; (3) Validate that all scripts and utilities function as expected with the new tokenizer and model configuration, with no references to thinking mode; (4) Compare the results of the original and converted pipelines to ensure that the integrity of the experiment is maintained; (5) Review updated documentation for accuracy and completeness, confirming it clearly states that only non-thinking mode is allowed. Automated tests should be added where possible to catch regressions in data processing, tokenization, and evaluation logic, including tests that verify thinking mode is never enabled.
 
 # Subtasks:
-## 1. Convert Training Datasets to Qwen3-4B English-Only Tokenizer Format [pending]
+## 1. Convert Training Datasets to Qwen3-4B English-Only Tokenizer Format [done]
 ### Dependencies: None
 ### Description: Transform all existing training datasets to be compatible with the Qwen3-4B tokenizer, ensuring only English tokens are included as required by the English-only subset.
 ### Details:
 Analyze the Qwen3-4B tokenizer specifications and preprocess datasets to filter out non-English tokens, reformatting data as needed for model ingestion.
 
-## 2. Update Evaluation Framework for Qwen3-4B Non-Thinking Mode [pending]
+## 2. Update Evaluation Framework for Qwen3-4B Non-Thinking Mode [done]
 ### Dependencies: 15.1
 ### Description: Adapt the evaluation framework to support Qwen3-4B in non-thinking mode only, and update evaluation metrics and scripts accordingly.
 ### Details:

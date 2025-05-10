@@ -1817,7 +1817,7 @@
           "description": "Transform all existing training datasets to be compatible with the Qwen3-4B tokenizer, ensuring only English tokens are included as required by the English-only subset.",
           "dependencies": [],
           "details": "Analyze the Qwen3-4B tokenizer specifications and preprocess datasets to filter out non-English tokens, reformatting data as needed for model ingestion.",
-          "status": "pending",
+          "status": "done",
           "testStrategy": "Validate that all tokens in the converted datasets are recognized by the Qwen3-4B tokenizer and that sample batches can be tokenized without errors."
         },
         {
@@ -1828,7 +1828,7 @@
             1
           ],
           "details": "Review Qwen3-4B's API and modify evaluation scripts to always use non-thinking mode (enable_thinking=False), removing any code that references or enables thinking mode or <think> blocks, and ensure metrics capture relevant model behaviors in non-thinking mode only.",
-          "status": "pending",
+          "status": "done",
           "testStrategy": "Run evaluation on sample data with non-thinking mode and verify that outputs and metrics are correctly captured. Confirm that no thinking mode functionality is present in the code."
         },
         {
