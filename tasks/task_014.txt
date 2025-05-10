@@ -1,6 +1,6 @@
 # Task ID: 14
 # Title: Migrate to Qwen3-4B Model with English Token Filtering and Mode Support
-# Status: pending
+# Status: done
 # Dependencies: None
 # Priority: high
 # Description: Analyze and integrate the Qwen3-4B model into the codebase, extract English-only tokens from its tokenizer, and update model loading, configuration, and inference logic to support Qwen3-4B's unique features, focusing exclusively on non-thinking mode operation.
@@ -406,7 +406,7 @@ The audit of the codebase for thinking mode references has been completed with t
    - Proceed to the next subtask for removing GPT-2 references and completing migration to Qwen3-4B
 </info added on 2025-05-10T12:38:51.017Z>
 
-## 7. Remove GPT-2 references and fully migrate to Qwen3-4B [pending]
+## 7. Remove GPT-2 references and fully migrate to Qwen3-4B [done]
 ### Dependencies: None
 ### Description: Update all configuration files, scripts, and code to remove references to GPT-2 and ensure Qwen3-4B is the default model for all workflows. This includes updating the model name in configs, ensuring model loaders use the config value, updating documentation, and cleaning up any GPT-2-specific scripts or tokenizers.
 ### Details:
@@ -416,4 +416,37 @@ The audit of the codebase for thinking mode references has been completed with t
 - Update documentation and comments to reference Qwen3-4B as the default model.
 - Ensure all test and evaluation scripts work with Qwen3-4B.
 - Clean up any remaining GPT-2 artifacts or dependencies.
+<info added on 2025-05-10T12:48:52.765Z>
+## Implementation Plan for Qwen3-4B Migration
+
+### 1. Remove/Replace All GPT-2-Specific Code and Artifacts
+- Delete src/data/token_extractor.py as it's entirely GPT-2-specific (all extraction now uses Qwen3-4B)
+- Remove or rewrite src/data/create_notebook.py to validate Qwen3-4B English token extraction with english_tokens.json
+- Update notebooks/token_validation.ipynb:
+  - Change title and markdown to reference Qwen3-4B
+  - Update code to use english_tokens.json instead of gpt2_letter_tokens.json
+- Update scripts/test_evaluation.py:
+  - Replace all instances of 'sshleifer/tiny-gpt2' with 'Qwen/Qwen3-4B'
+  - Ensure model/tokenizer loading uses config values, not hardcoded references
+- In configs/evaluation/base_config.yaml:
+  - Change model.name to 'Qwen/Qwen3-4B'
+  - Update wandb.run_name from 'gpt2_evaluation' to 'qwen3_evaluation'
+- Delete data/processed/gpt2_letter_tokens.json if present
+- Update tasks/tasks.json to remove or update any tasks referencing GPT-2
+
+### 2. Update Documentation
+- Review and update README.md to remove GPT-2 references
+- Update docs/token_extraction.md to describe only Qwen3-4B workflows
+
+### 3. Update/Remove Downstream References
+- Identify and update all code referencing gpt2_letter_tokens.json to use english_tokens.json
+- Check for hardcoded paths or logic specific to GPT-2 that need refactoring
+- Verify downstream analysis or data processing works with the new token file format
+
+### 4. Clean Up and Verification
+- Remove any remaining GPT-2 artifacts, outputs, or dependencies
+- Run all scripts to ensure they work with Qwen3-4B
+- Verify all configs and documentation are Qwen3-4B-only
+- Document any breaking changes for other team members
+</info added on 2025-05-10T12:48:52.765Z>
 

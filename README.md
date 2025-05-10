@@ -6,11 +6,11 @@ This project explores whether training a language model (LLM) on spelling tasks 
 
 ## Qwen3-4B Migration
 
-- The project now uses the Qwen3-4B model, which **must always be used in non-thinking mode (enable_thinking=False)**. Thinking mode is strictly prohibited by project policy and enforced in code. Any attempt to use thinking mode will raise an error.
+- The project uses the Qwen3-4B model exclusively, always in non-thinking mode (`enable_thinking=False`). Thinking mode is strictly prohibited and enforced in code. Any attempt to use thinking mode will raise an error.
 - **Tokenizer-only workflows are the default for all data preparation and token extraction tasks.**
 - The full model is only loaded for inference or evaluation, not for data prep.
 - Scripts and imports are enforced to follow the `src/` layout, and a Cursor rule prevents import errors (see `.cursor/rules/module_imports.mdc`).
-- Only the English token subset (~50k tokens) is used for all experiments.
+- Only the English token subset (~50k tokens, see `english_tokens.json`) is used for all experiments.
 - Model configuration uses specific sampling parameters: Temperature=0.6, TopP=0.95, TopK=20, MinP=0 (for non-thinking mode).
 - All scripts, data, and evaluation are Qwen3-4B-specific.
 - **Project policy audit (2024-06-11):** The entire codebase, documentation, and configuration were audited. All code, configs, and docs strictly enforce non-thinking mode. No references to thinking mode remain except as explicit prohibitions. See `/docs/analysis.md`, `/docs/templates.md`, `/docs/data_format.md`, and `/docs/token_extraction.md` for details.

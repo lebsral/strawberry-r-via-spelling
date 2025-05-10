@@ -53,4 +53,4 @@ logging:
   wandb:  # Weights & Biases logging
     enabled: false
     project: "spelling_evaluation"
-    run_name: "gpt2_evaluation"
+    run_name: "qwen3_evaluation"

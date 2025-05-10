@@ -128,7 +128,7 @@ def main():
         # Create a simple configuration
         config = {
             "model": {
-                "name": "sshleifer/tiny-gpt2",
+                "name": "Qwen/Qwen3-4B",
                 "max_new_tokens": 5,
                 "temperature": 0.1,
                 "do_sample": True,
@@ -157,12 +157,13 @@ def main():
         }
 
         logger.info("Loading model and tokenizer...")
+        model_name = config["model"]["name"]
         model = AutoModelForCausalLM.from_pretrained(
-            "sshleifer/tiny-gpt2",
+            model_name,
             low_cpu_mem_usage=True,
             torch_dtype=torch.float32
         )
-        tokenizer = AutoTokenizer.from_pretrained("sshleifer/tiny-gpt2")
+        tokenizer = AutoTokenizer.from_pretrained(model_name)
 
         # Ensure the model has padding and EOS tokens
         if tokenizer.pad_token is None:
