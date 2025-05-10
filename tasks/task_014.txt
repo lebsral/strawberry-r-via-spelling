@@ -317,17 +317,50 @@ Special considerations:
 - Ensure the filtered token set maintains coherence for English text processing
 </info added on 2025-05-10T10:14:27.786Z>
 
-## 3. Implement non-thinking mode support [pending]
+## 3. Implement non-thinking mode support [done]
 ### Dependencies: 14.1
 ### Description: Update the inference logic to ensure Qwen3-4B is always used in non-thinking mode, following project policy.
 ### Details:
 Modify the chat template application to explicitly set 'enable_thinking=False' in the tokenizer's apply_chat_template method. Create utility functions for generating responses that enforce non-thinking mode. Add safeguards to prevent accidental use of thinking mode. Document the implementation to make it clear that only non-thinking mode is supported per project policy.
 
-## 4. Configure model-specific sampling parameters [pending]
+## 4. Configure model-specific sampling parameters [done]
 ### Dependencies: 14.3
 ### Description: Implement and configure appropriate sampling parameters for Qwen3-4B in non-thinking mode operation.
 ### Details:
 Create a configuration system for Qwen3-4B sampling parameters with reasonable defaults for non-thinking mode. Make these parameters configurable through API or configuration files. Implement parameter validation to ensure values are within acceptable ranges. Update the model generation code to apply these parameters during inference. Document recommended parameter settings for different use cases, all within non-thinking mode operation.
+<info added on 2025-05-10T12:00:04.119Z>
+Create a configuration system for Qwen3-4B sampling parameters with reasonable defaults for non-thinking mode. Make these parameters configurable through API or configuration files. Implement parameter validation to ensure values are within acceptable ranges. Update the model generation code to apply these parameters during inference. Document recommended parameter settings for different use cases, all within non-thinking mode operation.
+
+Implementation plan based on codebase exploration and official Qwen3/Unsloth recommendations:
+
+1. Add support for all recommended sampling parameters for Qwen3-4B non-thinking mode:
+   - temperature: Controls randomness in generation (higher = more random)
+   - top_p: Nucleus sampling parameter (cumulative probability threshold)
+   - top_k: Limits vocabulary to top k tokens during sampling
+   - min_p: Minimum probability filtering relative to the most likely token
+
+2. Update the EvaluationConfig dataclass and YAML configuration format to include these parameters with the following defaults:
+   - temperature: 0.6
+   - top_p: 0.95
+   - top_k: 20
+   - min_p: 0.0
+
+3. Modify the model inference code to explicitly pass all sampling parameters to model.generate() function calls.
+
+4. Implement parameter validation logic to ensure all values fall within recommended ranges:
+   - temperature: 0.0 to 2.0 (0.0 = deterministic)
+   - top_p: 0.0 to 1.0
+   - top_k: 0 to infinity (0 = disabled)
+   - min_p: 0.0 to 1.0 (0.0 = disabled)
+
+5. Add comprehensive documentation for each parameter in both code comments and configuration templates, with references to Unsloth and Qwen3 official documentation.
+
+6. Ensure all implementation is strictly focused on non-thinking mode operation, maintaining alignment with project requirements.
+
+References:
+- Unsloth documentation: https://docs.unsloth.ai/basics/qwen3-how-to-run-and-fine-tune
+- Qwen3 example notebook: https://colab.research.google.com/github/unslothai/notebooks/blob/main/nb/Qwen3_(14B)-Reasoning-Conversational.ipynb
+</info added on 2025-05-10T12:00:04.119Z>
 
 ## 5. Integrate Qwen3-4B into existing codebase and document changes [pending]
 ### Dependencies: 14.1, 14.2, 14.3, 14.4
@@ -340,4 +373,15 @@ Update model factory or loading mechanisms to recognize and properly initialize 
 ### Description: Perform a comprehensive audit of the codebase to ensure all thinking mode references are removed or disabled.
 ### Details:
 Scan the entire codebase for any references to thinking mode, <think> blocks, or enable_thinking parameter. Create a checklist of all files and functions that need modification. Implement changes to ensure thinking mode is never enabled. Update comments, documentation, and variable names to reflect the non-thinking mode policy. Create automated tests that verify thinking mode is never enabled in any code path.
+
+## 7. Remove GPT-2 references and fully migrate to Qwen3-4B [pending]
+### Dependencies: None
+### Description: Update all configuration files, scripts, and code to remove references to GPT-2 and ensure Qwen3-4B is the default model for all workflows. This includes updating the model name in configs, ensuring model loaders use the config value, updating documentation, and cleaning up any GPT-2-specific scripts or tokenizers.
+### Details:
+- Change model.name in configs/evaluation/base_config.yaml to 'Qwen/Qwen3-4B'.
+- Update model loading code to use the config value, not hardcoded model names.
+- Remove or refactor scripts that use GPT-2-specific tokenizers (e.g., src/data/token_extractor.py).
+- Update documentation and comments to reference Qwen3-4B as the default model.
+- Ensure all test and evaluation scripts work with Qwen3-4B.
+- Clean up any remaining GPT-2 artifacts or dependencies.
 

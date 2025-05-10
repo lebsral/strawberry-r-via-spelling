@@ -34,8 +34,11 @@ class EvaluationConfig:
     wandb_enabled: bool
     wandb_project: str
     wandb_run_name: str
-    temperature: float = 1.0  # Default arguments at the end
-    logging_level: str = "INFO"  # Default arguments at the end
+    temperature: float = 0.6  # Qwen3-4B non-thinking default
+    top_p: float = 0.95       # Qwen3-4B non-thinking default
+    top_k: int = 20           # Qwen3-4B non-thinking default
+    min_p: float = 0.0        # Qwen3-4B non-thinking default
+    logging_level: str = "INFO"
 
     @classmethod
     def from_yaml(cls, config_path: str) -> 'EvaluationConfig':
@@ -48,7 +51,10 @@ class EvaluationConfig:
             max_new_tokens=config['model']['max_new_tokens'],
             do_sample=config['model']['do_sample'],
             num_beams=config['model']['num_beams'],
-            temperature=config['model'].get('temperature', 1.0),  # Get temperature with default
+            temperature=config['model'].get('temperature', 0.6),
+            top_p=config['model'].get('top_p', 0.95),
+            top_k=config['model'].get('top_k', 20),
+            min_p=config['model'].get('min_p', 0.0),
             batch_size=config['evaluation']['batch_size'],
             max_examples=config['evaluation']['max_examples'],
             metrics=config['evaluation']['metrics'],
@@ -68,7 +74,10 @@ class EvaluationConfig:
             max_new_tokens=config['model']['max_new_tokens'],
             do_sample=config['model']['do_sample'],
             num_beams=config['model']['num_beams'],
-            temperature=config['model'].get('temperature', 1.0),  # Get temperature with default
+            temperature=config['model'].get('temperature', 0.6),
+            top_p=config['model'].get('top_p', 0.95),
+            top_k=config['model'].get('top_k', 20),
+            min_p=config['model'].get('min_p', 0.0),
             batch_size=config['evaluation']['batch_size'],
             max_examples=config['evaluation']['max_examples'],
             metrics=config['evaluation']['metrics'],
@@ -122,6 +131,12 @@ class BaseEvaluator(ABC):
         """Generate model response for a question."""
         self.logger.debug(f"Generating answer for question: {question}")
 
+        # Parameter validation
+        assert 0.0 <= self.config.temperature <= 2.0, "temperature must be in [0.0, 2.0]"
+        assert 0.0 <= self.config.top_p <= 1.0, "top_p must be in [0.0, 1.0]"
+        assert self.config.top_k >= 0, "top_k must be >= 0"
+        assert 0.0 <= self.config.min_p <= 1.0, "min_p must be in [0.0, 1.0]"
+
         try:
             # Clear CUDA cache if using GPU
             if torch.cuda.is_available():
@@ -150,7 +165,10 @@ class BaseEvaluator(ABC):
                     max_new_tokens=self.config.max_new_tokens,
                     num_beams=self.config.num_beams,
                     do_sample=self.config.do_sample,
-                    temperature=self.config.temperature,  # Add temperature parameter
+                    temperature=self.config.temperature,
+                    top_p=self.config.top_p,
+                    top_k=self.config.top_k,
+                    min_p=self.config.min_p,
                     pad_token_id=self.tokenizer.pad_token_id,
                     eos_token_id=self.tokenizer.eos_token_id
                 )
@@ -210,7 +228,10 @@ class EvaluationFramework:
             max_new_tokens=config['model']['max_new_tokens'],
             do_sample=config['model']['do_sample'],
             num_beams=config['model']['num_beams'],
-            temperature=config['model'].get('temperature', 1.0),  # Get temperature with default
+            temperature=config['model'].get('temperature', 0.6),
+            top_p=config['model'].get('top_p', 0.95),
+            top_k=config['model'].get('top_k', 20),
+            min_p=config['model'].get('min_p', 0.0),
             batch_size=config['evaluation']['batch_size'],
             max_examples=config['evaluation']['max_examples'],
             metrics=config['evaluation']['metrics'],
@@ -235,3 +256,9 @@ class EvaluationFramework:
             self.logger.info(f"Running evaluation with {name}")
             results[name] = evaluator.evaluate(data)
         return results
+
+if __name__ == "__main__":
+    config = EvaluationConfig.from_yaml("configs/evaluation/base_config.yaml")
+    print("Loaded config:")
+    print(config)
+    # Optionally, instantiate a dummy model/tokenizer and call generate_answer

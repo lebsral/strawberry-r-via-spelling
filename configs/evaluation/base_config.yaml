@@ -2,10 +2,14 @@
 
 # Model settings
 model:
-  name: "gpt2"  # Base model to evaluate
+  name: "Qwen/Qwen3-4B"  # Use the correct Hugging Face model ID
   max_new_tokens: 10  # Reduced for direct answers
   do_sample: false  # Use greedy decoding for deterministic results
   num_beams: 1  # Single beam for simple answers
+  temperature: 0.6  # Qwen3-4B non-thinking default (controls randomness)
+  top_p: 0.95      # Qwen3-4B non-thinking default (nucleus sampling)
+  top_k: 20        # Qwen3-4B non-thinking default (top-k sampling)
+  min_p: 0.0       # Qwen3-4B non-thinking default (minimum probability filter)
 
 # Evaluation settings
 evaluation:
