@@ -93,12 +93,19 @@ class TokenizerValidator:
         Returns:
             True if the template is valid, False otherwise
         """
-        # Replace template variables with sample content
-        sample_text = template.format(
-            word="example",
-            letters="e x a m p l e"
-        )
-
+        # Provide all possible variables with sample values
+        sample_kwargs = {
+            "word": "example",
+            "letters": "e x a m p l e",
+            "letter": "e",
+            "n": 1,
+            "ordinal": "1st",
+            "ordinal_word": "first"
+        }
+        try:
+            sample_text = template.format(**sample_kwargs)
+        except Exception:
+            return False
         # For validation, we only care about ASCII compatibility
         return all(ord(c) < 128 for c in sample_text)
 

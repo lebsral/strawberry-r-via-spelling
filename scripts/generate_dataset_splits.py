@@ -22,7 +22,8 @@ WORDS_ALPHA_PATH = Path("data/raw/words_alpha.txt")
 MULTI_TOKEN_VAL_PATH = OUTPUT_DIR / "val_char_questions_multi_token.json"
 MULTI_TOKEN_TEST_PATH = OUTPUT_DIR / "test_char_questions_multi_token.json"
 MULTI_TOKEN_SAMPLE_SIZE = 10000
-QWEN_MODEL_NAME = "Qwen/Qwen1.5-4B"
+QWEN_MODEL_NAME = "unsloth/Qwen3-4B"  # Use this for data generation and fine-tuning with Unsloth
+# For inference/deployment with llama.cpp, Ollama, etc., use the GGUF model: https://huggingface.co/unsloth/Qwen3-4B-GGUF
 
 # Load tokens
 def load_tokens(words_alpha_set=None):
@@ -71,28 +72,37 @@ def main():
     print("Generating training (spelling) examples...")
     spelling_categories = ["spelling_first", "word_first", "structured"]
     train_examples = []
-    for word in tokens:
-        # For each spelling category, generate one example per word
+    for i, word in enumerate(tokens):
         for category in spelling_categories:
+            if i < 10 or (i + 1) % 1000 == 0:
+                print(f"Generating example for word: {word}, category: {category} (index {i})")
             train_examples.append(generator.generate_example(word, category=category))
+            if i < 10 or (i + 1) % 1000 == 0:
+                print(f"Finished example for word: {word}, category: {category} (index {i})")
+        if (i + 1) % 1000 == 0 or (i + 1) == len(tokens):
+            print(f"  Progress: {i + 1}/{len(tokens)} words processed ({(i + 1) * len(spelling_categories)} examples)...")
     print(f"Training set: {len(train_examples)} examples.")
 
     # 2. Validation set: character count, character position, and count_letter questions
     print("Generating validation (character questions) examples...")
     val_examples = []
-    for word in val_tokens:
+    for i, word in enumerate(val_tokens):
         val_examples.append(generator.generate_char_count_example(word))
         val_examples.extend(generator.generate_char_position_examples(word, positions=[random.randint(1, len(word))]))
         val_examples.append(generator.generate_count_letter_example(word))
+        if (i + 1) % 1000 == 0 or (i + 1) == len(val_tokens):
+            print(f"  Validation progress: {i + 1}/{len(val_tokens)} words processed...")
     print(f"Validation set: {len(val_examples)} examples.")
 
     # 3. Test set: character count, character position, and count_letter questions
     print("Generating test (character questions) examples...")
     test_examples = []
-    for word in test_tokens:
+    for i, word in enumerate(test_tokens):
         test_examples.append(generator.generate_char_count_example(word))
         test_examples.extend(generator.generate_char_position_examples(word, positions=[random.randint(1, len(word))]))
         test_examples.append(generator.generate_count_letter_example(word))
+        if (i + 1) % 1000 == 0 or (i + 1) == len(test_tokens):
+            print(f"  Test progress: {i + 1}/{len(test_tokens)} words processed...")
     print(f"Test set: {len(test_examples)} examples.")
 
     # Multi-token logic setup (if words_alpha.txt exists)
@@ -103,7 +113,7 @@ def main():
         with open("data/raw/words_alpha.txt") as f:
             all_words = [w.strip() for w in f if w.strip()]
         # Tokenize and filter for multi-token words
-        tokenizer = AutoTokenizer.from_pretrained("Qwen/Qwen1_5-4B")
+        tokenizer = AutoTokenizer.from_pretrained(QWEN_MODEL_NAME)
         for word in all_words:
             tokens = tokenizer.tokenize(word)
             if len(tokens) >= 2 and any(len(t) >= 2 for t in tokens):
