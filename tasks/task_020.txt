@@ -149,11 +149,55 @@ The data generation workflow uses templates defined in configuration files, gene
 Challenges include handling simple word lists and preserving metadata while conforming to Alpaca's core fields.
 </info added on 2025-05-11T21:44:31.452Z>
 
-## 2. Design Alpaca-Compatible Schema and Validation Rules [pending]
+## 2. Design Alpaca-Compatible Schema and Validation Rules [in-progress]
 ### Dependencies: 20.1
 ### Description: Create a formal specification for our implementation of the Alpaca format, including handling of custom fields and metadata strategy.
 ### Details:
 Define the core Alpaca fields (instruction, input, output) and how they will be populated. Design a strategy for handling any custom fields not natively supported in Alpaca (e.g., as metadata or by incorporating into core fields). Create JSON schema validation rules for the new format. Design a metadata approach that ensures compatibility with both Unsloth and Hugging Face. Document edge cases and special handling requirements identified during the audit phase. Create a schema visualization to help team members understand the new structure.
+<info added on 2025-05-11T21:47:36.404Z>
+Define the core Alpaca fields (instruction, input, output) and how they will be populated. Design a strategy for handling any custom fields not natively supported in Alpaca (e.g., as metadata or by incorporating into core fields). Create JSON schema validation rules for the new format. Design a metadata approach that ensures compatibility with both Unsloth and Hugging Face. Document edge cases and special handling requirements identified during the audit phase. Create a schema visualization to help team members understand the new structure.
+
+The Alpaca-Compatible Schema has been defined with the following specifications:
+
+1. Core Fields:
+   - instruction (string, required): Contains the main prompt/question for the LLM
+   - input (string, optional): Additional context, can be empty string for tasks like spelling
+   - output (string, required): The expected answer/completion from the model
+
+2. Metadata Strategy:
+   - All custom fields (template_category, template_style, separator_style, etc.) will be stored in a "meta" object
+   - This approach ensures compatibility with both Hugging Face and Unsloth
+   - Example structure:
+     {
+       "instruction": "The letters s p i t a l s spell what word?",
+       "input": "",
+       "output": "spitals",
+       "meta": {
+         "template_category": "spelling_first",
+         "template_style": "simple",
+         "separator_style": "space"
+       }
+     }
+
+3. JSON Schema Validation Rules:
+   - Created schema using JSON Schema draft-07
+   - Required fields: instruction, output
+   - input field is optional but should be present (empty string if no input)
+   - meta field is optional and must be an object
+   - additionalProperties set to false to enforce clean schema
+
+4. Edge Cases & Special Handling:
+   - Simple word lists must be converted to full Alpaca objects using default instruction templates
+   - Validation will fail if instruction or output is missing
+   - All core fields must be strings (meta is an object of strings)
+   - Added support for legacy scripts that may need flattened metadata
+
+5. Schema Visualization:
+   - Created class diagram showing AlpacaExample and Meta classes and their relationships
+   - This visualization will help team members understand the structure
+
+Next steps include updating generation scripts to output this schema, implementing JSON schema validation in the pipeline, and testing with both Hugging Face and Unsloth to confirm compatibility.
+</info added on 2025-05-11T21:47:36.404Z>
 
 ## 3. Refactor Data Generation Code for Direct Alpaca Output [pending]
 ### Dependencies: 20.2
