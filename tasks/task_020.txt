@@ -1,0 +1,193 @@
+# Task ID: 20
+# Title: Task #20: Convert Dataset and Data Generation System to Alpaca Format for LLM Fine-tuning
+# Status: pending
+# Dependencies: None
+# Priority: high
+# Description: Migrate our data generation system to the standardized Alpaca format for LLM fine-tuning, ensuring compatibility with Unsloth and Hugging Face Datasets libraries while implementing a clean transition to the new format.
+# Details:
+This high-priority task requires a comprehensive transition to the Alpaca format for our data generation system, which will improve compatibility with modern fine-tuning frameworks. The transition should be clean - we will discard old data, generate new data in Alpaca format, and update all documentation and pipelines accordingly. Implementation should follow these steps:
+
+1. **Audit Current Data Structure (Week 1)**
+   - Document the schema, fields, and relationships in the current custom format
+   - Identify any custom extensions or modifications we've made to our format
+   - Map current data fields to their Alpaca equivalents
+   - Understand the current data generation workflow
+
+2. **Design Alpaca-Compatible Schema (Week 1)**
+   - Create a formal specification for our Alpaca implementation
+   - Define the core fields: instruction, input, output
+   - Determine how to handle any custom fields not natively supported in Alpaca
+   - Design a metadata strategy compatible with both Unsloth and Hugging Face
+   - Create JSON schema validation rules for the new format
+
+3. **Refactor Data Generation Code (Week 2)**
+   - Update all data generation scripts to output Alpaca format directly
+   - Modify template systems to align with Alpaca structure
+   - Ensure proper escaping and formatting of special characters
+   - Implement validation checks during generation
+   - Update any data augmentation processes to maintain compatibility
+
+4. **Update Upstream Processes (Week 2)**
+   - Modify template and configuration systems to support Alpaca format
+   - Update token extraction processes to work with the new format
+   - Ensure all data sources and inputs are compatible with Alpaca generation
+   - Implement any necessary preprocessing changes
+
+5. **Update Downstream Processes (Week 3)**
+   - Update all training scripts to use the Alpaca format
+   - Modify evaluation pipelines to work with Alpaca data
+   - Update analysis tools to properly parse and visualize Alpaca format
+   - Ensure compatibility with the Qwen3-4B English token subset (from Tasks #17-19)
+   - Test integration with all existing model architectures
+
+6. **Validation and Testing (Week 3)**
+   - Verify newly generated datasets load correctly in Unsloth and Hugging Face
+   - Run sample fine-tuning jobs using the new format
+   - Test edge cases and unusual data patterns
+   - Validate the entire pipeline from data generation to model evaluation
+
+7. **Documentation and Training (Week 4)**
+   - Update all documentation to reflect the new Alpaca format
+   - Create guides for team members on working with the new format
+   - Document any format-specific considerations for different model architectures
+   - Update training pipelines documentation
+   - Create examples of correctly formatted data
+
+**Dependencies and Considerations:**
+- Coordinate with the team working on Tasks #17-19 to ensure the Alpaca format works with the Qwen3-4B English token subset
+- Focus on a clean transition with no legacy support or data migration
+- Document any changes in tokenization or preprocessing that might affect model performance
+
+# Test Strategy:
+The transition to Alpaca format should be thoroughly tested using the following approach:
+
+1. **Data Format Verification**
+   - Validate JSON structure of all generated files against Alpaca schema
+   - Run automated checks to ensure all Alpaca fields (instruction, input, output) are properly populated
+   - Verify proper handling of special characters and formatting
+   - Test with various input configurations to ensure robust generation
+
+2. **Compatibility Testing**
+   - Load newly generated datasets using Hugging Face Datasets library and verify all operations work
+   - Test dataset compatibility with Unsloth's fine-tuning pipeline
+   - Verify compatibility with at least three different model architectures
+   - Test with both local and cloud-based training workflows
+
+3. **Pipeline Integration Testing**
+   - Verify that data generation pipelines correctly produce Alpaca-formatted data
+   - Test all data processing scripts with the new format
+   - Ensure evaluation scripts correctly parse and process Alpaca-formatted outputs
+   - Validate that any data visualization or exploration tools work with the new format
+   - Test the entire workflow from data generation to model evaluation
+
+4. **Performance Validation**
+   - Train models on newly generated Alpaca-formatted data
+   - Evaluate models on standardized benchmarks to ensure expected performance
+   - Measure training speed and resource utilization
+
+5. **Documentation Review**
+   - Have team members unfamiliar with the changes follow the documentation to create new Alpaca-formatted datasets
+   - Verify all examples in documentation are accurate and functional
+   - Ensure guides successfully help team members work with the new format
+
+6. **Acceptance Criteria**
+   - Data generation system produces valid Alpaca-formatted data
+   - All upstream and downstream processes work seamlessly with the new format
+   - Models trained on Alpaca data show expected performance
+   - All team members can successfully work with the new format
+   - Documentation is complete and accurate
+   - No regressions in downstream tasks or evaluations
+   - Compatibility verified with Unsloth and Hugging Face Datasets
+   - Integration with Qwen3-4B English token subset is successful
+
+# Subtasks:
+## 1. Audit Current Data Structure and Generation Scripts [in-progress]
+### Dependencies: None
+### Description: Conduct a comprehensive audit of the existing data format, structure, and generation scripts to understand the current system before migration.
+### Details:
+Document the schema, fields, and relationships in the current custom format. Create a detailed inventory of all datasets currently in use, noting their specific characteristics, size, and purpose. Analyze the data generation scripts to understand how data is currently produced. Identify any custom extensions or modifications made to our format that will need special handling during conversion. Create a mapping document that shows how each current data field will map to Alpaca equivalents (instruction, input, output).
+<info added on 2025-05-11T21:44:31.452Z>
+Document the schema, fields, and relationships in the current custom format. Create a detailed inventory of all datasets currently in use, noting their specific characteristics, size, and purpose. Analyze the data generation scripts to understand how data is currently produced. Identify any custom extensions or modifications made to our format that will need special handling during conversion. Create a mapping document that shows how each current data field will map to Alpaca equivalents (instruction, input, output).
+
+The current data structure consists primarily of JSON files with two main formats:
+1. Simple word lists in an "examples" array
+2. Richer template-generated datasets with fields:
+   - input: Contains the prompt/question
+   - output: Contains the answer (usually a word)
+   - template_category: Identifies template category (spelling_first, word_first, etc.)
+   - template_style: Indicates style (simple, playful)
+   - separator_style: Shows how letters are separated (space, comma, dash)
+   - Additional specialized fields for certain question types
+
+Dataset inventory:
+- data/processed/:
+  - test_char_questions_multi_token.json, val_char_questions_multi_token.json: Simple word lists
+  - train_spelling.json, test_char_questions.json, val_char_questions.json: Larger structured files
+  - english_tokens.json: Token validation reference
+- data/raw/:
+  - words_alpha.txt: Raw word list source
+
+Key generation scripts:
+- src/data/example_generator.py: Main generator using templates
+- src/data/token_separator.py: Handles letter separation styles
+- src/data/token_validator.py: Validates tokenizer compatibility
+- src/data/data_loader.py: Loads and processes examples
+
+Custom extensions requiring special handling:
+- Template system defined in configs/templates/categories.json
+- Multiple token separation styles
+- Qwen3-4B compatibility validation
+
+Mapping to Alpaca format:
+- Current input → Alpaca instruction or input
+- Current output → Alpaca output
+- Metadata fields (template_category, template_style, etc.) can be preserved in extra fields
+- Simple word lists need conversion to full Alpaca format
+
+The data generation workflow uses templates defined in configuration files, generates examples via ExampleGenerator, and processes them through DataLoader for training.
+
+Challenges include handling simple word lists and preserving metadata while conforming to Alpaca's core fields.
+</info added on 2025-05-11T21:44:31.452Z>
+
+## 2. Design Alpaca-Compatible Schema and Validation Rules [pending]
+### Dependencies: 20.1
+### Description: Create a formal specification for our implementation of the Alpaca format, including handling of custom fields and metadata strategy.
+### Details:
+Define the core Alpaca fields (instruction, input, output) and how they will be populated. Design a strategy for handling any custom fields not natively supported in Alpaca (e.g., as metadata or by incorporating into core fields). Create JSON schema validation rules for the new format. Design a metadata approach that ensures compatibility with both Unsloth and Hugging Face. Document edge cases and special handling requirements identified during the audit phase. Create a schema visualization to help team members understand the new structure.
+
+## 3. Refactor Data Generation Code for Direct Alpaca Output [pending]
+### Dependencies: 20.2
+### Description: Update all data generation scripts to output data directly in Alpaca format rather than the custom format.
+### Details:
+Modify all data generation scripts to produce Alpaca format directly. Update template systems to align with the Alpaca structure. Implement proper escaping and formatting of special characters. Add validation checks during generation to ensure compliance with the Alpaca schema. Update any data augmentation processes to maintain compatibility with the new format. Create helper functions for common Alpaca format operations to ensure consistency across different generation scripts.
+
+## 4. Update Upstream Template and Configuration Systems [pending]
+### Dependencies: 20.2
+### Description: Modify all upstream processes including templates, configurations, and token extraction to support Alpaca format generation.
+### Details:
+Update template systems to align with Alpaca structure requirements. Modify configuration files and parameters to support Alpaca format generation. Adjust token extraction processes to work with the new format. Ensure all data sources and inputs are compatible with Alpaca generation. Implement any necessary preprocessing changes to support the new format. Create standardized templates that follow Alpaca best practices.
+
+## 5. Implement Validation and Testing Framework [pending]
+### Dependencies: 20.3, 20.4
+### Description: Create a comprehensive testing framework to validate the newly generated datasets and ensure they work correctly with fine-tuning libraries.
+### Details:
+Develop automated tests to verify generated datasets load correctly in Unsloth and Hugging Face. Create a sample fine-tuning pipeline to test the new format with actual models. Build specific tests for edge cases and unusual data patterns identified during the audit. Implement continuous validation that can be run as new datasets are generated. Test the entire pipeline from data generation to model training.
+
+## 6. Update Training and Evaluation Pipelines [pending]
+### Dependencies: 20.5
+### Description: Modify all training scripts and evaluation pipelines to work with the new Alpaca format data.
+### Details:
+Update all training scripts to use the new Alpaca format. Modify data loading and preprocessing steps in training pipelines. Adjust evaluation pipelines to work with Alpaca data. Ensure compatibility with the Qwen3-4B English token subset (from Tasks #17-19). Test integration with all existing model architectures. Implement any necessary changes to tokenization or preprocessing steps. Update configuration files and parameters to reflect the new data format.
+
+## 7. Update Analysis and Visualization Tools [pending]
+### Dependencies: 20.3
+### Description: Modify all data analysis, exploration, and visualization tools to work with Alpaca format data.
+### Details:
+Update data exploration notebooks and scripts to parse Alpaca format. Modify visualization tools to properly display Alpaca-structured data. Ensure analysis pipelines correctly process the new format. Create new visualizations that highlight the instruction-input-output structure. Implement tools to validate and analyze Alpaca-formatted datasets. Update any dashboards or reporting tools to work with the new format.
+
+## 8. Create Comprehensive Documentation and Training Materials [pending]
+### Dependencies: 20.2, 20.3, 20.6, 20.7
+### Description: Update all documentation to reflect the new Alpaca format and create training materials for team members.
+### Details:
+Update all technical documentation to reflect the new Alpaca format. Create guides for team members explaining how to work with the new format. Document any format-specific considerations for different model architectures. Update training pipelines documentation with new data loading procedures. Create examples of correctly formatted data for reference. Develop troubleshooting guides for common issues. Create visualization tools to help understand the data structure. Document any changes in tokenization or preprocessing that might affect model performance.
+

@@ -1883,7 +1883,7 @@
       "id": 16,
       "title": "Update Environment Setup Scripts and Onboarding Docs for Qwen3-4B and Token Extraction",
       "description": "Revise all environment setup scripts and onboarding documentation to ensure compatibility with Qwen3-4B and the new English-only token extraction process, including updated installation instructions for transformers (>=4.51.0) and usage guidance for new token extraction scripts. Clearly distinguish between local (Mac/Apple Silicon) and cloud-based workflows.",
-      "status": "pending",
+      "status": "done",
       "dependencies": [
         1
       ],
@@ -1892,29 +1892,54 @@
       "testStrategy": "Verify that a new developer can follow the updated scripts and documentation to set up a working environment from scratch on both local Mac (Apple Silicon) and cloud environments. Test that developers can successfully install transformers (>=4.51.0) and Ollama locally, and run the new token extraction scripts with Qwen3-4B. Verify that the documentation clearly distinguishes which operations should be performed locally versus in the cloud. Confirm that all references to model requirements and workflows are accurate and that no outdated instructions remain. Test the local quantized inference workflow with Ollama. Solicit feedback from at least one team member not involved in the update to ensure clarity and completeness.",
       "subtasks": [
         {
-          "id": "16.1",
-          "description": "Update README and onboarding docs to clearly document the split between local and cloud workflows",
-          "status": "pending"
+          "id": 1,
+          "title": "Update README and main onboarding documentation",
+          "description": "Revise the main README.md and onboarding documentation to reflect current environment setup requirements for Qwen3-4B compatibility",
+          "dependencies": [],
+          "details": "Review and update the main project documentation to ensure it accurately describes the current setup process, prerequisites, and environment configuration. Include clear sections on project purpose, high-level architecture, and getting started steps. Ensure all links are valid and documentation reflects the current state of the project.\n<info added on 2025-05-10T14:07:49.788Z>\nReview and update the main project documentation to ensure it accurately describes the current setup process, prerequisites, and environment configuration. Include clear sections on project purpose, high-level architecture, and getting started steps. Ensure all links are valid and documentation reflects the current state of the project.\n\nThe documentation update should focus on creating a clear distinction between local (Mac/Apple Silicon) workflows and cloud workflows. This includes:\n\n1. Review all existing documentation:\n   - README.md in the project root\n   - All onboarding documentation in the docs/ directory\n   - Any setup scripts in the scripts/ directory\n\n2. Create or update the following sections:\n   - \"Local (Mac/Apple Silicon) Workflow\" - focusing on data preparation using transformers and inference with Ollama\n   - \"Cloud Workflow\" - covering fine-tuning, Unsloth, xformers, and training processes\n   - Add a comparison table or bullet list clearly showing which steps should be performed locally vs. in the cloud\n\n3. Add explicit warnings about environment-specific dependencies:\n   - Highlight that Unsloth and xformers are cloud-only and should never be installed locally\n   - Provide clear installation instructions for local environment: `uv pip install ollama`, transformers for data preparation\n   - Document cloud-specific setup for training with Qwen3-4B\n\n4. Include practical examples:\n   - Example commands for each environment\n   - Troubleshooting section addressing common mistakes (especially attempting to install cloud-only packages locally)\n   - References to the updated requirements from Task 16\n\n5. Ensure consistency across all documentation:\n   - Remove or update any outdated instructions\n   - Verify that all documentation presents a unified approach to the local/cloud workflow split\n   - Make the distinction between environments unambiguous for new users\n</info added on 2025-05-10T14:07:49.788Z>",
+          "status": "done"
         },
         {
-          "id": "16.2",
-          "description": "Create specific installation instructions for Mac/Apple Silicon that exclude Unsloth and xformers",
-          "status": "pending"
+          "id": 2,
+          "title": "Create Mac/Apple Silicon specific installation instructions",
+          "description": "Develop detailed installation instructions specifically for Mac users with Apple Silicon processors",
+          "dependencies": [
+            1
+          ],
+          "details": "Document the specific steps, packages, and configurations needed for Apple Silicon Macs. Include troubleshooting for common issues, performance optimization tips, and any workarounds needed for compatibility. Test the instructions on an M1/M2 machine if possible to verify accuracy.\n<info added on 2025-05-10T14:14:39.024Z>\nDocument the specific steps, packages, and configurations needed for Apple Silicon Macs. Include troubleshooting for common issues, performance optimization tips, and any workarounds needed for compatibility. Test the instructions on an M1/M2 machine if possible to verify accuracy.\n\nThe Mac/Apple Silicon installation instructions should include:\n\n1. Step-by-step environment setup:\n   - Detailed instructions for using `uv` and virtualenv specifically on Apple Silicon\n   - Clear guidance on installing core dependencies with proper architecture (arm64)\n   - Instructions for Ollama installation for local quantized inference\n\n2. Troubleshooting section for common Apple Silicon issues:\n   - Solutions for torch/transformers installation errors (ensuring proper Apple Silicon wheels)\n   - Fixing Homebrew and system dependency issues (libomp, openssl)\n   - Resolving Jupyter/Matplotlib backend issues specific to macOS\n\n3. Performance optimization tips:\n   - Instructions for obtaining and using Apple Silicon-optimized wheels for torch/transformers\n   - Guidance on avoiding Python under Rosetta 2 emulation\n   - Best practices for using `uv` to create faster, reproducible environments\n   - Tips for leveraging MPS (Metal Performance Shaders) acceleration\n\n4. Verification steps:\n   - A test script to verify torch, transformers, and Ollama imports\n   - Commands to confirm correct Python architecture (arm64)\n   - Instructions to print torch device info to confirm MPS availability\n   - Simple inference test to verify end-to-end functionality\n\n5. Reference table:\n   - Common errors and their solutions\n   - Required vs. optional dependencies\n   - Version compatibility information\n\nThe documentation should be concise yet comprehensive, with clear distinction between required steps and optional optimizations. Consider creating a dedicated Mac-specific document or a clearly labeled section in the README.md.\n</info added on 2025-05-10T14:14:39.024Z>",
+          "status": "done"
         },
         {
-          "id": "16.3",
-          "description": "Add instructions for installing and using Ollama for local quantized inference",
-          "status": "pending"
+          "id": 3,
+          "title": "Document Ollama integration for local inference",
+          "description": "Add comprehensive documentation on setting up and using Ollama for local model inference",
+          "dependencies": [
+            1
+          ],
+          "details": "Create step-by-step instructions for installing Ollama, configuring it for the project, and running local inference. Include examples of common commands, performance expectations, resource requirements, and troubleshooting tips. Document how to verify successful setup and integration with the project.",
+          "status": "done"
         },
         {
-          "id": "16.4",
-          "description": "Update documentation for using transformers for local data preparation and tokenization",
-          "status": "pending"
+          "id": 4,
+          "title": "Update transformers documentation for data preparation",
+          "description": "Revise documentation related to using transformers library for data preparation and token extraction scripts",
+          "dependencies": [
+            1
+          ],
+          "details": "Update all documentation related to the transformers library usage, focusing on data preparation workflows and token extraction scripts. Include code examples, expected inputs/outputs, and guidance on handling different data formats. Ensure compatibility with the latest transformers version and Qwen3-4B model.",
+          "status": "done"
         },
         {
-          "id": "16.5",
-          "description": "Create clear guidance on which operations should be performed in cloud environments only",
-          "status": "pending"
+          "id": 5,
+          "title": "Create cloud workflow guidance documentation",
+          "description": "Develop clear documentation distinguishing between local and cloud workflows with specific guidance for cloud environments",
+          "dependencies": [
+            1,
+            3,
+            4
+          ],
+          "details": "Create documentation that clearly separates local development workflows from cloud-based production workflows. Include cloud setup instructions, environment variables, security considerations, and cost management. Document the differences in configuration, performance expectations, and recommended practices for each environment.",
+          "status": "done"
         }
       ]
     },
@@ -1924,7 +1949,7 @@
       "description": "Replace all GPT-2 token extraction scripts and outputs with a new process that extracts the English-only token subset from the Qwen3-4B tokenizer. Validate, document, and update all downstream references to use the new extraction process and outputs.",
       "details": "1. Analyze the Qwen3-4B tokenizer using the latest Hugging Face 'transformers' library to extract its full vocabulary. 2. Define clear criteria for identifying 'English-only' tokens (e.g., tokens composed exclusively of ASCII letters and common English punctuation, excluding tokens with non-English characters or symbols). 3. Implement a new extraction script (preferably in Python) that filters the Qwen3-4B vocabulary to produce the English-only token subset, saving the result in a well-documented JSON format. 4. Validate the extracted subset by sampling and manually inspecting tokens, and by running automated checks for non-English characters. 5. Update all downstream scripts, references, and documentation to use the new Qwen3-4B English token subset and extraction process, removing all GPT-2-specific logic and outputs. 6. Provide comprehensive documentation describing the extraction criteria, process, and usage of the new subset.",
       "testStrategy": "- Run the new extraction script and verify that the output JSON contains only tokens matching the defined English-only criteria. - Manually inspect a random sample of extracted tokens to confirm correctness. - Execute automated tests to ensure no non-English characters are present in the subset. - Confirm that all downstream scripts and documentation reference the new Qwen3-4B English token subset and that no GPT-2-specific code or outputs remain. - Review documentation for completeness and clarity regarding the new extraction process and criteria.",
-      "status": "pending",
+      "status": "done",
       "dependencies": [
         2
       ],
@@ -1936,7 +1961,7 @@
           "description": "Develop and refactor the token extraction pipeline to use the new extraction script, ensuring it is optimized for efficiency and maintains functional consistency with the previous implementation.",
           "dependencies": [],
           "details": "This involves rewriting or updating the extraction logic, integrating any new requirements, and ensuring the script is ready for validation. Focus on minimizing token usage and maintaining coherent context as per the new model's needs.",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 2,
@@ -1945,8 +1970,8 @@
           "dependencies": [
             1
           ],
-          "details": "Perform thorough validation using representative data, compare outputs with the previous pipeline, and document the new script's behavior, usage instructions, and output specifications for future reference.",
-          "status": "pending"
+          "details": "Perform thorough validation using representative data, compare outputs with the previous pipeline, and document the new script's behavior, usage instructions, and output specifications for future reference.\n<info added on 2025-05-10T15:55:02.233Z>\nPerform thorough validation using representative data, compare outputs with the previous pipeline, and document the new script's behavior, usage instructions, and output specifications for future reference.\n\nThe validation and documentation for the new English token extraction script have been completed successfully. The validation process confirmed that the output file `data/processed/english_tokens.json` exists and contains the expected JSON structure with a `tokens` key containing a list of English-only tokens (strictly alphabetic). The output format was verified to be compatible with all downstream scripts and notebooks, including `src/data/create_notebook.py`. The output also adheres to the specifications documented in `docs/token_extraction.md` and `docs/data_format.md`. All legacy `.txt` output references have been removed from the codebase and documentation.\n\nDocumentation has been thoroughly updated across all relevant files (`README.md`, `docs/token_extraction.md`, `docs/data_format.md`) to reflect the new canonical JSON output format and provide clear usage instructions. Example code snippets and workflow notes now exclusively reference the `.json` file format. Comprehensive documentation of the extraction process, output format specifications, and downstream usage patterns has been added to both the script docstring and the external documentation files.\n\nThe extraction pipeline has been fully validated and documented, with no outstanding issues identified. This completes the validation and documentation phase of the token extraction pipeline refactoring for the Qwen3-4B English subset.\n</info added on 2025-05-10T15:55:02.233Z>",
+          "status": "done"
         },
         {
           "id": 3,
@@ -1956,7 +1981,7 @@
             2
           ],
           "details": "Audit all dependent codebases, update integration points, and perform end-to-end testing to confirm that downstream processes function correctly with the refactored pipeline.",
-          "status": "pending"
+          "status": "done"
         }
       ]
     },
@@ -1966,7 +1991,7 @@
       "description": "Regenerate the training, validation, and test datasets using the Qwen3-4B English-only token subset, ensuring compatibility with the new tokenizer and updating all metadata and data structures to match the revised format.",
       "details": "Leverage the updated token extraction pipeline from Task 17 to process all raw data and regenerate the training, validation, and test splits exclusively using the Qwen3-4B English-only token subset. For each split, re-tokenize all examples with the Qwen3-4B tokenizer (as available via Hugging Face Transformers) and verify that every example is fully compatible—i.e., all tokens are present in the English-only subset, and no legacy or out-of-vocabulary tokens remain. Update all dataset metadata (e.g., token counts, vocabulary statistics, data format descriptors) to reflect the new tokenization. Ensure that the data structures, file formats, and split boundaries strictly follow the updated requirements, and that all downstream consumers of the data are notified of the changes. Document any edge cases or data exclusions resulting from incompatibility with the new tokenizer.",
       "testStrategy": "1. For each dataset split, confirm that all examples are tokenized exclusively with the Qwen3-4B English-only token subset and that no out-of-vocabulary or legacy tokens are present. 2. Validate that the number of examples and split boundaries match the intended design and that no data leakage occurs between splits. 3. Check that all metadata fields (e.g., token counts, vocabulary lists, format descriptors) are accurate and up-to-date. 4. Run automated compatibility tests to ensure all downstream scripts and pipelines can load and process the new datasets without errors. 5. Manually inspect a sample of examples from each split to confirm correct tokenization and data structure. 6. Document and review any data exclusions or format changes with the team before final sign-off.",
-      "status": "pending",
+      "status": "done",
       "dependencies": [
         3,
         17
@@ -1978,8 +2003,8 @@
           "title": "Regenerate Dataset Splits with New Token Subset",
           "description": "Process the dataset with the new tokenizer subset and create appropriate train/test/validation splits",
           "dependencies": [],
-          "details": "Use the train_test_split() function to create appropriate dataset splits with the new tokenization. Consider using a 80/10/10 split for train/validation/test or adjust based on project requirements. Ensure proper shuffling of data before splitting. For large datasets, consider using sharding techniques to manage memory efficiently.",
-          "status": "pending"
+          "details": "Use the train_test_split() function to create appropriate dataset splits with the new tokenization. Consider using a 80/10/10 split for train/validation/test or adjust based on project requirements. Ensure proper shuffling of data before splitting. For large datasets, consider using sharding techniques to manage memory efficiently.\n<info added on 2025-05-10T16:56:48.346Z>\nThe dataset split should be task-specific rather than percentage-based. Create the following splits:\n\n1. Training Set:\n   - Include only spelling examples of tokens generated from the data\n   - Use the Qwen3-4B English-only token subset for tokenization\n   - Ensure comprehensive coverage of the token vocabulary\n\n2. Validation Set:\n   - Include exclusively questions about character count and character position\n   - Do not include any spelling examples\n   - Create diverse examples covering different character counting scenarios\n\n3. Test Set:\n   - Similar to validation set, focus only on character count and character position questions\n   - Ensure no overlap with validation set examples\n   - Include edge cases to thoroughly test model capabilities\n\nFor each split, document the following:\n- Number of examples in each category\n- Distribution of question types\n- Validation process to ensure split criteria are met\n- Any preprocessing steps specific to each split\n\nImplement validation checks to confirm that no spelling examples leak into evaluation/test sets, and that character-based questions are properly formatted for model evaluation.\n</info added on 2025-05-10T16:56:48.346Z>\n<info added on 2025-05-10T16:59:34.629Z>\nCreate task-specific dataset splits using the Qwen3-4B English-only token subset. The splits should be organized as follows:\n\n- Training set: Only spelling examples of tokens generated from the data, using the Qwen3-4B English-only token subset. Ensure comprehensive coverage of the token vocabulary.\n- Validation set: Only questions about character count and character position. No spelling examples. Create diverse examples covering different character counting scenarios.\n- Test set: Same as validation, but ensure no overlap with validation set. Include edge cases.\n- For each split, document: number of examples, distribution of question types, validation process, and any preprocessing steps.\n- Implement validation checks to confirm no spelling examples leak into eval/test, and that character-based questions are properly formatted for model evaluation.\n</info added on 2025-05-10T16:59:34.629Z>",
+          "status": "done"
         },
         {
           "id": 2,
@@ -1989,7 +2014,7 @@
             1
           ],
           "details": "Compare token distributions between old and new datasets. Verify schema consistency across all splits. Check for potential data leakage between splits. Validate that tokenization is consistent and properly cached to avoid redundant processing. Run basic model inference tests to ensure compatibility with existing models.",
-          "status": "pending"
+          "status": "done"
         },
         {
           "id": 3,
@@ -1999,7 +2024,7 @@
             2
           ],
           "details": "Update pipeline configurations to use the new dataset splits. Modify any hardcoded references to the old dataset structure. Update documentation with new dataset statistics and tokenization details. Communicate changes to all stakeholders, including information about potential impacts on model performance. Create examples showing how to properly load and use the new dataset splits.",
-          "status": "pending"
+          "status": "done"
         }
       ]
     },
@@ -2021,8 +2046,8 @@
           "title": "Audit and Update Templates/Scripts for Tokenizer Compatibility",
           "description": "Review all existing templates and scripts to identify non-compliant data generation patterns. Update them to ensure compatibility with the tokenizer and maintain audit trails for changes.",
           "dependencies": [],
-          "details": "This includes examining current data handling processes, identifying sensitive or non-compliant data streams, and updating templates/scripts to align with tokenizer requirements. Ensure all changes are logged for compliance and future audits.",
-          "status": "pending"
+          "details": "This includes examining current data handling processes, identifying sensitive or non-compliant data streams, and updating templates/scripts to align with tokenizer requirements. Ensure all changes are logged for compliance and future audits.\n<info added on 2025-05-11T12:03:00.996Z>\nThis includes examining current data handling processes, identifying sensitive or non-compliant data streams, and updating templates/scripts to align with tokenizer requirements. Ensure all changes are logged for compliance and future audits.\n\nThe audit for Qwen3-4B tokenizer compatibility has been completed with the following implementations:\n\n1. Created TokenizerValidator in src/data/token_validator.py:\n   - Implements loading of english_tokens.json with fallback to ASCII-only validation\n   - Provides methods for checking compatibility of separators, templates, and examples\n\n2. Enhanced TokenSeparator in src/data/token_separator.py:\n   - Now uses validator to ensure only compatible separators are used\n   - Implements suggestion mechanism for invalid separator replacement\n\n3. Updated ExampleGenerator in src/data/example_generator.py:\n   - Added validation for all templates and generated examples\n   - Implemented filtering system for templates with missing/incompatible variables\n\n4. Created and executed scripts/test_tokenizer_compatibility.py:\n   - Performs comprehensive validation of separator styles, templates, and example generation\n   - Confirms that only tokenizer-compatible examples are produced\n\nAll implementations strictly adhere to the project's import/module rules. The system now ensures no non-ASCII or non-English tokens are used in templates, separators, or generated examples. Documentation has been updated in /docs/templates.md, /docs/data_format.md, and /docs/token_extraction.md, with references added to README.md.\n</info added on 2025-05-11T12:03:00.996Z>",
+          "status": "done"
         },
         {
           "id": 2,
@@ -2063,8 +2088,28 @@
           ],
           "details": "Create scripts that leverage the Hugging Face transformers library to locally validate that all generated data uses only tokens from the Qwen3-4B English-only subset. Document the installation and usage of these tools, ensuring they can be run in standard local environments without cloud-specific optimizations like Unsloth or xformers.",
           "status": "pending"
+        },
+        {
+          "id": 6,
+          "title": "Recreate all token analysis outputs for Qwen3-4B migration",
+          "description": "Re-run and regenerate all token analysis outputs in results/token_analysis/ to reflect the Qwen3-4B migration. This includes all CSVs, figures, and HTML reports, ensuring all scripts use the Qwen3-4B tokenizer, the English-only token subset, and the new dataset splits. Remove or replace any legacy outputs that do not comply with the new standards described in README.md and docs/analysis.md.",
+          "details": "- Delete or archive all previous analysis outputs in results/token_analysis/ that were generated before the Qwen3-4B migration.\n- Re-run src/analysis/template_analysis.py and src/analysis/template_performance.py using the new dataset splits (data/processed/train_spelling.json, val_char_questions.json, test_char_questions.json, and multi-token splits).\n- Ensure all outputs (CSVs, PNGs, HTML reports) are regenerated and reflect the Qwen3-4B tokenizer and English-only token subset.\n- Update all visualizations and reports to indicate non-thinking mode and compliance with new project policy.\n- Confirm that all separator and template category conventions match the latest documentation.\n- Remove any references to thinking mode or legacy tokenization in the outputs.\n- Document the process and any issues encountered in the subtask details.",
+          "status": "pending",
+          "dependencies": [],
+          "parentTaskId": 19
         }
       ]
+    },
+    {
+      "id": 20,
+      "title": "Task #20: Convert Dataset and Data Generation System to Alpaca Format for LLM Fine-tuning",
+      "description": "Migrate our existing custom data format and generation system to the standardized Alpaca format for LLM fine-tuning, ensuring compatibility with Unsloth and Hugging Face Datasets libraries while maintaining data integrity throughout the transition.",
+      "details": "This high-priority task requires a comprehensive transition from our custom data format to the Alpaca format, which will improve compatibility with modern fine-tuning frameworks. Implementation should follow these steps:\n\n1. **Audit Current Data Structure (Week 1)**\n   - Document the schema, fields, and relationships in the current custom format\n   - Identify any custom extensions or modifications we've made to our format\n   - Map current data fields to their Alpaca equivalents\n   - Catalog all datasets currently in use and their specific characteristics\n\n2. **Design Alpaca-Compatible Schema (Week 1)**\n   - Create a formal specification for our Alpaca implementation\n   - Define the core fields: instruction, input, output\n   - Determine how to handle any custom fields not natively supported in Alpaca\n   - Design a metadata strategy compatible with both Unsloth and Hugging Face\n   - Create JSON schema validation rules for the new format\n\n3. **Refactor Data Generation Code (Week 2)**\n   - Update all data generation scripts to output Alpaca format directly\n   - Modify template systems to align with Alpaca structure\n   - Ensure proper escaping and formatting of special characters\n   - Implement validation checks during generation\n   - Update any data augmentation processes to maintain compatibility\n\n4. **Migration of Existing Datasets (Week 2-3)**\n   - Develop conversion scripts to transform existing data to Alpaca format\n   - Prioritize migration of datasets used in current training pipelines\n   - Preserve all metadata during conversion\n   - Implement checksums to verify data integrity post-conversion\n   - Create fallback mechanisms for any edge cases\n\n5. **Validation and Testing (Week 3)**\n   - Verify converted datasets load correctly in Unsloth and Hugging Face\n   - Compare statistics between original and converted datasets\n   - Run sample fine-tuning jobs using the new format\n   - Benchmark performance against models trained on the original format\n   - Test edge cases and unusual data patterns\n\n6. **Documentation and Training (Week 4)**\n   - Update all documentation to reflect the new Alpaca format\n   - Create migration guides for team members\n   - Document any format-specific considerations for different model architectures\n   - Update training pipelines documentation\n   - Create examples of correctly formatted data\n\n7. **Downstream Compatibility (Week 4)**\n   - Update all training scripts to use the new format\n   - Modify evaluation pipelines to work with Alpaca data\n   - Ensure compatibility with the Qwen3-4B English token subset (from Tasks #17-19)\n   - Test integration with all existing model architectures\n   - Verify export/import functionality with external tools\n\n**Dependencies and Considerations:**\n- Coordinate with the team working on Tasks #17-19 to ensure the Alpaca format works with the Qwen3-4B English token subset\n- Consider implementing a dual-format period where both formats are supported to ease transition\n- Maintain backward compatibility where possible\n- Document any changes in tokenization or preprocessing that might affect model performance",
+      "testStrategy": "The transition to Alpaca format should be thoroughly tested using the following approach:\n\n1. **Data Integrity Verification**\n   - Compare statistical distributions of tokens, sequence lengths, and vocabulary usage between original and converted datasets\n   - Verify that all records from original datasets are present in the converted versions\n   - Run automated checks to ensure all Alpaca fields (instruction, input, output) are properly populated\n   - Validate JSON structure of all converted files against Alpaca schema\n\n2. **Compatibility Testing**\n   - Load converted datasets using Hugging Face Datasets library and verify all operations work\n   - Test dataset compatibility with Unsloth's fine-tuning pipeline\n   - Verify compatibility with at least three different model architectures\n   - Test with both local and cloud-based training workflows\n\n3. **Performance Validation**\n   - Train identical model architectures on both the original and Alpaca formats\n   - Compare training metrics (loss curves, convergence time)\n   - Evaluate models on standardized benchmarks to ensure no performance regression\n   - Measure any changes in training speed or resource utilization\n\n4. **Integration Testing**\n   - Verify that data generation pipelines correctly produce Alpaca-formatted data\n   - Test all data processing scripts with the new format\n   - Ensure evaluation scripts correctly parse and process Alpaca-formatted outputs\n   - Validate that any data visualization or exploration tools work with the new format\n\n5. **Documentation Review**\n   - Have team members unfamiliar with the changes follow the documentation to create new Alpaca-formatted datasets\n   - Verify all examples in documentation are accurate and functional\n   - Ensure migration guides successfully help convert custom datasets to Alpaca format\n\n6. **Acceptance Criteria**\n   - All existing datasets successfully converted to Alpaca format\n   - Data generation system produces valid Alpaca-formatted data\n   - Models trained on converted data show equivalent or better performance\n   - All team members can successfully work with the new format\n   - Documentation is complete and accurate\n   - No regressions in downstream tasks or evaluations\n   - Compatibility verified with Unsloth and Hugging Face Datasets\n   - Integration with Qwen3-4B English token subset is successful",
+      "status": "pending",
+      "dependencies": [],
+      "priority": "high",
+      "subtasks": []
     }
   ]
 }
