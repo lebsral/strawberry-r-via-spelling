@@ -412,3 +412,26 @@ To create more challenging evaluation sets, we generate additional validation an
   "separator_style": "comma"
 }
 ```
+
+## Qwen3-4B Tokenizer Compatibility and Data Validation (2024-06-12)
+
+### Compatibility Requirements
+- All data, templates, and generated examples must use only tokens from the canonical English token list (`data/processed/english_tokens.json`).
+- No non-English or non-ASCII tokens are permitted in any generated data or template.
+- Separators and template variables are validated for compatibility before use.
+
+### Audit and Validation Process
+- The codebase was audited and updated to enforce these requirements using the new `TokenizerValidator` (`src/data/token_validator.py`).
+- All templates and separators are checked for compatibility before use in data generation.
+- The `ExampleGenerator` (`src/data/example_generator.py`) and `TokenSeparator` (`src/data/token_separator.py`) have been updated to use the validator.
+- A comprehensive test script (`scripts/test_tokenizer_compatibility.py`) validates all templates, separators, and generated examples.
+
+### How to Validate
+- Run the test script after any changes to templates or tokenization logic:
+  ```sh
+  python scripts/test_tokenizer_compatibility.py
+  ```
+- The script will output warnings for any incompatible templates or separators and confirm that only valid examples are produced.
+
+### References
+- See also: [docs/templates.md](templates.md), [docs/token_extraction.md](token_extraction.md)

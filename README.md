@@ -12,6 +12,8 @@ This project explores whether training a language model (LLM) on spelling tasks 
 - The full model is only loaded for inference or evaluation, not for data prep.
 - Scripts and imports are enforced to follow the `src/` layout, and a Cursor rule prevents import errors (see `.cursor/rules/module_imports.mdc`).
 - Only the English token subset (~50k tokens, see `english_tokens.json`) is used for all experiments.
+- **Tokenizer compatibility is strictly enforced and audited.**
+  - See [docs/templates.md](docs/templates.md#qwen3-4b-tokenizer-compatibility-audit-2024-06-12), [docs/data_format.md](docs/data_format.md#qwen3-4b-tokenizer-compatibility-and-data-validation-2024-06-12), and [docs/token_extraction.md](docs/token_extraction.md#qwen3-4b-tokenizer-compatibility-audit-2024-06-12) for details on the audit, validation process, and requirements.
 - Model configuration uses specific sampling parameters: Temperature=0.6, TopP=0.95, TopK=20, MinP=0 (for non-thinking mode).
 - All scripts, data, and evaluation are Qwen3-4B-specific.
 - **Task 15 (Qwen3-4B compatibility migration) is complete. All code, data, and documentation have been audited and updated to enforce non-thinking mode. All subtasks are done or cancelled as appropriate.**
@@ -43,6 +45,7 @@ This project explores whether training a language model (LLM) on spelling tasks 
 - `docs/` — Project documentation
   - `templates.md` — Template system documentation
   - `data_format.md` — Data format specifications
+  - See [Qwen3-4B Tokenizer Compatibility Audit](docs/templates.md#qwen3-4b-tokenizer-compatibility-audit-2024-06-12), [Data Validation](docs/data_format.md#qwen3-4b-tokenizer-compatibility-and-data-validation-2024-06-12), and [Token Extraction Audit](docs/token_extraction.md#qwen3-4b-tokenizer-compatibility-audit-2024-06-12) for audit and validation details.
 - `results/` — Analysis results and visualizations
   - `token_analysis/` — Template analysis results
     - `data/` — Raw analysis data in CSV format

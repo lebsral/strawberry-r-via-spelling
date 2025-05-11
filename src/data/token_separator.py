@@ -9,6 +9,9 @@ from typing import List, Dict, Optional, Union
 import random
 from dataclasses import dataclass
 from enum import Enum
+from pathlib import Path
+
+from .token_validator import TokenizerValidator
 
 class SeparatorStyle(Enum):
     """Enumeration of available separator styles."""
@@ -16,7 +19,7 @@ class SeparatorStyle(Enum):
     SPACE = "space"  # Simple space
     COMMA = "comma"  # Comma with space
     DASH = "dash"  # Hyphen
-    DOTS = "dots"  # Ellipsis
+    PERIOD = "period"  # Single period
     ARROW = "arrow"  # Arrow symbol
     CUSTOM = "custom"  # Custom separator
 
@@ -28,18 +31,26 @@ class SeparatorConfig:
     capitalize: bool = False
     add_spaces: bool = True
 
+    # Define style configurations as a class variable
+    STYLE_CONFIGS = {
+        SeparatorStyle.NONE: {"separator": "", "add_spaces": False},
+        SeparatorStyle.SPACE: {"separator": " ", "add_spaces": False},
+        SeparatorStyle.COMMA: {"separator": ",", "add_spaces": True},
+        SeparatorStyle.DASH: {"separator": "-", "add_spaces": False},
+        SeparatorStyle.PERIOD: {"separator": ".", "add_spaces": False},
+        SeparatorStyle.ARROW: {"separator": "->", "add_spaces": True},
+        SeparatorStyle.CUSTOM: {"separator": " ", "add_spaces": True},
+    }
+
     @classmethod
     def from_style(cls, style: SeparatorStyle) -> 'SeparatorConfig':
         """Create a separator configuration from a style."""
-        style_configs = {
-            SeparatorStyle.NONE: cls(SeparatorStyle.NONE, ""),
-            SeparatorStyle.SPACE: cls(SeparatorStyle.SPACE, " "),
-            SeparatorStyle.COMMA: cls(SeparatorStyle.COMMA, ",", add_spaces=True),
-            SeparatorStyle.DASH: cls(SeparatorStyle.DASH, "-"),
-            SeparatorStyle.DOTS: cls(SeparatorStyle.DOTS, "..."),
-            SeparatorStyle.ARROW: cls(SeparatorStyle.ARROW, "->", add_spaces=True),
-        }
-        return style_configs.get(style, cls(SeparatorStyle.SPACE, " "))
+        config = cls.STYLE_CONFIGS.get(style, cls.STYLE_CONFIGS[SeparatorStyle.SPACE])
+        return cls(
+            style=style,
+            separator=config["separator"],
+            add_spaces=config["add_spaces"]
+        )
 
 class TokenSeparator:
     """Handles the separation of tokens/characters with various styles."""
@@ -50,6 +61,21 @@ class TokenSeparator:
             self.config = SeparatorConfig.from_style(config)
         else:
             self.config = config or SeparatorConfig.from_style(SeparatorStyle.SPACE)
+
+        # Initialize validator
+        self.validator = TokenizerValidator()
+
+        # Validate current separator
+        if not self.validator.is_valid_separator(self.config.separator):
+            # Get replacement and update config
+            replacement = self.validator.suggest_separator_replacement(self.config.separator)
+            self.config.separator = replacement
+            # Update style if needed
+            for style, cfg in SeparatorConfig.STYLE_CONFIGS.items():
+                if cfg["separator"] == replacement:
+                    self.config.style = style
+                    self.config.add_spaces = cfg["add_spaces"]
+                    break
 
     def separate_tokens(self, tokens: List[str]) -> str:
         """
@@ -79,7 +105,15 @@ class TokenSeparator:
         if self.config.add_spaces:
             separator = f" {separator} "
 
-        return separator.join(processed_tokens)
+        result = separator.join(processed_tokens)
+
+        # Validate result
+        if not self.validator.is_valid_separator(separator):
+            # Fall back to space separator if the current one is invalid
+            separator = " "
+            result = " ".join(processed_tokens)
+
+        return result
 
     @classmethod
     def get_random_separator(cls) -> 'TokenSeparator':
@@ -92,6 +126,13 @@ class TokenSeparator:
     @classmethod
     def create_custom(cls, separator: str, add_spaces: bool = True, capitalize: bool = False) -> 'TokenSeparator':
         """Create a TokenSeparator with a custom separator."""
+        # Initialize validator to check separator
+        validator = TokenizerValidator()
+
+        # If custom separator is invalid, get a valid replacement
+        if not validator.is_valid_separator(separator):
+            separator = validator.suggest_separator_replacement(separator)
+
         config = SeparatorConfig(
             style=SeparatorStyle.CUSTOM,
             separator=separator,

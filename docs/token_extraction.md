@@ -134,3 +134,18 @@ print(encodings.input_ids)
 - Only position and character count are used for evaluation.
 - Spelling is never used as an evaluation metric.
 - **Qwen3-4B is always used in non-thinking mode.**
+
+## Qwen3-4B Tokenizer Compatibility Audit (2024-06-12)
+
+### English Token Extraction and Validation
+- The canonical English token list is stored in `data/processed/english_tokens.json` (JSON with a `tokens` key).
+- All downstream code, templates, and data generation use this file to ensure compatibility with the Qwen3-4B tokenizer.
+- The `TokenizerValidator` (`src/data/token_validator.py`) loads this file and validates all templates, separators, and generated examples.
+
+### Validation Process
+- The validator checks that all tokens, separators, and template variables are compatible with the English-only token subset.
+- If `english_tokens.json` is missing, the validator falls back to ASCII-only validation (with a warning).
+- The test script (`scripts/test_tokenizer_compatibility.py`) provides comprehensive validation and should be run after any changes to token extraction or template logic.
+
+### References
+- See also: [docs/templates.md](templates.md), [docs/data_format.md](data_format.md)

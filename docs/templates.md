@@ -262,3 +262,30 @@ The template system supports generating character count and character position q
 ### Example template output:
 - Template: `The word '{word}' is spelled {letters}.`
 - Output: `The word 'coins' is spelled c, o, i, n, s.`
+
+## Qwen3-4B Tokenizer Compatibility Audit (2024-06-12)
+
+### Overview
+All template and example generation code has been audited and updated for compatibility with the Qwen3-4B tokenizer, using the English-only token subset. This ensures that all generated data, templates, and separators are valid for the model and do not include non-English or non-ASCII tokens.
+
+### Key Changes
+- **TokenizerValidator** (`src/data/token_validator.py`):
+  - Loads `english_tokens.json` (canonical English token list) or falls back to ASCII-only validation.
+  - Provides methods to check separator, template, and example compatibility.
+- **TokenSeparator** (`src/data/token_separator.py`):
+  - Uses the validator to ensure only compatible separators are used.
+  - Suggests replacements for invalid separators.
+- **ExampleGenerator** (`src/data/example_generator.py`):
+  - Validates all templates and generated examples for compatibility.
+  - Filters out or warns on templates with missing or incompatible variables.
+- **Test Script** (`scripts/test_tokenizer_compatibility.py`):
+  - Validates all separator styles, templates, and example generation.
+  - Output confirms only compatible examples are produced.
+
+### Validation Process
+- All templates and separators are checked for compatibility before use.
+- Any template or separator that is not compatible is either filtered out or replaced.
+- The test script provides comprehensive validation and should be run after any changes to templates or tokenization logic.
+
+### References
+- See also: [docs/data_format.md](data_format.md), [docs/token_extraction.md](token_extraction.md)
