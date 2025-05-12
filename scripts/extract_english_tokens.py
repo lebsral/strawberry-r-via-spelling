@@ -18,6 +18,8 @@ from src.models.qwen3_loader import load_qwen3_tokenizer_only
 
 OUTPUT_JSON_PATH = "data/processed/english_tokens.json"
 SAMPLE_TEXT = "The quick brown fox jumps over the lazy dog."
+WORDS_ALPHA_PATH = "data/raw/words_alpha.txt"
+MULTI_TOKEN_JSON_PATH = "data/processed/english_multi_tokens.json"
 
 # Regex: strictly alphabetic (A-Z, a-z) only
 ENGLISH_TOKEN_PATTERN = re.compile(r'^[A-Za-z]+$')
@@ -56,6 +58,24 @@ def main():
     print(f"Sample text: {SAMPLE_TEXT}")
     print(f"Encoded: {encoded}")
     print(f"Decoded: {decoded}")
+
+    # --- Multi-token extraction ---
+    print("\nExtracting multi-token words from words_alpha.txt ...")
+    multi_token_words = []
+    if os.path.exists(WORDS_ALPHA_PATH):
+        with open(WORDS_ALPHA_PATH) as f:
+            all_words = [line.strip() for line in f if line.strip()]
+        for word in all_words:
+            tokens = tokenizer.tokenize(word)
+            if len(tokens) >= 2:
+                multi_token_words.append(word)
+        multi_token_words = sorted(set(multi_token_words), key=lambda x: x.lower())
+        print(f"Found {len(multi_token_words)} multi-token words out of {len(all_words)} total words.")
+        with open(MULTI_TOKEN_JSON_PATH, "w", encoding="utf-8") as f:
+            json.dump({"tokens": multi_token_words}, f, indent=2, ensure_ascii=False)
+        print(f"Saved multi-token words to {MULTI_TOKEN_JSON_PATH} (as JSON with 'tokens' key)")
+    else:
+        print(f"{WORDS_ALPHA_PATH} not found. Skipping multi-token extraction.")
 
     print("\nExtraction complete. See script docstring for methodology and output formats.")
 

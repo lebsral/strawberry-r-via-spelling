@@ -11,6 +11,7 @@ import random
 from pathlib import Path
 from src.data.example_generator import ExampleGenerator, TemplateConfig
 from transformers import AutoTokenizer
+from src.data.token_validator import TokenizerValidator
 
 # Config paths
 TOKENS_PATH = Path("data/processed/english_tokens.json")
@@ -58,15 +59,30 @@ def main():
     print(f"Loaded {len(tokens)} tokens after filtering with words_alpha.txt.")
     random.seed(42)
 
+    # LIMIT FOR QUICK TESTING: Only use first 20 tokens
+    tokens = tokens[:20]
+    print(f"Limiting to {len(tokens)} tokens for quick test run.")
+
+    # Set up validator for English-only subset
+    shared_validator = TokenizerValidator()
+
+    # Filter tokens to only those in the English-only subset
+    tokens = [t for t in tokens if shared_validator.english_tokens and t in shared_validator.english_tokens]
+    print(f"Filtered to {len(tokens)} tokens in the English-only subset.")
+
     # Split tokens for val/test (no overlap)
     random.shuffle(tokens)
     split = len(tokens) // 2
     val_tokens = tokens[:split]
     test_tokens = tokens[split:]
 
+    # Filter val/test tokens for English-only subset (redundant but safe)
+    val_tokens = [t for t in val_tokens if t in shared_validator.english_tokens]
+    test_tokens = [t for t in test_tokens if t in shared_validator.english_tokens]
+
     # Set up generator
     config = TemplateConfig(templates_dir=TEMPLATES_DIR, output_dir=OUTPUT_DIR)
-    generator = ExampleGenerator(config)
+    generator = ExampleGenerator(config, validator=shared_validator)
 
     # 1. Training set: spelling examples
     print("Generating training (spelling) examples...")
@@ -76,7 +92,9 @@ def main():
         for category in spelling_categories:
             if i < 10 or (i + 1) % 1000 == 0:
                 print(f"Generating example for word: {word}, category: {category} (index {i})")
-            train_examples.append(generator.generate_example(word, category=category))
+            # Use generate_examples to get a list of examples for this word/category
+            exs = generator.generate_examples([word], num_variations=1, balance_categories=False)
+            train_examples.extend(exs)
             if i < 10 or (i + 1) % 1000 == 0:
                 print(f"Finished example for word: {word}, category: {category} (index {i})")
         if (i + 1) % 1000 == 0 or (i + 1) == len(tokens):
@@ -174,13 +192,28 @@ def main():
     val_multi = multi_token_words[:MULTI_TOKEN_SAMPLE_SIZE]
     test_multi = multi_token_words[MULTI_TOKEN_SAMPLE_SIZE:2*MULTI_TOKEN_SAMPLE_SIZE]
 
+    # Generate Alpaca-format examples for multi-token splits
+    # Filter val_multi and test_multi to only include words in the English-only token set
+    val_multi = [w for w in val_multi if w in shared_validator.english_tokens]
+    test_multi = [w for w in test_multi if w in shared_validator.english_tokens]
+    val_multi_examples = []
+    test_multi_examples = []
+    for word in val_multi:
+        val_multi_examples.append(generator.generate_char_count_example(word))
+        val_multi_examples.extend(generator.generate_char_position_examples(word, positions=[random.randint(1, len(word))]))
+        val_multi_examples.append(generator.generate_count_letter_example(word))
+    for word in test_multi:
+        test_multi_examples.append(generator.generate_char_count_example(word))
+        test_multi_examples.extend(generator.generate_char_position_examples(word, positions=[random.randint(1, len(word))]))
+        test_multi_examples.append(generator.generate_count_letter_example(word))
+
     # Save
     with open(MULTI_TOKEN_VAL_PATH, "w") as f:
-        json.dump({"examples": val_multi}, f, indent=2)
+        json.dump({"examples": val_multi_examples}, f, indent=2)
     with open(MULTI_TOKEN_TEST_PATH, "w") as f:
-        json.dump({"examples": test_multi}, f, indent=2)
-    print(f"Saved multi-token validation set: {MULTI_TOKEN_VAL_PATH} ({len(val_multi)} examples)")
-    print(f"Saved multi-token test set: {MULTI_TOKEN_TEST_PATH} ({len(test_multi)} examples)")
+        json.dump({"examples": test_multi_examples}, f, indent=2)
+    print(f"Saved multi-token validation set: {MULTI_TOKEN_VAL_PATH} ({len(val_multi_examples)} examples)")
+    print(f"Saved multi-token test set: {MULTI_TOKEN_TEST_PATH} ({len(test_multi_examples)} examples)")
 
 if __name__ == "__main__":
     main()

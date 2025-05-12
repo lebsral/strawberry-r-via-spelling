@@ -69,7 +69,7 @@ This project explores whether training a language model (LLM) on spelling tasks 
 ## Getting Started
 
 > **Mac M1/M2 Users:** For a detailed, up-to-date setup guide (including troubleshooting and performance tips), see [docs/apple_silicon_setup.md](docs/apple_silicon_setup.md).
-> 
+>
 > **Local Quantized Inference:** For step-by-step instructions and troubleshooting for Ollama, see [docs/ollama_integration.md](docs/ollama_integration.md).
 >
 > **Cloud Training & GPU Workflows:** For a complete guide to running this project in the cloud (Colab, Lightning, custom VM), see [docs/cloud_workflow.md](docs/cloud_workflow.md).
@@ -150,6 +150,7 @@ Whenever you add new packages, always run `uv pip freeze > requirements.txt` aga
 **All fine-tuning, Unsloth, and xformers steps must be performed in a cloud environment.**
 
 #### a. Recommended cloud platforms
+
 - Google Colab (Pro/Pro+ recommended for longer jobs)
 - Lightning AI
 - Any cloud VM with CUDA-enabled GPU
@@ -165,11 +166,13 @@ pip install torch transformers datasets wandb dspy lightning matplotlib seaborn 
 - Follow platform-specific instructions for GPU/driver setup.
 
 #### c. Fine-tuning and training
+
 - All model fine-tuning and heavy training must be done in the cloud.
 - Use Unsloth and xformers for efficient training.
 - Never attempt to install or run Unsloth/xformers locally on Mac/Apple Silicon.
 
 #### d. Data Preparation
+
 - Data preparation and token extraction can be performed locally using Hugging Face transformers, or in the cloud as needed.
 
 ---
@@ -206,12 +209,14 @@ pip install torch transformers datasets wandb dspy lightning matplotlib seaborn 
 ### 5. Example Commands
 
 **Local (Mac/Apple Silicon):**
+
 ```sh
 uv pip install transformers ollama
 python scripts/extract_english_tokens.py
 ```
 
 **Cloud (Colab):**
+
 ```sh
 pip install transformers unsloth xformers
 python scripts/train.py --model Qwen3-4B --data data/processed/tokens.json --output results/model/
@@ -366,6 +371,7 @@ python -m src.analysis.template_analysis \
 ```
 
 Generates:
+
 - Pattern distribution analysis
 - Template length statistics
 - Complexity score distributions
@@ -384,6 +390,7 @@ python -m src.analysis.template_performance \
 ```
 
 Generates:
+
 - Performance metrics by template pattern
 - Performance metrics by sequence length
 - Confusion matrices
@@ -475,6 +482,7 @@ PYTHONPATH=. python scripts/generate_dataset_splits.py
 ```
 
 This will:
+
 - Load the canonical token list from `data/processed/english_tokens.json`
 - Generate spelling examples for all tokens (training set)
 - Randomly split tokens into validation and test sets (no overlap)
@@ -502,4 +510,41 @@ See `/docs/data_format.md` for the JSON structure of each split.
 
 - [Data Format and Splits](docs/data_format.md): Full details on all dataset splits, spelling separator conventions, token filtering, and example entries.
 - [Template System](docs/templates.md): Template categories, robust variable handling, separator style mixing, and authoring guidelines.
+- [Token Extraction](docs/token_extraction.md): Canonical English token set, multi-token set, extraction scripts, and validation.
+- [Validation and Testing Framework](docs/validation.md): How to validate all datasets and token sets, CLI usage, troubleshooting, and extending validation rules.
 - [Analysis Tools](docs/analysis.md): How to use the new splits for robust evaluation, including separator conventions and token filtering.
+
+## Validation and Testing Framework
+
+To ensure all generated datasets and token sets are valid and compatible with fine-tuning libraries, use the following tools:
+
+### 1. Alpaca Schema Validation
+
+Run the batch validation script to check all datasets in `data/processed/`:
+
+```sh
+python scripts/validate_datasets.py
+```
+- Checks for required fields, empty strings, non-ASCII characters, and (if available) English-only token subset.
+- Prints a summary and details of any invalid examples.
+
+### 2. Token Set Validation
+
+Validate the canonical English token set:
+```sh
+python src/data/validate_alpaca_schema.py data/processed/english_tokens.json
+```
+Validate the multi-token word set:
+```sh
+python src/data/validate_alpaca_schema.py data/processed/english_multi_tokens.json
+```
+- Ensures all tokens/words are unique, valid, and meet project requirements.
+
+### 3. Integrated Validation in Data Generation
+
+Whenever you generate examples using `ExampleGenerator.save_examples`, Alpaca schema validation is automatically run on the output file. Warnings are printed if any invalid examples are found.
+
+See also:
+- [Validation and Testing Framework](docs/validation.md)
+- [Data Format Documentation](docs/data_format.md)
+- [Cloud Workflow Guide](docs/cloud_workflow.md)

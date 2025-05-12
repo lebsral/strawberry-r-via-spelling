@@ -55,15 +55,19 @@ class SeparatorConfig:
 class TokenSeparator:
     """Handles the separation of tokens/characters with various styles."""
 
-    def __init__(self, config: Optional[Union[SeparatorConfig, SeparatorStyle]] = None):
-        """Initialize the token separator with optional configuration."""
-        if isinstance(config, SeparatorStyle):
-            self.config = SeparatorConfig.from_style(config)
+    def __init__(self, style_or_config=None, validator=None):
+        if style_or_config is None:
+            style_or_config = SeparatorStyle.SPACE
+        if isinstance(style_or_config, SeparatorConfig):
+            self.config = style_or_config
         else:
-            self.config = config or SeparatorConfig.from_style(SeparatorStyle.SPACE)
-
-        # Initialize validator
-        self.validator = TokenizerValidator()
+            self.config = SeparatorConfig.from_style(style_or_config)
+        # Use provided validator or create a new one
+        if validator is not None:
+            self.validator = validator
+        else:
+            from .token_validator import TokenizerValidator
+            self.validator = TokenizerValidator()
 
         # Validate current separator
         if not self.validator.is_valid_separator(self.config.separator):

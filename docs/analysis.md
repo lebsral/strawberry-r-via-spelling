@@ -1,12 +1,14 @@
 # Analysis Tools Documentation
 
 > **Environment Workflow Notice:**
+>
 > - **Analysis scripts can be run locally (Mac/Apple Silicon) or in the cloud.**
 > - **Unsloth and xformers are cloud-only**: Never install or use these packages locally. They require CUDA GPUs and are not compatible with Mac/Apple Silicon.
 > - **Ollama is for local quantized inference only**: Only install and use Ollama on Mac/Apple Silicon for local inference. Do not use Ollama in the cloud.
 > - For full workflow details and troubleshooting, see the [README](../README.md#cloud-workflow-google-colab-lightning-etc) and [Local vs. Cloud Workflow Comparison](../README.md#3-local-vs-cloud-workflow-comparison).
 >
 > **Example (Local):**
+>
 > ```sh
 > uv pip install transformers ollama
 > python -m src.analysis.template_analysis --data-dir data/processed --output-dir results/token_analysis --batch-size 32
@@ -14,12 +16,14 @@
 > ```
 >
 > **Example (Cloud):**
+>
 > ```sh
 > pip install transformers unsloth xformers
 > python -m src.analysis.template_analysis --data-dir data/processed --output-dir results/token_analysis --batch-size 32
 > ```
 >
 > **Troubleshooting:**
+>
 > - If you see errors about CUDA, xformers, or Unsloth on Mac, you are trying to run a cloud-only step locally. Switch to a cloud environment.
 > - If you see errors about Ollama in the cloud, remove it and use only for local inference.
 
@@ -64,15 +68,18 @@ All analysis scripts and evaluation tools in this project are designed for the Q
 ## Template Analysis
 
 ### Purpose
+
 The template analysis script (`src/analysis/template_analysis.py`) analyzes the characteristics and distribution of template variations in the dataset.
 
 ### Features
+
 - Pattern distribution analysis
 - Template length statistics
 - Complexity score calculations
 - Automated report generation
 
 ### Usage
+
 ```bash
 python -m src.analysis.template_analysis \
   --data-dir data/processed \
@@ -82,12 +89,14 @@ python -m src.analysis.template_analysis \
 ```
 
 ### Arguments
+
 - `--data-dir`: Directory containing processed data (default: "data/processed")
 - `--output-dir`: Directory to save analysis results (default: "results/token_analysis")
 - `--batch-size`: Batch size for data loading (default: 32)
 - `--log-level`: Logging level (default: "INFO")
 
 ### Output Structure
+
 ```
 results/token_analysis/
 ├── data/
@@ -104,15 +113,18 @@ results/token_analysis/
 ## Performance Analysis
 
 ### Purpose
+
 The performance analysis script (`src/analysis/template_performance.py`) analyzes how different template variations affect model performance.
 
 ### Features
+
 - Performance metrics by template pattern
 - Performance metrics by sequence length
 - Confusion matrix visualization
 - Automated report generation
 
 ### Usage
+
 ```bash
 python -m src.analysis.template_performance \
   --data-dir data/processed \
@@ -122,12 +134,14 @@ python -m src.analysis.template_performance \
 ```
 
 ### Arguments
+
 - `--data-dir`: Directory containing processed data (default: "data/processed")
 - `--output-dir`: Directory to save analysis results (default: "results/token_analysis")
 - `--batch-size`: Batch size for data loading (default: 32)
 - `--log-level`: Logging level (default: "INFO")
 
 ### Output Structure
+
 ```
 results/token_analysis/
 ├── data/
@@ -145,6 +159,7 @@ results/token_analysis/
 The `src/analysis/visualization_utils.py` module provides shared plotting functions and consistent styling for visualizations.
 
 ### Key Functions
+
 - `plot_distribution()`: Plot histograms of distributions
 - `plot_category_counts()`: Plot bar charts of category counts
 - `plot_performance_comparison()`: Plot performance metrics comparisons
@@ -152,6 +167,7 @@ The `src/analysis/visualization_utils.py` module provides shared plotting functi
 - `generate_html_report()`: Generate HTML reports with embedded figures
 
 ### Styling
+
 - Uses updated seaborn style ('seaborn-v0_8')
 - Consistent color palettes via 'husl'
 - Standard figure sizes and formatting
@@ -160,6 +176,7 @@ The `src/analysis/visualization_utils.py` module provides shared plotting functi
 ## Template Categories
 
 The analysis scripts work with three main template categories:
+
 1. `spelling_first` - Templates that present spelling tasks first
 2. `structured` - Templates with structured format
 3. `word_first` - Templates that present the word first
@@ -167,6 +184,7 @@ The analysis scripts work with three main template categories:
 ## Performance Metrics
 
 The performance analysis calculates several metrics:
+
 - Accuracy
 - Precision
 - Recall
@@ -198,24 +216,28 @@ The performance analysis calculates several metrics:
 ## Future Improvements
 
 Potential areas for enhancement:
+
 - Additional performance metrics
 - Interactive visualizations
 - Real-time analysis capabilities
 - Custom template category support
-- Advanced statistical analysis 
+- Advanced statistical analysis
 
 ## Example Analysis Workflow
 
 1. **Run Template Analysis**
+
    ```sh
    python -m src.analysis.template_analysis \
      --data-dir data/processed \
      --output-dir results/token_analysis \
      --batch-size 32
    ```
+
    - Ensure all scripts use Qwen3-4B tokenizer and reference `english_tokens.json`.
 
 2. **Run Performance Analysis**
+
    ```sh
    python -m src.analysis.template_performance \
      --data-dir data/processed \
@@ -223,6 +245,7 @@ Potential areas for enhancement:
      --batch-size 32 \
      --mode thinking  # or --mode non-thinking
    ```
+
    - Compare metrics for both modes.
 
 ## Reporting
@@ -231,6 +254,7 @@ Potential areas for enhancement:
 - Include mode-specific performance breakdowns and error analyses.
 
 ## References
+
 - See `docs/token_extraction.md` for token extraction methodology.
 - See `docs/data_format.md` for data format specifications.
 - See Taskmaster tasks #14 and #15 for migration and compatibility conversion.
@@ -260,6 +284,7 @@ Update any analysis scripts to reference these files and to expect the new examp
 ## Analyzing Multi-Token Evaluation Splits
 
 For more challenging evaluation, use the multi-token validation and test splits:
+
 - `data/processed/val_char_questions_multi_token.json`
 - `data/processed/test_char_questions_multi_token.json`
 
@@ -280,3 +305,10 @@ Update your analysis scripts to include these files for a more robust assessment
 - The script enforces these rules and regeneration is always consistent with the latest code.
 
 - See [data_format.md](data_format.md) and [templates.md](templates.md) for full details.
+
+## Data and Token Set Validation (Prerequisite)
+
+Before running any analysis scripts, validate all datasets and token sets using the [validation framework](validation.md):
+- Run `python scripts/validate_datasets.py` to check all Alpaca-format datasets
+- Run `python src/data/validate_alpaca_schema.py data/processed/english_tokens.json` and `data/processed/english_multi_tokens.json` to check token sets
+- See [docs/validation.md](validation.md) for details and troubleshooting

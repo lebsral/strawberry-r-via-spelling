@@ -101,7 +101,7 @@ The transition to Alpaca format should be thoroughly tested using the following 
    - Integration with Qwen3-4B English token subset is successful
 
 # Subtasks:
-## 1. Audit Current Data Structure and Generation Scripts [in-progress]
+## 1. Audit Current Data Structure and Generation Scripts [done]
 ### Dependencies: None
 ### Description: Conduct a comprehensive audit of the existing data format, structure, and generation scripts to understand the current system before migration.
 ### Details:
@@ -149,7 +149,7 @@ The data generation workflow uses templates defined in configuration files, gene
 Challenges include handling simple word lists and preserving metadata while conforming to Alpaca's core fields.
 </info added on 2025-05-11T21:44:31.452Z>
 
-## 2. Design Alpaca-Compatible Schema and Validation Rules [in-progress]
+## 2. Design Alpaca-Compatible Schema and Validation Rules [done]
 ### Dependencies: 20.1
 ### Description: Create a formal specification for our implementation of the Alpaca format, including handling of custom fields and metadata strategy.
 ### Details:
@@ -248,29 +248,105 @@ Implementation plan:
 ### Details:
 Update template systems to align with Alpaca structure requirements. Modify configuration files and parameters to support Alpaca format generation. Adjust token extraction processes to work with the new format. Ensure all data sources and inputs are compatible with Alpaca generation. Implement any necessary preprocessing changes to support the new format. Create standardized templates that follow Alpaca best practices.
 
-## 5. Implement Validation and Testing Framework [pending]
+## 5. Implement Validation and Testing Framework [done]
 ### Dependencies: 20.3, 20.4
 ### Description: Create a comprehensive testing framework to validate the newly generated datasets and ensure they work correctly with fine-tuning libraries.
 ### Details:
 Develop automated tests to verify generated datasets load correctly in Unsloth and Hugging Face. Create a sample fine-tuning pipeline to test the new format with actual models. Build specific tests for edge cases and unusual data patterns identified during the audit. Implement continuous validation that can be run as new datasets are generated. Test the entire pipeline from data generation to model training.
+<info added on 2025-05-12T11:44:37.100Z>
+Develop automated tests to verify generated datasets load correctly in Unsloth and Hugging Face. Create a sample fine-tuning pipeline to test the new format with actual models. Build specific tests for edge cases and unusual data patterns identified during the audit. Implement continuous validation that can be run as new datasets are generated. Test the entire pipeline from data generation to model training.
+
+The validation and testing framework will be implemented through the following components:
+
+1. Schema Validation:
+   - Create a `validate_alpaca_schema` function in `src/data/` to verify all examples contain required fields (`instruction`, `input`, `output`)
+   - Ensure all fields are strings and no extra fields are present
+   - Integrate this validation into the data generation pipeline in `example_generator.py`
+   - Run validation on all files in `data/processed/`
+
+2. Edge Case & Data Integrity Checks:
+   - Implement checks for identified edge cases (empty strings, special characters, long/short sequences)
+   - Create logging and reporting for validation failures
+   - Generate summary reports with counts, failures, and warnings
+
+3. Sample Fine-Tuning Pipeline:
+   - Develop `scripts/sample_finetune.py` for minimal testing with both Hugging Face Trainer and Unsloth
+   - Use small models for local/CPU validation (`sshleifer/tiny-gpt2`) and Qwen3-4B/Unsloth for cloud
+   - Verify Alpaca-formatted data loads and runs without errors
+   - Document the testing process
+
+4. Continuous Validation:
+   - Create `scripts/validate_datasets.py` for batch validation after data generation
+   - Consider future integration with pre-commit hooks or CI/CD
+
+5. End-to-End Pipeline Testing:
+   - Test the complete workflow: data generation → validation → sample fine-tuning
+   - Document issues, fixes, and required changes
+
+Key files to be created or modified:
+- `src/data/validate_alpaca_schema.py` (new)
+- `src/data/example_generator.py` (update)
+- `scripts/validate_datasets.py` (new)
+- `scripts/sample_finetune.py` (new)
+- Documentation updates in README and docs/data_format.md
+</info added on 2025-05-12T11:44:37.100Z>
 
 ## 6. Update Training and Evaluation Pipelines [pending]
 ### Dependencies: 20.5
 ### Description: Modify all training scripts and evaluation pipelines to work with the new Alpaca format data.
 ### Details:
 Update all training scripts to use the new Alpaca format. Modify data loading and preprocessing steps in training pipelines. Adjust evaluation pipelines to work with Alpaca data. Ensure compatibility with the Qwen3-4B English token subset (from Tasks #17-19). Test integration with all existing model architectures. Implement any necessary changes to tokenization or preprocessing steps. Update configuration files and parameters to reflect the new data format.
+<info added on 2025-05-12T18:05:10.078Z>
+Update all training scripts to use the new Alpaca format. Modify data loading and preprocessing steps in training pipelines. Adjust evaluation pipelines to work with Alpaca data. Ensure compatibility with the Qwen3-4B English token subset (from Tasks #17-19). Test integration with all existing model architectures. Implement any necessary changes to tokenization or preprocessing steps. Update configuration files and parameters to reflect the new data format.
+
+The training and evaluation pipelines must be updated to work with the new Alpaca-format data structure, with special attention to the explicit 'word' field that will be used for validation purposes. All pipelines should integrate the AlpacaSchemaValidator and token set validators to perform comprehensive checks on datasets before any training or evaluation begins. This integration ensures data quality and consistency throughout the pipeline.
+
+All data loading, batching, and preprocessing components need to be modified to expect the new format and validation fields. Documentation and code comments should reference the new validation scripts (scripts/validate_datasets.py and src/data/validate_alpaca_schema.py) to guide users and developers. CLI usage examples for validation should be added to the documentation to facilitate easy verification of datasets.
+
+The updated pipelines should reference docs/validation.md and docs/data_format.md for comprehensive details on the validation process and data format specifications. These references should be included in both code comments and user-facing documentation to ensure clarity and consistency in implementation.
+</info added on 2025-05-12T18:05:10.078Z>
 
 ## 7. Update Analysis and Visualization Tools [pending]
 ### Dependencies: 20.3
 ### Description: Modify all data analysis, exploration, and visualization tools to work with Alpaca format data.
 ### Details:
 Update data exploration notebooks and scripts to parse Alpaca format. Modify visualization tools to properly display Alpaca-structured data. Ensure analysis pipelines correctly process the new format. Create new visualizations that highlight the instruction-input-output structure. Implement tools to validate and analyze Alpaca-formatted datasets. Update any dashboards or reporting tools to work with the new format.
+<info added on 2025-05-12T18:05:49.961Z>
+Update data exploration notebooks and scripts to parse Alpaca format. Modify visualization tools to properly display Alpaca-structured data. Ensure analysis pipelines correctly process the new format. Create new visualizations that highlight the instruction-input-output structure. Implement tools to validate and analyze Alpaca-formatted datasets. Update any dashboards or reporting tools to work with the new format.
+
+All analysis and visualization tools must be updated to:
+1. Expect and properly handle the new Alpaca-format data structure, including the explicit 'word' field which will be used for validation purposes only.
+2. Integrate validation checks using AlpacaSchemaValidator and token set validators as a prerequisite step before performing any analysis operations.
+3. Include references to the new validation scripts (scripts/validate_datasets.py and src/data/validate_alpaca_schema.py) in all tool documentation and code comments.
+4. Modify all data loading functions, statistical analysis methods, and visualization components to properly handle the new format and validation fields.
+5. Add command-line interface (CLI) usage examples demonstrating validation procedures in the documentation.
+
+Implementation should follow a consistent pattern:
+- Load data → Validate data structure → Process data → Generate visualizations/analysis
+- All tools should fail gracefully with informative error messages if validation fails
+- Visualization tools should be enhanced to specifically highlight the instruction-input-output structure of the Alpaca format
+
+Reference documentation in docs/validation.md and docs/data_format.md for comprehensive details on the validation requirements and data format specifications.
+</info added on 2025-05-12T18:05:49.961Z>
 
 ## 8. Create Comprehensive Documentation and Training Materials [pending]
 ### Dependencies: 20.2, 20.3, 20.6, 20.7
 ### Description: Update all documentation to reflect the new Alpaca format and create training materials for team members.
 ### Details:
 Update all technical documentation to reflect the new Alpaca format. Create guides for team members explaining how to work with the new format. Document any format-specific considerations for different model architectures. Update training pipelines documentation with new data loading procedures. Create examples of correctly formatted data for reference. Develop troubleshooting guides for common issues. Create visualization tools to help understand the data structure. Document any changes in tokenization or preprocessing that might affect model performance.
+<info added on 2025-05-12T18:06:31.229Z>
+Update all technical documentation to reflect the new Alpaca format, with specific emphasis on the explicit 'word' field used for validation purposes. Document the implementation and usage of AlpacaSchemaValidator and token set validators across all datasets and token sets. Include comprehensive references to the new validation scripts (scripts/validate_datasets.py, src/data/validate_alpaca_schema.py) in all relevant documentation sections.
+
+Ensure all documentation sections are updated with:
+1. Complete field lists reflecting the new Alpaca format structure
+2. Updated usage examples showing proper data formatting
+3. Revised troubleshooting sections addressing common issues with the new format
+4. Cross-references to docs/validation.md and docs/data_format.md wherever validation or data format is discussed
+
+Create guides for team members explaining how to work with the new format, including step-by-step instructions for data validation. Document any format-specific considerations for different model architectures, highlighting potential compatibility issues. Update training pipelines documentation with new data loading procedures that accommodate the Alpaca format. Create examples of correctly formatted data for reference, showing both valid and invalid examples to illustrate validation requirements.
+
+Develop troubleshooting guides for common issues encountered with the Alpaca format, including validation errors and their resolutions. Create visualization tools to help understand the data structure and validation process. Document any changes in tokenization or preprocessing that might affect model performance when using the new format.
+</info added on 2025-05-12T18:06:31.229Z>
 
 ## 9. Robustly handle templates with extra variables in data generation [pending]
 ### Dependencies: None

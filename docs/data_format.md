@@ -479,3 +479,47 @@ To create more challenging evaluation sets, we generate additional validation an
 - See the README and this file's earlier sections for split details.
 
 ---
+
+## Validation and Testing Framework
+
+All data and token sets are validated using a dedicated framework:
+- **AlpacaSchemaValidator**: Checks dataset examples for required fields, correct word usage, and canonical token set membership (see [docs/validation.md](validation.md))
+- **EnglishTokenSetValidator**: Validates the canonical English token set (`english_tokens.json`)
+- **EnglishMultiTokenSetValidator**: Validates the multi-token word set (`english_multi_tokens.json`)
+
+### How to Run Validation
+
+- Validate all datasets:
+  ```sh
+  python scripts/validate_datasets.py
+  ```
+- Validate a single dataset file:
+  ```sh
+  python src/data/validate_alpaca_schema.py data/processed/train_spelling.json --english-tokens data/processed/english_tokens.json
+  ```
+- Validate token sets:
+  ```sh
+  python src/data/validate_alpaca_schema.py data/processed/english_tokens.json
+  python src/data/validate_alpaca_schema.py data/processed/english_multi_tokens.json
+  ```
+
+### Validation Fields
+- All generated examples now include a `word` field (for validation only; not used in training/inference)
+- The validator uses this field to check canonical token set membership
+
+### Best Practices
+- Always validate new data and token sets before training or analysis
+- Regenerate data if validation fails
+- See [docs/validation.md](validation.md) for troubleshooting and advanced usage
+
+## Multi-Token Validation/Test Splits
+
+- Multi-token splits are generated using the canonical multi-token set (`english_multi_tokens.json`)
+- Only words present in this set are used for multi-token validation/test splits
+- Validation ensures all words are multi-token and in the canonical set
+- See [docs/validation.md](validation.md) for details
+
+## References
+- See [docs/validation.md](validation.md) for the validation/testing framework
+- See [docs/token_extraction.md](token_extraction.md) for extraction methodology
+- See [docs/analysis.md](analysis.md) for evaluation details

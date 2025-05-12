@@ -1,12 +1,14 @@
 # Template System Documentation (Qwen3-4B)
 
 > **Environment Workflow Notice:**
+>
 > - **Template generation and data preparation can be performed locally (Mac/Apple Silicon) or in the cloud.**
 > - **Unsloth and xformers are cloud-only**: Never install or use these packages locally. They require CUDA GPUs and are not compatible with Mac/Apple Silicon.
 > - **Ollama is for local quantized inference only**: Only install and use Ollama on Mac/Apple Silicon for local inference. Do not use Ollama in the cloud.
 > - For full workflow details and troubleshooting, see the [README](../README.md#cloud-workflow-google-colab-lightning-etc) and [Local vs. Cloud Workflow Comparison](../README.md#3-local-vs-cloud-workflow-comparison).
 >
 > **Example (Local):**
+>
 > ```sh
 > uv pip install transformers ollama
 > python scripts/template_generation.py --config configs/templates/categories.json --output data/processed/template_variations/examples.json
@@ -14,12 +16,14 @@
 > ```
 >
 > **Example (Cloud):**
+>
 > ```sh
 > pip install transformers unsloth xformers
 > python scripts/template_generation.py --config configs/templates/categories.json --output data/processed/template_variations/examples.json
 > ```
 >
 > **Troubleshooting:**
+>
 > - If you see errors about CUDA, xformers, or Unsloth on Mac, you are trying to run a cloud-only step locally. Switch to a cloud environment.
 > - If you see errors about Ollama in the cloud, remove it and use only for local inference.
 
@@ -39,6 +43,7 @@
 All template generation and token separation strategies in this project are designed for compatibility with the Qwen3-4B tokenizer and the English-only token subset. This ensures that all generated examples are valid for the model and experiment.
 
 ## Template Structure
+
 Templates are organized in `configs/templates/categories.json` with the following hierarchy:
 
 ```json
@@ -54,11 +59,14 @@ Templates are organized in `configs/templates/categories.json` with the followin
 ```
 
 ### Template Variables
+
 Templates use the following variables:
+
 - `{word}`: The target word being spelled
 - `{letters}`: The separated letters of the word
 
 Example:
+
 ```
 "{letters} — that spells '{word}.'"
 ```
@@ -69,7 +77,9 @@ Example:
 - Template categories (e.g., `spelling_first`, `word_first`) remain the same, but all examples must be validated for token compatibility.
 
 ## Styles
+
 Each category supports multiple styles:
+
 - `simple`: Basic, straightforward templates
 - `playful`: Fun, engaging templates
 - `educational`: Teaching-focused templates
@@ -91,10 +101,21 @@ Each category supports multiple styles:
 }
 ```
 
-## Validation
+## Validation and Testing
 
-- All template-generated examples should be tokenized with Qwen3-4B and checked to ensure all tokens are in the English-only subset.
-- If a template or separator produces out-of-vocabulary tokens, update the template or filter the example.
+- All templates and generated examples are validated using the [validation framework](validation.md)
+- The `{word}` field is included in generated examples for validation (not used in training/inference)
+- Only words present in the canonical token set (`english_tokens.json`) or multi-token set (`english_multi_tokens.json`) are used
+- Template and separator compatibility is checked before use
+- See [docs/validation.md](validation.md) for CLI usage and troubleshooting
+
+### Troubleshooting Template Validation
+- If a template or separator fails validation, update or replace it
+- Run the test script after any changes:
+  ```sh
+  python scripts/test_tokenizer_compatibility.py
+  ```
+- See [docs/data_format.md](data_format.md) and [docs/validation.md](validation.md) for details
 
 ## Integration with Data Processing
 
@@ -102,11 +123,14 @@ Each category supports multiple styles:
 - See `docs/data_format.md` for data structure requirements.
 
 ## References
+
 - See `docs/token_extraction.md` for token extraction methodology.
 - See `docs/data_format.md` for data format specifications.
 
 ## Example Generation
+
 The `ExampleGenerator` class handles example generation with features:
+
 - Random template selection within categories
 - Style balancing across examples
 - Configurable token separation
@@ -114,6 +138,7 @@ The `ExampleGenerator` class handles example generation with features:
 - Category balancing option
 
 ### Usage Example
+
 ```python
 from src.data.example_generator import ExampleGenerator, TemplateConfig
 from pathlib import Path
@@ -136,7 +161,9 @@ examples = generator.generate_examples(
 ```
 
 ## Output Format
+
 Generated examples are saved in JSON format with metadata:
+
 ```json
 {
   "examples": [
@@ -153,11 +180,13 @@ Generated examples are saved in JSON format with metadata:
 ```
 
 ## Adding New Templates
+
 1. Add new templates to the appropriate category and style in `categories.json`
 2. Ensure templates use the standard variables (`{word}`, `{letters}`)
 3. Test with the example generator to verify formatting
 
 ## Best Practices
+
 - Use natural language patterns
 - Include punctuation for readability
 - Consider educational value
@@ -202,11 +231,12 @@ random_example = processor.generate_random_example("straw")
 ## Quality Metrics
 
 When creating or modifying templates, ensure they meet these criteria:
+
 1. Clarity: Instructions should be clear and unambiguous
 2. Consistency: Follow established patterns within categories
 3. Variability: Provide meaningful variations in presentation
 4. Formatting: Maintain proper spacing and punctuation
-5. Scalability: Work well with words of different lengths 
+5. Scalability: Work well with words of different lengths
 
 ## Evaluation Considerations
 
@@ -253,22 +283,25 @@ The template system supports generating character count and character position q
   - dash (`c-o-i-n-s`)
   - ellipsis (`c...o...i...n...s`)
   - arrow (`c->o->i->n->s`)
-- For commas, the separator is `, ` (comma and single space). For other separators, no extra spaces are used.
+- For commas, the separator is `,` (comma and single space). For other separators, no extra spaces are used.
 - No double or mixed separators are allowed. No run-together letters.
 - The separator style is recorded in the metadata for each example as `separator_style`.
 - All tokens are lowercased and filtered to only those present in `words_alpha.txt`.
 - The script enforces these rules and regeneration is always consistent with the latest code.
 
-### Example template output:
+### Example template output
+
 - Template: `The word '{word}' is spelled {letters}.`
 - Output: `The word 'coins' is spelled c, o, i, n, s.`
 
 ## Qwen3-4B Tokenizer Compatibility Audit (2024-06-12)
 
 ### Overview
+
 All template and example generation code has been audited and updated for compatibility with the Qwen3-4B tokenizer, using the English-only token subset. This ensures that all generated data, templates, and separators are valid for the model and do not include non-English or non-ASCII tokens.
 
 ### Key Changes
+
 - **TokenizerValidator** (`src/data/token_validator.py`):
   - Loads `english_tokens.json` (canonical English token list) or falls back to ASCII-only validation.
   - Provides methods to check separator, template, and example compatibility.
@@ -283,11 +316,13 @@ All template and example generation code has been audited and updated for compat
   - Output confirms only compatible examples are produced.
 
 ### Validation Process
+
 - All templates and separators are checked for compatibility before use.
 - Any template or separator that is not compatible is either filtered out or replaced.
 - The test script provides comprehensive validation and should be run after any changes to templates or tokenization logic.
 
 ### References
+
 - See also: [docs/data_format.md](data_format.md), [docs/token_extraction.md](token_extraction.md)
 
 ## Robust Template Variable Handling (2024-06-12)
@@ -313,6 +348,7 @@ examples = generator.generate_examples(["apple", "banana"], num_variations=3, ba
 ```
 
 ### Template Authoring Guidelines
+
 - Only use {word} in the input for spelling/structured templates.
 - Do not include {letters} or the answer in the input.
 - For char count/position, use {n}, {ordinal_word}, or {letter} as needed.
@@ -321,11 +357,13 @@ examples = generator.generate_examples(["apple", "banana"], num_variations=3, ba
 ---
 
 ## Separator Style Mixing
+
 - For each spelling/structured template, the generator produces examples for all separator styles: space, comma, dash, period, arrow.
 - This ensures the model sees a variety of input/output formats.
 
 ---
 
 ## See Also
+
 - [docs/data_format.md](data_format.md) for data format details
 - [src/data/example_generator.py](../src/data/example_generator.py) for code

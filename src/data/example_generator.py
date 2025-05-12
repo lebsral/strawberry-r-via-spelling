@@ -27,6 +27,7 @@ import re
 
 from .token_separator import TokenSeparator, SeparatorStyle, SeparatorConfig
 from .token_validator import TokenizerValidator
+from .validate_alpaca_schema import AlpacaSchemaValidator
 
 @dataclass
 class TemplateConfig:
@@ -62,12 +63,12 @@ class ExampleGenerator:
         validator: TokenizerValidator for compatibility checks
     """
 
-    def __init__(self, config: TemplateConfig):
-        """Initialize the example generator with configuration."""
+    def __init__(self, config: TemplateConfig, validator: TokenizerValidator = None):
+        """Initialize the example generator with configuration and optional shared validator."""
         self.config = config
-        self.validator = TokenizerValidator()
+        self.validator = validator or TokenizerValidator()
         self.templates = self._load_templates()
-        self.token_separator = TokenSeparator()
+        self.token_separator = TokenSeparator(validator=self.validator)
 
     def _load_templates(self) -> Dict:
         """Load and validate templates from the categories JSON file."""
@@ -161,7 +162,7 @@ class ExampleGenerator:
             # Choose separator style if not provided
             if not separator_style:
                 separator_style = SeparatorStyle.SPACE
-            separator = TokenSeparator(separator_style)
+            separator = TokenSeparator(separator_style, validator=self.validator)
             variables['letters'] = separator.separate_tokens(list(word.lower()))
         try:
             input_text = template.format(**variables)
@@ -173,7 +174,7 @@ class ExampleGenerator:
             # Output is always the letter sequence
             if not separator_style:
                 separator_style = SeparatorStyle.SPACE
-            separator = TokenSeparator(separator_style)
+            separator = TokenSeparator(separator_style, validator=self.validator)
             output_field = separator.separate_tokens(list(word.lower()))
         elif category == "char_count_question":
             if 'letter' in variables:
@@ -330,6 +331,7 @@ class ExampleGenerator:
     def save_examples(self, examples: List[Dict[str, str]], filename: Optional[str] = None) -> Path:
         """
         Save Alpaca-format examples to a JSON file (flat list, not nested).
+        Also validates the saved file against the Alpaca schema and prints a warning if any invalid examples are found.
         """
         if filename is None:
             filename = "alpaca_examples.json"
@@ -337,21 +339,26 @@ class ExampleGenerator:
         output_file = self.config.output_dir / filename
         with open(output_file, "w") as f:
             json.dump(examples, f, indent=2)
+        # Validate after saving
+        validator = AlpacaSchemaValidator()
+        report = validator.validate_file(output_file)
+        if report["invalid"] > 0:
+            print(f"WARNING: {report['invalid']} invalid examples found in {output_file}!")
+            for err in report["errors"][:5]:
+                print(f"  Example #{err['index']}: {err['errors']}")
         return output_file
 
     def generate_char_count_example(self, word: str, style: Optional[str] = None) -> Dict[str, str]:
         """
         Generate a character count question example for the given word.
-        Args:
-            word: The word to generate a question for
-            style: Optional style within the category to use
-        Returns:
-            Dictionary containing the generated example and metadata
+        Returns only Alpaca fields: instruction, input, output.
+        Adds a 'word' field for validation (not used in training).
         """
         template = self._get_random_template("char_count_question", "simple")
         input_text = template.format(word=word)
         output = str(len(word))
-        return {"input": input_text, "output": output, "category": "char_count_question", "subtype": "simple", "word": word}
+        instruction = self.CANONICAL_INSTRUCTIONS["char_count_question"]
+        return {"instruction": instruction, "input": input_text, "output": output, "word": word}
 
     def _ordinal(self, n: int) -> str:
         """Return the ordinal string for an integer (e.g., 1 -> '1st')."""
@@ -371,47 +378,32 @@ class ExampleGenerator:
         }
         return words.get(n, f"{n}th")
 
-    def generate_count_letter_example(self, word: str, style: Optional[str] = None) -> Dict[str, str]:
+    def generate_count_letter_example(self, word: str, letter: Optional[str] = None, style: Optional[str] = None) -> Dict[str, str]:
         """
-        Generate a question about counting a specific letter in the word.
-        Args:
-            word: The word to generate a question for
-            style: Optional style within the category to use
-        Returns:
-            Dictionary containing the generated example and metadata
+        Generate a count letter question example for the given word and letter.
+        Returns only Alpaca fields: instruction, input, output.
+        Adds a 'word' field for validation (not used in training).
         """
-        # Pick a letter that occurs at least once in the word
-        unique_letters = list(set(word))
-        letter = random.choice(unique_letters)
-        template = self._get_random_template("char_count_question", "count_letter")
+        template = self._get_random_template("count_letter_question", "simple")
+        if letter is None:
+            letter = word[0]
         input_text = template.format(word=word, letter=letter)
         output = str(word.count(letter))
-        return {"input": input_text, "output": output, "category": "char_count_question", "subtype": "count_letter", "letter": letter, "word": word}
+        instruction = self.CANONICAL_INSTRUCTIONS["count_letter_question"]
+        return {"instruction": instruction, "input": input_text, "output": output, "word": word}
 
-    def generate_char_position_examples(self, word: str, positions: Optional[List[int]] = None, style: Optional[str] = None) -> List[Dict[str, str]]:
+    def generate_char_position_examples(self, word: str, positions: Optional[list] = None, style: Optional[str] = None) -> list:
         """
-        Generate character position question examples for the given word.
-        Args:
-            word: The word to generate questions for
-            positions: List of positions (1-based)
-            style: Optional style within the category to use
-        Returns:
-            List of dictionaries containing generated examples and metadata
+        Generate character position question examples for the given word and positions.
+        Returns a list of Alpaca-format dicts, each with a 'word' field for validation.
         """
         if positions is None:
-            positions = list(range(1, len(word) + 1))
+            positions = [1]
         examples = []
-        for n in positions:
-            template = self._get_random_template("char_position_question", style)
-            # Detect which variables are present in the template
-            variables = {}
-            if "{n}" in template:
-                variables["n"] = n
-            if "{ordinal}" in template:
-                variables["ordinal"] = self._ordinal(n)
-            if "{ordinal_word}" in template:
-                variables["ordinal_word"] = self._ordinal_word(n)
-            input_text = template.format(word=word, **variables)
-            output = word[n - 1] if 1 <= n <= len(word) else ""
-            examples.append({"input": input_text, "output": output, "category": "char_position_question", "position": n, "word": word})
+        for pos in positions:
+            template = self._get_random_template("char_position_question", "simple")
+            input_text = template.format(word=word, position=pos)
+            output = word[pos - 1] if 1 <= pos <= len(word) else ""
+            instruction = self.CANONICAL_INSTRUCTIONS["char_position_question"]
+            examples.append({"instruction": instruction, "input": input_text, "output": output, "word": word})
         return examples
