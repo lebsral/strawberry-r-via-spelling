@@ -29,12 +29,10 @@ def main():
 
     print("1. Single Example Generation")
     print("-" * 40)
-    example = generator.generate_example("straw")
-    print(f"Input : {example['input']}")
-    print(f"Output: {example['output']}")
-    print(f"Category: {example['template_category']}")
-    print(f"Style: {example['template_style']}")
-    print(f"Separator: {example['separator_style']}")
+    example = generator.generate_example("straw", category="spelling_first")
+    print(f"Instruction: {example['instruction']}")
+    print(f"Input      : {example['input']}")
+    print(f"Output     : {example['output']}")
     print()
 
     print("2. Multiple Examples with Different Separators")
@@ -42,21 +40,22 @@ def main():
     for style in SeparatorStyle:
         if style == SeparatorStyle.CUSTOM:
             continue
-        example = generator.generate_example("hello", separator_style=style)
-        print(f"{style.value:10}: {example['input']}")
+        example = generator.generate_example("hello", category="spelling_first", separator_style=style)
+        print(f"{style.value:10}: Instruction: {example['instruction']} | Input: {example['input']} | Output: {example['output']}")
     print()
 
     print("3. Balanced Category Examples")
     print("-" * 40)
     examples = generator.generate_examples(
         words=["python"],
-        num_variations=6,
+        num_variations=2,
         balance_categories=True
     )
     for i, example in enumerate(examples, 1):
         print(f"Example {i}:")
-        print(f"Category: {example['template_category']}")
-        print(f"Input: {example['input']}")
+        print(f"Instruction: {example['instruction']}")
+        print(f"Input      : {example['input']}")
+        print(f"Output     : {example['output']}")
         print()
 
     print("4. Multiple Words with Variations")
@@ -73,8 +72,9 @@ def main():
     print("\nSample of generated examples:")
     for i, example in enumerate(examples[:4], 1):
         print(f"\nExample {i}:")
-        print(f"Word: {example['output']}")
-        print(f"Input: {example['input']}")
+        print(f"Instruction: {example['instruction']}")
+        print(f"Input      : {example['input']}")
+        print(f"Output     : {example['output']}")
 
 if __name__ == "__main__":
     main()

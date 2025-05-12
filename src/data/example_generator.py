@@ -141,32 +141,29 @@ class ExampleGenerator:
 
         return random.choice(templates)
 
+    # Canonical instructions for each category
+    CANONICAL_INSTRUCTIONS = {
+        "spelling_first": "Spell the following word.",
+        "word_first": "How do you spell the following word?",
+        "structured": "What letters make up the following word?",
+        "char_count_question": "How many characters are in the following word?",
+        "char_position_question": "What is the nth letter in the following word?"
+    }
+
     def generate_example(
         self,
         word: str,
         category: Optional[str] = None,
         style: Optional[str] = None,
-        separator_style: Optional[SeparatorStyle] = None
+        separator_style: Optional[SeparatorStyle] = None,
+        extra_vars: Optional[dict] = None
     ) -> Dict[str, str]:
         """
-        Generate a single training example using the specified parameters.
-
-        Args:
-            word: The word to generate an example for
-            category: Optional template category to use
-            style: Optional style within the category to use
-            separator_style: Optional separator style to use
-
-        Returns:
-            Dictionary containing the generated example and metadata
+        Generate a single Alpaca-format example with canonical instruction and template as input.
         """
-        # Select random category if none specified
         if category is None:
             category = random.choice(list(self.templates.keys()))
-
-        # Get template
         template = self._get_random_template(category, style)
-
         # Only apply separator logic for spelling categories
         spelling_categories = ["spelling_first", "word_first", "structured"]
         if category in spelling_categories:
@@ -178,66 +175,37 @@ class ExampleGenerator:
                 SeparatorStyle.ARROW
             ]
             style_choice = separator_style or random.choice(allowed_styles)
-
-            # Create separator with validation
             separator = TokenSeparator(style_choice)
             letters = separator.separate_tokens(list(word.lower()))
-            sep_style = separator.config.style.value
         else:
-            # For non-spelling categories, fallback to default separator logic
             separator = TokenSeparator(SeparatorStyle.SPACE)
             letters = separator.separate_tokens(list(word.lower()))
-            sep_style = "space"
-
-        # Format the example
-        format_kwargs = {
-            "word": word,
-            "letters": letters
-        }
-
-        # Handle JSON-like templates specially
-        if template.startswith("{\"") and template.endswith("\"}"):
-            template_data = {
-                "word": word,
-                "letters": letters
-            }
-            formatted_text = json.dumps(template_data)
+        # Prepare variables for template
+        format_kwargs = {"word": word, "letters": letters}
+        if extra_vars:
+            format_kwargs.update(extra_vars)
+        # Generate input from template
+        try:
+            input_text = template.format(**format_kwargs)
+        except KeyError as e:
+            raise ValueError(f"Missing variable {e} for template: {template}")
+        # Canonical instruction
+        instruction = self.CANONICAL_INSTRUCTIONS.get(category, "Follow the instructions.")
+        # Output is the answer (for spelling, it's the word; for char count, etc., use specialized logic)
+        if category == "char_count_question":
+            output_field = str(len(word))
+        elif category == "char_position_question":
+            n = format_kwargs.get("n", 1)
+            output_field = word[n-1] if 1 <= n <= len(word) else ""
+        elif category == "char_count_question" and "letter" in format_kwargs:
+            output_field = str(word.count(format_kwargs["letter"]))
         else:
-            formatted_text = template.format(**format_kwargs)
-
-        # Create example
+            output_field = word
         example = {
-            "input": formatted_text,
-            "output": word,
-            "template_category": category,
-            "template_style": style or "simple",
-            "separator_style": sep_style
+            "instruction": instruction,
+            "input": input_text,
+            "output": output_field
         }
-
-        # Validate the generated example
-        if not self.validator.validate_example(example):
-            # If invalid, try again with space separator
-            separator = TokenSeparator(SeparatorStyle.SPACE)
-            letters = separator.separate_tokens(list(word.lower()))
-
-            # Reformat with space separator
-            format_kwargs["letters"] = letters
-            if template.startswith("{\"") and template.endswith("\"}"):
-                template_data["letters"] = letters
-                formatted_text = json.dumps(template_data)
-            else:
-                formatted_text = template.format(**format_kwargs)
-
-            example["input"] = formatted_text
-            example["separator_style"] = "space"
-
-            # If still invalid, raise error
-            if not self.validator.validate_example(example):
-                raise ValueError(
-                    f"Unable to generate valid example for word '{word}' "
-                    f"with template category '{category}'"
-                )
-
         return example
 
     def generate_examples(
@@ -247,63 +215,54 @@ class ExampleGenerator:
         balance_categories: bool = False
     ) -> List[Dict[str, str]]:
         """
-        Generate multiple examples for the given words.
-
-        Args:
-            words: List of words to generate examples for
-            num_variations: Number of variations to generate per word
-            balance_categories: Whether to balance examples across categories
-
-        Returns:
-            List of generated examples
+        Generate multiple Alpaca-format examples for the given words.
         """
         examples = []
         categories = list(self.templates.keys())
-
         for word in words:
             if balance_categories:
-                # Generate one example per category
                 for category in categories:
-                    try:
-                        example = self.generate_example(word, category=category)
-                        examples.append(example)
-                    except ValueError as e:
-                        print(f"Warning: {str(e)}")
-                        continue
+                    for _ in range(num_variations):
+                        try:
+                            # For char_position_question, generate for several n
+                            if category == "char_position_question":
+                                for n in range(1, min(4, len(word)+1)):
+                                    example = self.generate_example(word, category=category, extra_vars={"n": n, "ordinal_word": self._ordinal_word(n)})
+                                    examples.append(example)
+                            # For char_count_question with count_letter, pick a letter
+                            elif category == "char_count_question":
+                                example = self.generate_example(word, category=category)
+                                examples.append(example)
+                                unique_letters = list(set(word))
+                                letter = random.choice(unique_letters)
+                                example = self.generate_example(word, category=category, extra_vars={"letter": letter})
+                                examples.append(example)
+                            else:
+                                example = self.generate_example(word, category=category)
+                                examples.append(example)
+                        except Exception as e:
+                            print(f"Warning: {str(e)}")
+                            continue
             else:
-                # Generate random variations
                 for _ in range(num_variations):
                     try:
                         example = self.generate_example(word)
                         examples.append(example)
-                    except ValueError as e:
+                    except Exception as e:
                         print(f"Warning: {str(e)}")
                         continue
-
         return examples
 
     def save_examples(self, examples: List[Dict[str, str]], filename: Optional[str] = None) -> Path:
         """
-        Save generated examples to a JSON file.
-
-        Args:
-            examples: List of examples to save
-            filename: Optional filename to save to (default: template_examples.json)
-
-        Returns:
-            Path to the saved file
+        Save Alpaca-format examples to a JSON file (flat list, not nested).
         """
         if filename is None:
-            filename = "template_examples.json"
-
-        # Ensure output directory exists
+            filename = "alpaca_examples.json"
         self.config.output_dir.mkdir(parents=True, exist_ok=True)
         output_file = self.config.output_dir / filename
-
-        # Save examples
         with open(output_file, "w") as f:
-            json.dump({"examples": examples}, f, indent=2)
-
+            json.dump(examples, f, indent=2)
         return output_file
 
     def generate_char_count_example(self, word: str, style: Optional[str] = None) -> Dict[str, str]:

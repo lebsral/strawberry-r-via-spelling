@@ -78,18 +78,23 @@ class TemplateDataLoader:
 
         self._examples = []
 
-        # Load template variations
+        # Load Alpaca-format data (flat list of dicts)
         template_files = [
             f for f in self.data_dir.glob("*.json")
-            if f.name in ["diverse_examples.json", "template_examples.json"]
+            if f.name in ["alpaca_examples.json", "diverse_examples.json", "template_examples.json"]
         ]
 
         for file_path in template_files:
             with open(file_path) as f:
                 data = json.load(f)
-                # The examples are under the "examples" key
-                if "examples" in data:
+                # Alpaca format: data is a list of dicts
+                if isinstance(data, list):
+                    self._examples.extend(data)
+                # Legacy: if nested under 'examples', extract
+                elif isinstance(data, dict) and "examples" in data:
                     self._examples.extend(data["examples"])
+                else:
+                    raise ValueError(f"Unrecognized data format in {file_path}")
 
         if not self._examples:
             raise ValueError(f"No examples found in {self.data_dir}")
@@ -174,31 +179,27 @@ class TemplateDataLoader:
         """Convert a batch of indices into a batch of examples."""
         batch_examples = [self._examples[i] for i in indices]
 
-        # Create batch with proper padding
         max_length = min(
             max(len(ex["input"]) for ex in batch_examples),
             self.batch_config.max_length
         )
 
-        # Create batch dictionary with all fields from the examples
+        # Create batch dictionary with all fields from the Alpaca examples
         batch = {
+            "instructions": [],
             "inputs": [],
-            "outputs": [],  # Changed from "targets" to match the JSON structure
-            "template_categories": [],  # Changed from "template_types" to match the JSON structure
-            "template_styles": [],
-            "separator_styles": [],
+            "outputs": [],
             "metadata": []
         }
 
         for example in batch_examples:
-            batch["inputs"].append(example["input"])
-            batch["outputs"].append(example["output"])
-            batch["template_categories"].append(example.get("template_category", "unknown"))
-            batch["template_styles"].append(example.get("template_style"))
-            batch["separator_styles"].append(example.get("separator_style", "none"))
+            batch["instructions"].append(example.get("instruction", ""))
+            batch["inputs"].append(example.get("input", ""))
+            batch["outputs"].append(example.get("output", ""))
+            # Store any extra fields as metadata
             batch["metadata"].append({
                 k: v for k, v in example.items()
-                if k not in ["input", "output", "template_category", "template_style", "separator_style"]
+                if k not in ["instruction", "input", "output"]
             })
 
         return batch

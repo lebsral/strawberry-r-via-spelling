@@ -204,6 +204,43 @@ Next steps include updating generation scripts to output this schema, implementi
 ### Description: Update all data generation scripts to output data directly in Alpaca format rather than the custom format.
 ### Details:
 Modify all data generation scripts to produce Alpaca format directly. Update template systems to align with the Alpaca structure. Implement proper escaping and formatting of special characters. Add validation checks during generation to ensure compliance with the Alpaca schema. Update any data augmentation processes to maintain compatibility with the new format. Create helper functions for common Alpaca format operations to ensure consistency across different generation scripts.
+<info added on 2025-05-11T21:50:26.525Z>
+Modify all data generation scripts to produce Alpaca format directly. Update template systems to align with the Alpaca structure. Implement proper escaping and formatting of special characters. Add validation checks during generation to ensure compliance with the Alpaca schema. Update any data augmentation processes to maintain compatibility with the new format. Create helper functions for common Alpaca format operations to ensure consistency across different generation scripts.
+
+The Alpaca format requires each example to be a JSON object with three fields:
+- `instruction`: The prompt or question for the model
+- `input`: Additional context (can be empty string)
+- `output`: The expected response
+
+Implementation plan:
+1. Update `src/data/example_generator.py`:
+   - Modify `generate_example` to return Alpaca-formatted dictionaries
+   - Convert template text with variables to the `instruction` field
+   - Map additional context to the `input` field (empty string if not applicable)
+   - Use the current `output` field for the Alpaca `output` field
+   - Remove metadata fields (`template_category`, `template_style`, `separator_style`) from output
+   - Update `generate_examples` to work with the new format
+   - Refactor `save_examples` to write a flat list of Alpaca objects instead of nesting under `examples`
+
+2. Update `src/data/data_loader.py`:
+   - Modify loading logic to expect Alpaca format (list of dicts with instruction/input/output)
+   - Remove any assumptions about the `examples` key or extra metadata fields
+
+3. Add validation functions:
+   - Create schema validation for Alpaca format
+   - Add runtime checks to ensure all examples conform to the schema
+   - Implement proper escaping for special characters
+
+4. Handle potential challenges:
+   - Ensure all templates can map to valid Alpaca triplets
+   - Maintain backward compatibility where needed
+   - Update any tests that expect the old format
+
+5. Testing strategy:
+   - Regenerate test datasets with updated scripts
+   - Validate against Alpaca schema
+   - Verify compatibility with downstream processes
+</info added on 2025-05-11T21:50:26.525Z>
 
 ## 4. Update Upstream Template and Configuration Systems [pending]
 ### Dependencies: 20.2
@@ -234,4 +271,17 @@ Update data exploration notebooks and scripts to parse Alpaca format. Modify vis
 ### Description: Update all documentation to reflect the new Alpaca format and create training materials for team members.
 ### Details:
 Update all technical documentation to reflect the new Alpaca format. Create guides for team members explaining how to work with the new format. Document any format-specific considerations for different model architectures. Update training pipelines documentation with new data loading procedures. Create examples of correctly formatted data for reference. Develop troubleshooting guides for common issues. Create visualization tools to help understand the data structure. Document any changes in tokenization or preprocessing that might affect model performance.
+
+## 9. Robustly handle templates with extra variables in data generation [pending]
+### Dependencies: None
+### Description: Update the data generation logic to detect and handle templates that require extra variables (e.g., {n}, {ordinal_word}, {letter}). Ensure that all templates are either provided with the necessary variables or are skipped with a clear warning. Add logic to the generator to support these cases, and update documentation and tests accordingly.
+### Details:
+- Analyze all template categories and styles for required variables beyond 'word' and 'letters'.
+- Update the generator to:
+  - Detect required variables for each template.
+  - Supply variables (e.g., n, ordinal_word, letter) where possible, or skip templates that cannot be filled.
+  - Add warnings or errors for skipped templates.
+- Ensure that specialized generation methods (e.g., for char position or count letter) are used where appropriate.
+- Update documentation and tests to cover these cases.
+- Ensure that the main generator and demo script do not fail with KeyError for any template.
 

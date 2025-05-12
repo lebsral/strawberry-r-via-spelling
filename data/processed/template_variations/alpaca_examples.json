@@ -1,0 +1,37 @@
+[
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "To spell 'straw', write: s -> t -> r -> a -> w.",
+    "output": "straw"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "To write 'straw' correctly, we use: s.t.r.a.w",
+    "output": "straw"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "'hello' is easy to spell - just go h-e-l-l-o!",
+    "output": "hello"
+  },
+  {
+    "instruction": "What letters make up the following word?",
+    "input": "prompt: 'hello'\nresponse: 'h , e , l , l , o'",
+    "output": "hello"
+  },
+  {
+    "instruction": "What letters make up the following word?",
+    "input": "input: 'python'\nspelling: 'p.y.t.h.o.n'",
+    "output": "python"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "To write 'world' correctly, we use: w.o.r.l.d",
+    "output": "world"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "The correct spelling of 'world' uses these letters: w.o.r.l.d",
+    "output": "world"
+  }
+]
