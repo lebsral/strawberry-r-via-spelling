@@ -272,6 +272,9 @@ The project uses a template-based system to generate diverse training examples. 
 - Multiple template categories (spelling_first, word_first)
 - Various styles (simple, playful, educational)
 - Configurable token separation (space, comma, dash, etc.)
+- **Robust template variable handling:** Templates are parsed for all variables, and the generator fills them dynamically. See [docs/templates.md](docs/templates.md).
+- **No answer leakage:** Spelling/structured templates only use {word} in the input; the output is always generated as the letter sequence. See [docs/data_format.md](docs/data_format.md).
+- **Separator style mixing:** For each template, the generator produces examples for all separator styles, ensuring variety in the output.
 
 #### Example Generation
 
@@ -285,7 +288,6 @@ config = TemplateConfig(
     output_dir=Path("data/processed/template_variations")
 )
 
-# Initialize generator
 generator = ExampleGenerator(config)
 
 # Generate examples
@@ -294,6 +296,7 @@ examples = generator.generate_examples(
     num_variations=3,
     balance_categories=True
 )
+# Each example will use a different template and separator style.
 ```
 
 #### Data Loading and Batching
@@ -498,5 +501,5 @@ See `/docs/data_format.md` for the JSON structure of each split.
 ## Documentation Links (Updated for 2024-06-12)
 
 - [Data Format and Splits](docs/data_format.md): Full details on all dataset splits, spelling separator conventions, token filtering, and example entries.
-- [Template System](docs/templates.md): Template categories, structure, and how templates are used for spelling and evaluation splits, including separator logic.
+- [Template System](docs/templates.md): Template categories, robust variable handling, separator style mixing, and authoring guidelines.
 - [Analysis Tools](docs/analysis.md): How to use the new splits for robust evaluation, including separator conventions and token filtering.

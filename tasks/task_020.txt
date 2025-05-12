@@ -199,7 +199,7 @@ The Alpaca-Compatible Schema has been defined with the following specifications:
 Next steps include updating generation scripts to output this schema, implementing JSON schema validation in the pipeline, and testing with both Hugging Face and Unsloth to confirm compatibility.
 </info added on 2025-05-11T21:47:36.404Z>
 
-## 3. Refactor Data Generation Code for Direct Alpaca Output [pending]
+## 3. Refactor Data Generation Code for Direct Alpaca Output [done]
 ### Dependencies: 20.2
 ### Description: Update all data generation scripts to output data directly in Alpaca format rather than the custom format.
 ### Details:
@@ -242,7 +242,7 @@ Implementation plan:
    - Verify compatibility with downstream processes
 </info added on 2025-05-11T21:50:26.525Z>
 
-## 4. Update Upstream Template and Configuration Systems [pending]
+## 4. Update Upstream Template and Configuration Systems [done]
 ### Dependencies: 20.2
 ### Description: Modify all upstream processes including templates, configurations, and token extraction to support Alpaca format generation.
 ### Details:

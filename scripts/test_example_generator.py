@@ -29,10 +29,14 @@ def main():
 
     print("1. Single Example Generation")
     print("-" * 40)
-    example = generator.generate_example("straw", category="spelling_first")
-    print(f"Instruction: {example['instruction']}")
-    print(f"Input      : {example['input']}")
-    print(f"Output     : {example['output']}")
+    single_examples = generator.generate_examples(["straw"], num_variations=1, balance_categories=False)
+    if single_examples:
+        example = single_examples[0]
+        print(f"Instruction: {example['instruction']}")
+        print(f"Input      : {example['input']}")
+        print(f"Output     : {example['output']}")
+    else:
+        print("No example generated.")
     print()
 
     print("2. Multiple Examples with Different Separators")
@@ -40,8 +44,20 @@ def main():
     for style in SeparatorStyle:
         if style == SeparatorStyle.CUSTOM:
             continue
-        example = generator.generate_example("hello", category="spelling_first", separator_style=style)
-        print(f"{style.value:10}: Instruction: {example['instruction']} | Input: {example['input']} | Output: {example['output']}")
+        # Use a custom fill for separator style
+        examples = []
+        for template in generator.templates["spelling_first"]["simple"]:
+            try:
+                ex = generator.fill_template(template, "hello", {"word": "hello"}, "spelling_first", separator_style=style)
+                examples.append(ex)
+            except Exception as e:
+                print(f"Warning: {str(e)}")
+                continue
+        if examples:
+            example = examples[0]
+            print(f"{style.value:10}: Instruction: {example['instruction']} | Input: {example['input']} | Output: {example['output']}")
+        else:
+            print(f"{style.value:10}: No example generated.")
     print()
 
     print("3. Balanced Category Examples")

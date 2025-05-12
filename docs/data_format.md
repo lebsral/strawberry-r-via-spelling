@@ -435,3 +435,47 @@ To create more challenging evaluation sets, we generate additional validation an
 
 ### References
 - See also: [docs/templates.md](templates.md), [docs/token_extraction.md](token_extraction.md)
+
+## Alpaca-Style Data Format for Spelling/Structured Examples (2024-06-12)
+
+- **Input**: Always a natural language prompt containing only the {word} variable (never {letters} or the answer).
+- **Output**: The letter sequence for the word, using a separator style (space, comma, dash, period, arrow, etc.).
+- **No answer leakage**: The input never contains the answer.
+- **Separator style mixing**: For each template, the generator produces examples for all separator styles, ensuring variety in the output.
+
+### Example JSON Entry
+
+```json
+{
+  "instruction": "Spell the word: apple",
+  "input": "Spell the word: apple",
+  "output": "a p p l e"
+}
+```
+
+```json
+{
+  "instruction": "How do you spell 'banana'?",
+  "input": "How do you spell 'banana'?",
+  "output": "b-a-n-a-n-a"
+}
+```
+
+```json
+{
+  "instruction": "Write out the letters in: craft",
+  "input": "Write out the letters in: craft",
+  "output": "c -> r -> a -> f -> t"
+}
+```
+
+- See [docs/templates.md](templates.md) for template authoring and variable handling details.
+- See [src/data/example_generator.py](../src/data/example_generator.py) for code.
+
+---
+
+## Validation/Evaluation Splits
+- Validation and test splits use only character count and character position templates (never spelling).
+- See the README and this file's earlier sections for split details.
+
+---

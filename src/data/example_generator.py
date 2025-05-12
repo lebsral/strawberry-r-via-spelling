@@ -23,6 +23,7 @@ import random
 from pathlib import Path
 from typing import Dict, List, Optional, Union
 from dataclasses import dataclass
+import re
 
 from .token_separator import TokenSeparator, SeparatorStyle, SeparatorConfig
 from .token_validator import TokenizerValidator
@@ -150,63 +151,45 @@ class ExampleGenerator:
         "char_position_question": "What is the nth letter in the following word?"
     }
 
-    def generate_example(
-        self,
-        word: str,
-        category: Optional[str] = None,
-        style: Optional[str] = None,
-        separator_style: Optional[SeparatorStyle] = None,
-        extra_vars: Optional[dict] = None
-    ) -> Dict[str, str]:
-        """
-        Generate a single Alpaca-format example with canonical instruction and template as input.
-        """
-        if category is None:
-            category = random.choice(list(self.templates.keys()))
-        template = self._get_random_template(category, style)
-        # Only apply separator logic for spelling categories
-        spelling_categories = ["spelling_first", "word_first", "structured"]
-        if category in spelling_categories:
-            allowed_styles = [
-                SeparatorStyle.SPACE,
-                SeparatorStyle.COMMA,
-                SeparatorStyle.DASH,
-                SeparatorStyle.PERIOD,
-                SeparatorStyle.ARROW
-            ]
-            style_choice = separator_style or random.choice(allowed_styles)
-            separator = TokenSeparator(style_choice)
-            letters = separator.separate_tokens(list(word.lower()))
-        else:
-            separator = TokenSeparator(SeparatorStyle.SPACE)
-            letters = separator.separate_tokens(list(word.lower()))
-        # Prepare variables for template
-        format_kwargs = {"word": word, "letters": letters}
-        if extra_vars:
-            format_kwargs.update(extra_vars)
-        # Generate input from template
+    @staticmethod
+    def extract_template_vars(template: str) -> set:
+        return set(re.findall(r"{(.*?)}", template))
+
+    def fill_template(self, template, word, variables, category, separator_style=None):
+        # Always provide 'word' and 'letters' if needed
+        if 'letters' in self.extract_template_vars(template):
+            # Choose separator style if not provided
+            if not separator_style:
+                separator_style = SeparatorStyle.SPACE
+            separator = TokenSeparator(separator_style)
+            variables['letters'] = separator.separate_tokens(list(word.lower()))
         try:
-            input_text = template.format(**format_kwargs)
+            input_text = template.format(**variables)
         except KeyError as e:
             raise ValueError(f"Missing variable {e} for template: {template}")
-        # Canonical instruction
         instruction = self.CANONICAL_INSTRUCTIONS.get(category, "Follow the instructions.")
-        # Output is the answer (for spelling, it's the word; for char count, etc., use specialized logic)
-        if category == "char_count_question":
-            output_field = str(len(word))
+        # Output logic
+        if category in ["spelling_first", "word_first", "structured"]:
+            # Output is always the letter sequence
+            if not separator_style:
+                separator_style = SeparatorStyle.SPACE
+            separator = TokenSeparator(separator_style)
+            output_field = separator.separate_tokens(list(word.lower()))
+        elif category == "char_count_question":
+            if 'letter' in variables:
+                output_field = str(word.count(variables['letter']))
+            else:
+                output_field = str(len(word))
         elif category == "char_position_question":
-            n = format_kwargs.get("n", 1)
+            n = variables.get('n', 1)
             output_field = word[n-1] if 1 <= n <= len(word) else ""
-        elif category == "char_count_question" and "letter" in format_kwargs:
-            output_field = str(word.count(format_kwargs["letter"]))
         else:
             output_field = word
-        example = {
-            "instruction": instruction,
-            "input": input_text,
-            "output": output_field
+        return {
+            'instruction': instruction,
+            'input': input_text,
+            'output': output_field
         }
-        return example
 
     def generate_examples(
         self,
@@ -215,42 +198,133 @@ class ExampleGenerator:
         balance_categories: bool = False
     ) -> List[Dict[str, str]]:
         """
-        Generate multiple Alpaca-format examples for the given words.
+        Generate multiple Alpaca-format examples for the given words, robustly handling template variables.
+        For spelling/structured categories, generate all combinations of input template and separator style.
         """
         examples = []
         categories = list(self.templates.keys())
+        separator_styles = [
+            SeparatorStyle.SPACE,
+            SeparatorStyle.COMMA,
+            SeparatorStyle.DASH,
+            SeparatorStyle.PERIOD,
+            SeparatorStyle.ARROW
+        ]
         for word in words:
             if balance_categories:
-                for category in categories:
-                    for _ in range(num_variations):
-                        try:
-                            # For char_position_question, generate for several n
-                            if category == "char_position_question":
-                                for n in range(1, min(4, len(word)+1)):
-                                    example = self.generate_example(word, category=category, extra_vars={"n": n, "ordinal_word": self._ordinal_word(n)})
-                                    examples.append(example)
-                            # For char_count_question with count_letter, pick a letter
-                            elif category == "char_count_question":
-                                example = self.generate_example(word, category=category)
-                                examples.append(example)
-                                unique_letters = list(set(word))
-                                letter = random.choice(unique_letters)
-                                example = self.generate_example(word, category=category, extra_vars={"letter": letter})
-                                examples.append(example)
+                for category, styles in self.templates.items():
+                    for style, templates in styles.items():
+                        for template in templates:
+                            vars_needed = self.extract_template_vars(template)
+                            # For spelling/structured, generate all separator styles
+                            if category in ["spelling_first", "word_first", "structured"] and vars_needed == {'word'}:
+                                for sep_style in separator_styles:
+                                    try:
+                                        ex = self.fill_template(template, word, {'word': word}, category, separator_style=sep_style)
+                                        examples.append(ex)
+                                    except Exception as e:
+                                        print(f"Warning: {str(e)}")
+                                        continue
+                            # Only {word} (non-spelling)
+                            elif vars_needed == {'word'}:
+                                try:
+                                    ex = self.fill_template(template, word, {'word': word}, category)
+                                    examples.append(ex)
+                                except Exception as e:
+                                    print(f"Warning: {str(e)}")
+                                    continue
+                            # {word}, {n}, {ordinal_word}
+                            elif vars_needed <= {'word', 'n', 'ordinal_word'}:
+                                for n in range(1, len(word)+1):
+                                    try:
+                                        ex = self.fill_template(
+                                            template, word,
+                                            {'word': word, 'n': n, 'ordinal_word': self._ordinal_word(n)},
+                                            category
+                                        )
+                                        examples.append(ex)
+                                    except Exception as e:
+                                        print(f"Warning: {str(e)}")
+                                        continue
+                            # {word}, {letter}
+                            elif vars_needed <= {'word', 'letter'}:
+                                for letter in set(word):
+                                    try:
+                                        ex = self.fill_template(
+                                            template, word,
+                                            {'word': word, 'letter': letter},
+                                            category
+                                        )
+                                        examples.append(ex)
+                                    except Exception as e:
+                                        print(f"Warning: {str(e)}")
+                                        continue
+                            # {word}, {letters}
+                            elif vars_needed <= {'word', 'letters'}:
+                                for sep_style in separator_styles:
+                                    try:
+                                        ex = self.fill_template(template, word, {'word': word}, category, separator_style=sep_style)
+                                        examples.append(ex)
+                                    except Exception as e:
+                                        print(f"Warning: {str(e)}")
+                                        continue
                             else:
-                                example = self.generate_example(word, category=category)
-                                examples.append(example)
-                        except Exception as e:
-                            print(f"Warning: {str(e)}")
-                            continue
+                                print(f"Warning: Cannot fill template: {template} (needs {vars_needed})")
             else:
                 for _ in range(num_variations):
-                    try:
-                        example = self.generate_example(word)
-                        examples.append(example)
-                    except Exception as e:
-                        print(f"Warning: {str(e)}")
-                        continue
+                    for category, styles in self.templates.items():
+                        for style, templates in styles.items():
+                            for template in templates:
+                                vars_needed = self.extract_template_vars(template)
+                                if category in ["spelling_first", "word_first", "structured"] and vars_needed == {'word'}:
+                                    for sep_style in separator_styles:
+                                        try:
+                                            ex = self.fill_template(template, word, {'word': word}, category, separator_style=sep_style)
+                                            examples.append(ex)
+                                        except Exception as e:
+                                            print(f"Warning: {str(e)}")
+                                            continue
+                                elif vars_needed == {'word'}:
+                                    try:
+                                        ex = self.fill_template(template, word, {'word': word}, category)
+                                        examples.append(ex)
+                                    except Exception as e:
+                                        print(f"Warning: {str(e)}")
+                                        continue
+                                elif vars_needed <= {'word', 'n', 'ordinal_word'}:
+                                    n = 1
+                                    try:
+                                        ex = self.fill_template(
+                                            template, word,
+                                            {'word': word, 'n': n, 'ordinal_word': self._ordinal_word(n)},
+                                            category
+                                        )
+                                        examples.append(ex)
+                                    except Exception as e:
+                                        print(f"Warning: {str(e)}")
+                                        continue
+                                elif vars_needed <= {'word', 'letter'}:
+                                    letter = word[0]
+                                    try:
+                                        ex = self.fill_template(
+                                            template, word,
+                                            {'word': word, 'letter': letter},
+                                            category
+                                        )
+                                        examples.append(ex)
+                                    except Exception as e:
+                                        print(f"Warning: {str(e)}")
+                                        continue
+                                elif vars_needed <= {'word', 'letters'}:
+                                    for sep_style in separator_styles:
+                                        try:
+                                            ex = self.fill_template(template, word, {'word': word}, category, separator_style=sep_style)
+                                            examples.append(ex)
+                                        except Exception as e:
+                                            print(f"Warning: {str(e)}")
+                                            continue
+                                else:
+                                    print(f"Warning: Cannot fill template: {template} (needs {vars_needed})")
         return examples
 
     def save_examples(self, examples: List[Dict[str, str]], filename: Optional[str] = None) -> Path:

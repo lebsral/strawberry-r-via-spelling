@@ -1,37 +1,2562 @@
 [
   {
-    "instruction": "How do you spell the following word?",
-    "input": "To spell 'straw', write: s -> t -> r -> a -> w.",
-    "output": "straw"
+    "instruction": "Spell the following word.",
+    "input": "Spell the word: straw",
+    "output": "s t r a w"
   },
   {
     "instruction": "Spell the following word.",
-    "input": "To write 'straw' correctly, we use: s.t.r.a.w",
-    "output": "straw"
+    "input": "How do you spell 'straw'?",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Please spell: straw",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Write out the letters in: straw",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "What are the letters in: straw?",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Let's spell: straw!",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Can you spell 'straw' for me?",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Say the letters in: straw",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Spell this word: straw",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Give me the spelling for: straw",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Provide the spelling for: straw",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "What is the correct spelling of: straw?",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Spell the following word: straw",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "How is 'straw' spelled?",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "List the letters in: straw",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Spell now: straw!",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "I want the spelling of: straw",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Quick, spell: straw",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Show me the letters in: straw",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Spell 'straw' out loud!",
+    "output": "s t r a w"
   },
   {
     "instruction": "How do you spell the following word?",
-    "input": "'hello' is easy to spell - just go h-e-l-l-o!",
-    "output": "hello"
+    "input": "How do you spell: straw?",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Spell: straw",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "What is the spelling of: straw?",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Write the letters for: straw",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Spell the word: straw",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Can you spell: straw?",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Let's see the letters in: straw",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Spell this: straw",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Give me the letters for: straw",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "How would you spell: straw?",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Spell the following: straw",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "What are the letters in: straw?",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "How is 'straw' spelled?",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "List the spelling for: straw",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Spell: straw",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Spell it: straw!",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "I want the spelling for: straw",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Now spell: straw",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Show the letters in: straw",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Spell 'straw' right now!",
+    "output": "s t r a w"
   },
   {
     "instruction": "What letters make up the following word?",
-    "input": "prompt: 'hello'\nresponse: 'h , e , l , l , o'",
-    "output": "hello"
+    "input": "Spell the word: straw",
+    "output": "s t r a w"
   },
   {
     "instruction": "What letters make up the following word?",
-    "input": "input: 'python'\nspelling: 'p.y.t.h.o.n'",
-    "output": "python"
+    "input": "How do you spell: straw?",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "What letters make up the following word?",
+    "input": "Write the letters for: straw",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "What letters make up the following word?",
+    "input": "What is the letter sequence for: straw?",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "What letters make up the following word?",
+    "input": "List the letters in: straw",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "How many characters are in 'straw'?",
+    "output": "5"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "Count the number of characters in 'straw'.",
+    "output": "5"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "What is the length of 'straw'?",
+    "output": "5"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "How long is the word 'straw'?",
+    "output": "5"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "Give the character count for 'straw'.",
+    "output": "5"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "What is the total number of letters in 'straw'?",
+    "output": "5"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "How many s's are in 'straw'?",
+    "output": "1"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "Count the number of s's in 'straw'.",
+    "output": "1"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "What is the count of s in 'straw'?",
+    "output": "1"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "How many times does s appear in 'straw'?",
+    "output": "1"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "Which character is at position 1 in 'straw'?",
+    "output": "s"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "What is the first letter of the word 'straw'?",
+    "output": "s"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "Tell me the letter at position 1 in 'straw'.",
+    "output": "s"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "What is the letter at position 1 in 'straw'?",
+    "output": "s"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "Which letter is at the first position in 'straw'?",
+    "output": "s"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "What is the 1th character in 'straw'?",
+    "output": "s"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "In 'straw', what letter is number 1?",
+    "output": "s"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "Which letter is first in 'straw'?",
+    "output": "s"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "What letter comes first in 'straw'?",
+    "output": "s"
   },
   {
     "instruction": "Spell the following word.",
-    "input": "To write 'world' correctly, we use: w.o.r.l.d",
-    "output": "world"
+    "input": "Spell the word: straw",
+    "output": "s t r a w"
   },
   {
     "instruction": "Spell the following word.",
-    "input": "The correct spelling of 'world' uses these letters: w.o.r.l.d",
-    "output": "world"
+    "input": "How do you spell 'straw'?",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Please spell: straw",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Write out the letters in: straw",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "What are the letters in: straw?",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Let's spell: straw!",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Can you spell 'straw' for me?",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Say the letters in: straw",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Spell this word: straw",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Give me the spelling for: straw",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Provide the spelling for: straw",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "What is the correct spelling of: straw?",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Spell the following word: straw",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "How is 'straw' spelled?",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "List the letters in: straw",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Spell now: straw!",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "I want the spelling of: straw",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Quick, spell: straw",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Show me the letters in: straw",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Spell 'straw' out loud!",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "How do you spell: straw?",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Spell: straw",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "What is the spelling of: straw?",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Write the letters for: straw",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Spell the word: straw",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Can you spell: straw?",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Let's see the letters in: straw",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Spell this: straw",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Give me the letters for: straw",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "How would you spell: straw?",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Spell the following: straw",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "What are the letters in: straw?",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "How is 'straw' spelled?",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "List the spelling for: straw",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Spell: straw",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Spell it: straw!",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "I want the spelling for: straw",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Now spell: straw",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Show the letters in: straw",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Spell 'straw' right now!",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "What letters make up the following word?",
+    "input": "Spell the word: straw",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "What letters make up the following word?",
+    "input": "How do you spell: straw?",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "What letters make up the following word?",
+    "input": "Write the letters for: straw",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "What letters make up the following word?",
+    "input": "What is the letter sequence for: straw?",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "What letters make up the following word?",
+    "input": "List the letters in: straw",
+    "output": "s t r a w"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "How many characters are in 'straw'?",
+    "output": "5"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "Count the number of characters in 'straw'.",
+    "output": "5"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "What is the length of 'straw'?",
+    "output": "5"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "How long is the word 'straw'?",
+    "output": "5"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "Give the character count for 'straw'.",
+    "output": "5"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "What is the total number of letters in 'straw'?",
+    "output": "5"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "How many s's are in 'straw'?",
+    "output": "1"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "Count the number of s's in 'straw'.",
+    "output": "1"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "What is the count of s in 'straw'?",
+    "output": "1"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "How many times does s appear in 'straw'?",
+    "output": "1"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "Which character is at position 1 in 'straw'?",
+    "output": "s"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "What is the first letter of the word 'straw'?",
+    "output": "s"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "Tell me the letter at position 1 in 'straw'.",
+    "output": "s"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "What is the letter at position 1 in 'straw'?",
+    "output": "s"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "Which letter is at the first position in 'straw'?",
+    "output": "s"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "What is the 1th character in 'straw'?",
+    "output": "s"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "In 'straw', what letter is number 1?",
+    "output": "s"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "Which letter is first in 'straw'?",
+    "output": "s"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "What letter comes first in 'straw'?",
+    "output": "s"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Spell the word: hello",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "How do you spell 'hello'?",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Please spell: hello",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Write out the letters in: hello",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "What are the letters in: hello?",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Let's spell: hello!",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Can you spell 'hello' for me?",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Say the letters in: hello",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Spell this word: hello",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Give me the spelling for: hello",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Provide the spelling for: hello",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "What is the correct spelling of: hello?",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Spell the following word: hello",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "How is 'hello' spelled?",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "List the letters in: hello",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Spell now: hello!",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "I want the spelling of: hello",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Quick, spell: hello",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Show me the letters in: hello",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Spell 'hello' out loud!",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "How do you spell: hello?",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Spell: hello",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "What is the spelling of: hello?",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Write the letters for: hello",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Spell the word: hello",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Can you spell: hello?",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Let's see the letters in: hello",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Spell this: hello",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Give me the letters for: hello",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "How would you spell: hello?",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Spell the following: hello",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "What are the letters in: hello?",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "How is 'hello' spelled?",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "List the spelling for: hello",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Spell: hello",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Spell it: hello!",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "I want the spelling for: hello",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Now spell: hello",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Show the letters in: hello",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Spell 'hello' right now!",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "What letters make up the following word?",
+    "input": "Spell the word: hello",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "What letters make up the following word?",
+    "input": "How do you spell: hello?",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "What letters make up the following word?",
+    "input": "Write the letters for: hello",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "What letters make up the following word?",
+    "input": "What is the letter sequence for: hello?",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "What letters make up the following word?",
+    "input": "List the letters in: hello",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "How many characters are in 'hello'?",
+    "output": "5"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "Count the number of characters in 'hello'.",
+    "output": "5"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "What is the length of 'hello'?",
+    "output": "5"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "How long is the word 'hello'?",
+    "output": "5"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "Give the character count for 'hello'.",
+    "output": "5"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "What is the total number of letters in 'hello'?",
+    "output": "5"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "How many h's are in 'hello'?",
+    "output": "1"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "Count the number of h's in 'hello'.",
+    "output": "1"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "What is the count of h in 'hello'?",
+    "output": "1"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "How many times does h appear in 'hello'?",
+    "output": "1"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "Which character is at position 1 in 'hello'?",
+    "output": "h"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "What is the first letter of the word 'hello'?",
+    "output": "h"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "Tell me the letter at position 1 in 'hello'.",
+    "output": "h"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "What is the letter at position 1 in 'hello'?",
+    "output": "h"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "Which letter is at the first position in 'hello'?",
+    "output": "h"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "What is the 1th character in 'hello'?",
+    "output": "h"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "In 'hello', what letter is number 1?",
+    "output": "h"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "Which letter is first in 'hello'?",
+    "output": "h"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "What letter comes first in 'hello'?",
+    "output": "h"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Spell the word: hello",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "How do you spell 'hello'?",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Please spell: hello",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Write out the letters in: hello",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "What are the letters in: hello?",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Let's spell: hello!",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Can you spell 'hello' for me?",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Say the letters in: hello",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Spell this word: hello",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Give me the spelling for: hello",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Provide the spelling for: hello",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "What is the correct spelling of: hello?",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Spell the following word: hello",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "How is 'hello' spelled?",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "List the letters in: hello",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Spell now: hello!",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "I want the spelling of: hello",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Quick, spell: hello",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Show me the letters in: hello",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Spell 'hello' out loud!",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "How do you spell: hello?",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Spell: hello",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "What is the spelling of: hello?",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Write the letters for: hello",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Spell the word: hello",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Can you spell: hello?",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Let's see the letters in: hello",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Spell this: hello",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Give me the letters for: hello",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "How would you spell: hello?",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Spell the following: hello",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "What are the letters in: hello?",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "How is 'hello' spelled?",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "List the spelling for: hello",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Spell: hello",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Spell it: hello!",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "I want the spelling for: hello",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Now spell: hello",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Show the letters in: hello",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Spell 'hello' right now!",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "What letters make up the following word?",
+    "input": "Spell the word: hello",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "What letters make up the following word?",
+    "input": "How do you spell: hello?",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "What letters make up the following word?",
+    "input": "Write the letters for: hello",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "What letters make up the following word?",
+    "input": "What is the letter sequence for: hello?",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "What letters make up the following word?",
+    "input": "List the letters in: hello",
+    "output": "h e l l o"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "How many characters are in 'hello'?",
+    "output": "5"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "Count the number of characters in 'hello'.",
+    "output": "5"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "What is the length of 'hello'?",
+    "output": "5"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "How long is the word 'hello'?",
+    "output": "5"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "Give the character count for 'hello'.",
+    "output": "5"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "What is the total number of letters in 'hello'?",
+    "output": "5"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "How many h's are in 'hello'?",
+    "output": "1"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "Count the number of h's in 'hello'.",
+    "output": "1"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "What is the count of h in 'hello'?",
+    "output": "1"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "How many times does h appear in 'hello'?",
+    "output": "1"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "Which character is at position 1 in 'hello'?",
+    "output": "h"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "What is the first letter of the word 'hello'?",
+    "output": "h"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "Tell me the letter at position 1 in 'hello'.",
+    "output": "h"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "What is the letter at position 1 in 'hello'?",
+    "output": "h"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "Which letter is at the first position in 'hello'?",
+    "output": "h"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "What is the 1th character in 'hello'?",
+    "output": "h"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "In 'hello', what letter is number 1?",
+    "output": "h"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "Which letter is first in 'hello'?",
+    "output": "h"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "What letter comes first in 'hello'?",
+    "output": "h"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Spell the word: python",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "How do you spell 'python'?",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Please spell: python",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Write out the letters in: python",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "What are the letters in: python?",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Let's spell: python!",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Can you spell 'python' for me?",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Say the letters in: python",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Spell this word: python",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Give me the spelling for: python",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Provide the spelling for: python",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "What is the correct spelling of: python?",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Spell the following word: python",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "How is 'python' spelled?",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "List the letters in: python",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Spell now: python!",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "I want the spelling of: python",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Quick, spell: python",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Show me the letters in: python",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Spell 'python' out loud!",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "How do you spell: python?",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Spell: python",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "What is the spelling of: python?",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Write the letters for: python",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Spell the word: python",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Can you spell: python?",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Let's see the letters in: python",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Spell this: python",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Give me the letters for: python",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "How would you spell: python?",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Spell the following: python",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "What are the letters in: python?",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "How is 'python' spelled?",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "List the spelling for: python",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Spell: python",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Spell it: python!",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "I want the spelling for: python",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Now spell: python",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Show the letters in: python",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Spell 'python' right now!",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "What letters make up the following word?",
+    "input": "Spell the word: python",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "What letters make up the following word?",
+    "input": "How do you spell: python?",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "What letters make up the following word?",
+    "input": "Write the letters for: python",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "What letters make up the following word?",
+    "input": "What is the letter sequence for: python?",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "What letters make up the following word?",
+    "input": "List the letters in: python",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "How many characters are in 'python'?",
+    "output": "6"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "Count the number of characters in 'python'.",
+    "output": "6"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "What is the length of 'python'?",
+    "output": "6"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "How long is the word 'python'?",
+    "output": "6"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "Give the character count for 'python'.",
+    "output": "6"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "What is the total number of letters in 'python'?",
+    "output": "6"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "How many p's are in 'python'?",
+    "output": "1"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "Count the number of p's in 'python'.",
+    "output": "1"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "What is the count of p in 'python'?",
+    "output": "1"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "How many times does p appear in 'python'?",
+    "output": "1"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "Which character is at position 1 in 'python'?",
+    "output": "p"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "What is the first letter of the word 'python'?",
+    "output": "p"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "Tell me the letter at position 1 in 'python'.",
+    "output": "p"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "What is the letter at position 1 in 'python'?",
+    "output": "p"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "Which letter is at the first position in 'python'?",
+    "output": "p"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "What is the 1th character in 'python'?",
+    "output": "p"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "In 'python', what letter is number 1?",
+    "output": "p"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "Which letter is first in 'python'?",
+    "output": "p"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "What letter comes first in 'python'?",
+    "output": "p"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Spell the word: python",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "How do you spell 'python'?",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Please spell: python",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Write out the letters in: python",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "What are the letters in: python?",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Let's spell: python!",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Can you spell 'python' for me?",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Say the letters in: python",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Spell this word: python",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Give me the spelling for: python",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Provide the spelling for: python",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "What is the correct spelling of: python?",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Spell the following word: python",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "How is 'python' spelled?",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "List the letters in: python",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Spell now: python!",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "I want the spelling of: python",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Quick, spell: python",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Show me the letters in: python",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Spell 'python' out loud!",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "How do you spell: python?",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Spell: python",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "What is the spelling of: python?",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Write the letters for: python",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Spell the word: python",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Can you spell: python?",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Let's see the letters in: python",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Spell this: python",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Give me the letters for: python",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "How would you spell: python?",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Spell the following: python",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "What are the letters in: python?",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "How is 'python' spelled?",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "List the spelling for: python",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Spell: python",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Spell it: python!",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "I want the spelling for: python",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Now spell: python",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Show the letters in: python",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Spell 'python' right now!",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "What letters make up the following word?",
+    "input": "Spell the word: python",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "What letters make up the following word?",
+    "input": "How do you spell: python?",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "What letters make up the following word?",
+    "input": "Write the letters for: python",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "What letters make up the following word?",
+    "input": "What is the letter sequence for: python?",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "What letters make up the following word?",
+    "input": "List the letters in: python",
+    "output": "p y t h o n"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "How many characters are in 'python'?",
+    "output": "6"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "Count the number of characters in 'python'.",
+    "output": "6"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "What is the length of 'python'?",
+    "output": "6"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "How long is the word 'python'?",
+    "output": "6"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "Give the character count for 'python'.",
+    "output": "6"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "What is the total number of letters in 'python'?",
+    "output": "6"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "How many p's are in 'python'?",
+    "output": "1"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "Count the number of p's in 'python'.",
+    "output": "1"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "What is the count of p in 'python'?",
+    "output": "1"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "How many times does p appear in 'python'?",
+    "output": "1"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "Which character is at position 1 in 'python'?",
+    "output": "p"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "What is the first letter of the word 'python'?",
+    "output": "p"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "Tell me the letter at position 1 in 'python'.",
+    "output": "p"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "What is the letter at position 1 in 'python'?",
+    "output": "p"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "Which letter is at the first position in 'python'?",
+    "output": "p"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "What is the 1th character in 'python'?",
+    "output": "p"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "In 'python', what letter is number 1?",
+    "output": "p"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "Which letter is first in 'python'?",
+    "output": "p"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "What letter comes first in 'python'?",
+    "output": "p"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Spell the word: world",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "How do you spell 'world'?",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Please spell: world",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Write out the letters in: world",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "What are the letters in: world?",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Let's spell: world!",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Can you spell 'world' for me?",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Say the letters in: world",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Spell this word: world",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Give me the spelling for: world",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Provide the spelling for: world",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "What is the correct spelling of: world?",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Spell the following word: world",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "How is 'world' spelled?",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "List the letters in: world",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Spell now: world!",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "I want the spelling of: world",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Quick, spell: world",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Show me the letters in: world",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Spell 'world' out loud!",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "How do you spell: world?",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Spell: world",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "What is the spelling of: world?",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Write the letters for: world",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Spell the word: world",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Can you spell: world?",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Let's see the letters in: world",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Spell this: world",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Give me the letters for: world",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "How would you spell: world?",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Spell the following: world",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "What are the letters in: world?",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "How is 'world' spelled?",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "List the spelling for: world",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Spell: world",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Spell it: world!",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "I want the spelling for: world",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Now spell: world",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Show the letters in: world",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Spell 'world' right now!",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "What letters make up the following word?",
+    "input": "Spell the word: world",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "What letters make up the following word?",
+    "input": "How do you spell: world?",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "What letters make up the following word?",
+    "input": "Write the letters for: world",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "What letters make up the following word?",
+    "input": "What is the letter sequence for: world?",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "What letters make up the following word?",
+    "input": "List the letters in: world",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "How many characters are in 'world'?",
+    "output": "5"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "Count the number of characters in 'world'.",
+    "output": "5"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "What is the length of 'world'?",
+    "output": "5"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "How long is the word 'world'?",
+    "output": "5"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "Give the character count for 'world'.",
+    "output": "5"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "What is the total number of letters in 'world'?",
+    "output": "5"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "How many w's are in 'world'?",
+    "output": "1"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "Count the number of w's in 'world'.",
+    "output": "1"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "What is the count of w in 'world'?",
+    "output": "1"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "How many times does w appear in 'world'?",
+    "output": "1"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "Which character is at position 1 in 'world'?",
+    "output": "w"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "What is the first letter of the word 'world'?",
+    "output": "w"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "Tell me the letter at position 1 in 'world'.",
+    "output": "w"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "What is the letter at position 1 in 'world'?",
+    "output": "w"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "Which letter is at the first position in 'world'?",
+    "output": "w"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "What is the 1th character in 'world'?",
+    "output": "w"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "In 'world', what letter is number 1?",
+    "output": "w"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "Which letter is first in 'world'?",
+    "output": "w"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "What letter comes first in 'world'?",
+    "output": "w"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Spell the word: world",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "How do you spell 'world'?",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Please spell: world",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Write out the letters in: world",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "What are the letters in: world?",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Let's spell: world!",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Can you spell 'world' for me?",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Say the letters in: world",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Spell this word: world",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Give me the spelling for: world",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Provide the spelling for: world",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "What is the correct spelling of: world?",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Spell the following word: world",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "How is 'world' spelled?",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "List the letters in: world",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Spell now: world!",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "I want the spelling of: world",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Quick, spell: world",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Show me the letters in: world",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "Spell the following word.",
+    "input": "Spell 'world' out loud!",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "How do you spell: world?",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Spell: world",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "What is the spelling of: world?",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Write the letters for: world",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Spell the word: world",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Can you spell: world?",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Let's see the letters in: world",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Spell this: world",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Give me the letters for: world",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "How would you spell: world?",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Spell the following: world",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "What are the letters in: world?",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "How is 'world' spelled?",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "List the spelling for: world",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Spell: world",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Spell it: world!",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "I want the spelling for: world",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Now spell: world",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Show the letters in: world",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "How do you spell the following word?",
+    "input": "Spell 'world' right now!",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "What letters make up the following word?",
+    "input": "Spell the word: world",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "What letters make up the following word?",
+    "input": "How do you spell: world?",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "What letters make up the following word?",
+    "input": "Write the letters for: world",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "What letters make up the following word?",
+    "input": "What is the letter sequence for: world?",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "What letters make up the following word?",
+    "input": "List the letters in: world",
+    "output": "w o r l d"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "How many characters are in 'world'?",
+    "output": "5"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "Count the number of characters in 'world'.",
+    "output": "5"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "What is the length of 'world'?",
+    "output": "5"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "How long is the word 'world'?",
+    "output": "5"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "Give the character count for 'world'.",
+    "output": "5"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "What is the total number of letters in 'world'?",
+    "output": "5"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "How many w's are in 'world'?",
+    "output": "1"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "Count the number of w's in 'world'.",
+    "output": "1"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "What is the count of w in 'world'?",
+    "output": "1"
+  },
+  {
+    "instruction": "How many characters are in the following word?",
+    "input": "How many times does w appear in 'world'?",
+    "output": "1"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "Which character is at position 1 in 'world'?",
+    "output": "w"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "What is the first letter of the word 'world'?",
+    "output": "w"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "Tell me the letter at position 1 in 'world'.",
+    "output": "w"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "What is the letter at position 1 in 'world'?",
+    "output": "w"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "Which letter is at the first position in 'world'?",
+    "output": "w"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "What is the 1th character in 'world'?",
+    "output": "w"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "In 'world', what letter is number 1?",
+    "output": "w"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "Which letter is first in 'world'?",
+    "output": "w"
+  },
+  {
+    "instruction": "What is the nth letter in the following word?",
+    "input": "What letter comes first in 'world'?",
+    "output": "w"
   }
 ]
