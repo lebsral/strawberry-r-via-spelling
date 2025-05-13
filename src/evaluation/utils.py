@@ -1,5 +1,8 @@
 """
 Utility functions for the evaluation framework.
+
+See docs/data_format.md for Alpaca data format specification.
+See docs/validation.md for validation requirements and usage.
 """
 
 import os

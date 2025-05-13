@@ -17,6 +17,7 @@ from abc import ABC, abstractmethod
 import torch
 from transformers import PreTrainedModel, PreTrainedTokenizer
 import wandb
+from src.data.validate_alpaca_schema import AlpacaSchemaValidator
 
 @dataclass
 class EvaluationConfig:
@@ -250,7 +251,13 @@ class EvaluationFramework:
         self.evaluators[name] = evaluator
 
     def run_evaluation(self, data: List[Dict[str, Any]]) -> Dict[str, Dict[str, Any]]:
-        """Run evaluation using all registered evaluators."""
+        """Run evaluation using all registered evaluators. Validates Alpaca schema before evaluation."""
+        # Validate Alpaca schema before running evaluation
+        validator = AlpacaSchemaValidator()
+        for i, ex in enumerate(data):
+            errors = validator.validate_example(ex)
+            if errors:
+                raise ValueError(f"Validation error in evaluation data example #{i}: {errors}\nSee docs/data_format.md and docs/validation.md for details.")
         results = {}
         for name, evaluator in self.evaluators.items():
             self.logger.info(f"Running evaluation with {name}")

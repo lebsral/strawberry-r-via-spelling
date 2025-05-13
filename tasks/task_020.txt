@@ -291,7 +291,7 @@ Key files to be created or modified:
 - Documentation updates in README and docs/data_format.md
 </info added on 2025-05-12T11:44:37.100Z>
 
-## 6. Update Training and Evaluation Pipelines [pending]
+## 6. Update Training and Evaluation Pipelines [in-progress]
 ### Dependencies: 20.5
 ### Description: Modify all training scripts and evaluation pipelines to work with the new Alpaca format data.
 ### Details:
@@ -305,6 +305,63 @@ All data loading, batching, and preprocessing components need to be modified to 
 
 The updated pipelines should reference docs/validation.md and docs/data_format.md for comprehensive details on the validation process and data format specifications. These references should be included in both code comments and user-facing documentation to ensure clarity and consistency in implementation.
 </info added on 2025-05-12T18:05:10.078Z>
+<info added on 2025-05-12T18:25:10.798Z>
+## Implementation Plan for Updating Training and Evaluation Pipelines
+
+### Phase 1: Codebase Exploration
+1. Identify all training scripts in `src/training/` directory
+2. Locate evaluation pipelines in `src/evaluation/` directory
+3. Map data loading and preprocessing components across the codebase
+4. Review model architecture integration points for compatibility issues
+5. Catalog all configuration files that need updates for Alpaca format
+
+### Phase 2: Core Implementation
+1. Update data loading modules to parse Alpaca format JSON structure
+2. Modify preprocessing steps to handle the explicit 'word' field for validation
+3. Integrate AlpacaSchemaValidator at the beginning of all data pipelines:
+   ```python
+   # Example integration
+   from src.data.validate_alpaca_schema import AlpacaSchemaValidator
+   
+   def load_dataset(path):
+       data = json.load(open(path))
+       validator = AlpacaSchemaValidator()
+       validation_results = validator.validate(data)
+       if not validation_results.is_valid:
+           raise ValueError(f"Dataset failed validation: {validation_results.errors}")
+       # Continue with processing valid data
+   ```
+4. Add Qwen3-4B English token subset validation to preprocessing
+5. Update tokenization logic to accommodate Alpaca format fields
+6. Modify batch creation and collation functions
+
+### Phase 3: Configuration and Documentation Updates
+1. Update all configuration files with new parameters for Alpaca format
+2. Add documentation references to validation scripts
+3. Include CLI examples for dataset validation in README and docs
+4. Add code comments referencing docs/validation.md and docs/data_format.md
+
+### Phase 4: Testing and Validation
+1. Create test cases with sample Alpaca format data
+2. Verify training pipeline functionality with small dataset subsets
+3. Test evaluation metrics with Alpaca format outputs
+4. Validate compatibility across all supported model architectures
+5. Benchmark performance to ensure no regression
+
+### Phase 5: Integration and Deployment
+1. Integrate updated pipelines with CI/CD workflows
+2. Update documentation with new usage patterns
+3. Create migration guide for users of previous data formats
+4. Deploy updated training and evaluation scripts
+
+### Potential Challenges
+- Ensuring consistent handling of the Alpaca format across diverse pipeline components
+- Maintaining backward compatibility where needed
+- Optimizing performance with the new validation overhead
+- Coordinating updates across interdependent components
+
+All code changes will include appropriate references to validation documentation and scripts as specified in the requirements.
+</info added on 2025-05-12T18:25:10.798Z>
 
 ## 7. Update Analysis and Visualization Tools [pending]
 ### Dependencies: 20.3

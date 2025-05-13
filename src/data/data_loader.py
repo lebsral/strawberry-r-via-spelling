@@ -15,6 +15,8 @@ from typing import Dict, List, Tuple, Generator, Optional
 import numpy as np
 from dataclasses import dataclass
 from collections import defaultdict
+import sys
+from src.data.validate_alpaca_schema import AlpacaSchemaValidator
 
 @dataclass
 class BatchConfig:
@@ -72,7 +74,7 @@ class TemplateDataLoader:
             raise ValueError("Split ratios must be between 0 and 1")
 
     def _load_data(self) -> None:
-        """Lazy load the data when first needed."""
+        """Lazy load the data when first needed. Now includes Alpaca schema validation."""
         if self._examples is not None:
             return
 
@@ -84,14 +86,24 @@ class TemplateDataLoader:
             if f.name in ["alpaca_examples.json", "diverse_examples.json", "template_examples.json"]
         ]
 
+        validator = AlpacaSchemaValidator()
         for file_path in template_files:
             with open(file_path) as f:
                 data = json.load(f)
                 # Alpaca format: data is a list of dicts
                 if isinstance(data, list):
+                    # Validate all examples in the file
+                    for i, ex in enumerate(data):
+                        errors = validator.validate_example(ex)
+                        if errors:
+                            raise ValueError(f"Validation error in {file_path} example #{i}: {errors}\nSee docs/data_format.md and docs/validation.md for details.")
                     self._examples.extend(data)
                 # Legacy: if nested under 'examples', extract
                 elif isinstance(data, dict) and "examples" in data:
+                    for i, ex in enumerate(data["examples"]):
+                        errors = validator.validate_example(ex)
+                        if errors:
+                            raise ValueError(f"Validation error in {file_path} example #{i}: {errors}\nSee docs/data_format.md and docs/validation.md for details.")
                     self._examples.extend(data["examples"])
                 else:
                     raise ValueError(f"Unrecognized data format in {file_path}")

@@ -548,3 +548,17 @@ See also:
 - [Validation and Testing Framework](docs/validation.md)
 - [Data Format Documentation](docs/data_format.md)
 - [Cloud Workflow Guide](docs/cloud_workflow.md)
+
+## Alpaca Format Validation
+
+All data loading and evaluation pipelines require datasets to conform to the Alpaca format. Validation is enforced automatically in the code, but you can manually validate datasets using:
+
+```sh
+PYTHONPATH=. python scripts/validate_datasets.py
+```
+
+- See [docs/data_format.md](docs/data_format.md) for the Alpaca data format specification.
+- See [docs/validation.md](docs/validation.md) for validation requirements and usage.
+- See [scripts/validate_datasets.py](scripts/validate_datasets.py) for the validation script.
+
+**Note:** Always run scripts in the `scripts/` directory with the correct import path (use `PYTHONPATH=.` or `python -m scripts.<script_name>`) to avoid import errors.

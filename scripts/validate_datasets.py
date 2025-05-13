@@ -1,3 +1,7 @@
+# Validate all datasets in data/processed against the Alpaca schema.
+# See docs/data_format.md for format details and docs/validation.md for validation requirements.
+# Usage: PYTHONPATH=. python scripts/validate_datasets.py
+
 import sys
 from pathlib import Path
 from src.data.validate_alpaca_schema import AlpacaSchemaValidator
