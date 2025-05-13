@@ -20,13 +20,62 @@ This notebook trains the tokenizer model using the Alpaca format. Follow the ste
 
 ## Initial Setup"""))
 
-    # Setup cell - install dependencies
-    setup_code = '''%%capture
-# Install base requirements
-!pip install torch transformers datasets wandb matplotlib seaborn pandas ipywidgets
+    # GPU Check
+    gpu_check = '''# Check if we have GPU access
+import torch
 
-# Install cloud-specific packages (required for GPU training)
-!pip install unsloth xformers tqdm'''
+def check_gpu():
+    if not torch.cuda.is_available():
+        raise RuntimeError(
+            "No GPU found! This notebook requires a GPU runtime. "
+            "Go to Runtime > Change runtime type and select GPU."
+        )
+    print("✅ GPU is available:", torch.cuda.get_device_name(0))
+    print("   CUDA Version:", torch.version.cuda)
+
+check_gpu()'''
+    nb.cells.append(nbf.v4.new_code_cell(gpu_check))
+
+    # Setup cell - install dependencies with progress
+    setup_code = '''%%capture --no-stderr
+import sys
+from IPython.display import clear_output
+
+def install_with_progress(packages):
+    from IPython.display import display, HTML
+    import subprocess
+    import sys
+
+    for package in packages:
+        print(f"Installing {package}...")
+        subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+        clear_output(wait=True)
+    print("✅ All packages installed successfully!")
+
+# Base packages
+base_packages = [
+    "torch",
+    "transformers",
+    "datasets",
+    "wandb",
+    "matplotlib",
+    "seaborn",
+    "pandas",
+    "ipywidgets",
+    "tqdm"
+]
+
+# GPU-specific packages
+gpu_packages = [
+    "unsloth",
+    "xformers"
+]
+
+print("Installing base packages...")
+install_with_progress(base_packages)
+
+print("\\nInstalling GPU-specific packages...")
+install_with_progress(gpu_packages)'''
     nb.cells.append(nbf.v4.new_code_cell(setup_code))
 
     # Repository setup
@@ -92,17 +141,8 @@ except ImportError as e:
 print("\\n✅ Setup completed successfully!")'''
     nb.cells.append(nbf.v4.new_code_cell(repo_setup))
 
-    # GPU Setup
-    nb.cells.append(nbf.v4.new_markdown_cell("""## GPU Setup
-
-First, ensure you have selected a GPU runtime:
-1. Click 'Runtime' in the menu
-2. Select 'Change runtime type'
-3. Choose 'GPU' as the hardware accelerator
-4. Click 'Save'"""))
-
     # Model and data loading
-    model_setup = '''from transformers import AutoModelForCausalLM, AutoTokenizer
+    model_setup = '''from transformers.models.auto import AutoModelForCausalLM, AutoTokenizer
 import torch
 from unsloth import FastLanguageModel
 
@@ -110,18 +150,26 @@ from unsloth import FastLanguageModel
 model_name = "Qwen/Qwen1.5-4B"  # Using Qwen3-4B as specified in docs
 print("Loading model and tokenizer...")
 
-# Initialize with unsloth for faster training
-model, tokenizer = FastLanguageModel.from_pretrained(
-    model_name=model_name,
-    max_seq_length=512,
-    dtype=torch.bfloat16,
-    load_in_4bit=True,  # Quantization for memory efficiency
-)
+try:
+    # Initialize with unsloth for faster training
+    model, tokenizer = FastLanguageModel.from_pretrained(
+        model_name=model_name,
+        max_seq_length=512,
+        dtype=torch.bfloat16,
+        load_in_4bit=True,  # Quantization for memory efficiency
+    )
 
-# Disable thinking mode as per project policy
-model.config.enable_thinking = False
+    # Disable thinking mode as per project policy
+    model.config.enable_thinking = False
 
-print("✅ Model and tokenizer loaded successfully")'''
+    print("✅ Model and tokenizer loaded successfully")
+except Exception as e:
+    print(f"❌ Error loading model: {e}")
+    if "only works on NVIDIA GPUs" in str(e):
+        print("\\nThis error indicates you're not using an NVIDIA GPU.")
+        print("Please ensure you're using a GPU runtime and it's properly initialized.")
+        print("Go to Runtime > Change runtime type and select GPU.")
+    raise'''
     nb.cells.append(nbf.v4.new_code_cell(model_setup))
 
     # Data loading
