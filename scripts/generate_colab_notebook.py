@@ -52,10 +52,17 @@ def install_with_progress(packages):
         clear_output(wait=True)
     print("✅ All packages installed successfully!")
 
-# Base packages
+# First uninstall any existing torch and transformers
+print("Removing existing installations...")
+subprocess.check_call([sys.executable, "-m", "pip", "uninstall", "-y", "torch", "torchvision", "torchaudio", "transformers"])
+
+# Install specific versions known to work together
 base_packages = [
-    "torch",
-    "transformers",
+    "torch==2.1.2",
+    "torchvision==0.16.2",
+    "torchaudio==2.1.2",
+    "transformers==4.37.2",
+    "accelerate==0.27.2",
     "datasets",
     "wandb",
     "matplotlib",
@@ -68,7 +75,8 @@ base_packages = [
 # GPU-specific packages
 gpu_packages = [
     "unsloth",
-    "xformers"
+    "xformers==0.0.23.post1",
+    "flash-attn==2.3.6"
 ]
 
 print("Installing base packages...")
@@ -142,27 +150,46 @@ print("\\n✅ Setup completed successfully!")'''
     nb.cells.append(nbf.v4.new_code_cell(repo_setup))
 
     # Model and data loading
-    model_setup = '''from transformers.models.auto import AutoModelForCausalLM, AutoTokenizer
-import torch
+    model_setup = '''import torch
+from transformers import AutoTokenizer
 from unsloth import FastLanguageModel
+import warnings
+warnings.filterwarnings('ignore')
 
 # Load Qwen3-4B model and tokenizer
 model_name = "Qwen/Qwen1.5-4B"  # Using Qwen3-4B as specified in docs
 print("Loading model and tokenizer...")
 
 try:
-    # Initialize with unsloth for faster training
-    model, tokenizer = FastLanguageModel.from_pretrained(
+    # First load the tokenizer separately
+    tokenizer = AutoTokenizer.from_pretrained(
+        model_name,
+        trust_remote_code=True,
+        padding_side="right",
+        pad_token="<|endoftext|>"
+    )
+
+    # Initialize model with unsloth for faster training
+    model, _ = FastLanguageModel.from_pretrained(
         model_name=model_name,
         max_seq_length=512,
         dtype=torch.bfloat16,
         load_in_4bit=True,  # Quantization for memory efficiency
+        trust_remote_code=True
     )
 
     # Disable thinking mode as per project policy
     model.config.enable_thinking = False
 
     print("✅ Model and tokenizer loaded successfully")
+
+    # Test tokenization
+    test_text = "Hello, how are you?"
+    tokens = tokenizer(test_text, return_tensors="pt")
+    print("\\nTest tokenization:")
+    print(f"Input text: {test_text}")
+    print(f"Tokenized: {tokens}")
+
 except Exception as e:
     print(f"❌ Error loading model: {e}")
     if "only works on NVIDIA GPUs" in str(e):
@@ -207,17 +234,19 @@ training_args = TrainingArguments(
     gradient_accumulation_steps=4,
     learning_rate=2e-5,
     fp16=True,
+    bf16=True,  # Use bfloat16 for better numerical stability
     logging_steps=10,
     save_steps=100,
     evaluation_strategy="steps",
     eval_steps=100,
     save_total_limit=3,
+    optim="adamw_torch_fused",  # Use fused optimizer for better performance
 )
 
 print("✅ Training configuration ready")'''
     nb.cells.append(nbf.v4.new_code_cell(training_setup))
 
-    # Start training
+    # Training
     training = '''# Start training
 trainer = Trainer(
     model=model,
