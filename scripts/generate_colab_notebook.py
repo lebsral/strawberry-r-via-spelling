@@ -22,174 +22,181 @@ This notebook trains the tokenizer model using the Alpaca format. Follow the ste
 
     # Setup cell - install dependencies
     setup_code = '''%%capture
-!pip install torch transformers datasets wandb matplotlib seaborn pandas ipywidgets'''
+# Install base requirements
+!pip install torch transformers datasets wandb matplotlib seaborn pandas ipywidgets
+
+# Install cloud-specific packages (required for GPU training)
+!pip install unsloth xformers tqdm'''
     nb.cells.append(nbf.v4.new_code_cell(setup_code))
 
     # Repository setup
-    nb.cells.append(nbf.v4.new_markdown_cell("""## Clone Repository and Setup
-This cell handles repository setup and configuration."""))
-
-    setup_code = '''# Setup script for Google Colab
+    repo_setup = '''# 1. Start in a clean state
 import os
 import sys
-from google.colab import drive
-
-def setup_repository():
-    # 1. Start in content directory
-    os.chdir('/content')
-    print("Starting in directory:", os.getcwd())
-
-    # 2. Define repository and paths
-    REPO_NAME = "raspberry"
-    REPO_URL = f"https://github.com/lebsral/{REPO_NAME}.git"
-    REPO_PATH = os.path.join('/content', REPO_NAME)
-
-    try:
-        # 3. Clean up any existing repo directory
-        if os.path.exists(REPO_PATH):
-            print(f"Found existing repository at {REPO_PATH}")
-            !rm -rf $REPO_PATH
-            print("✅ Cleaned up existing repository")
-
-        # 4. Clone fresh repository
-        print("Cloning fresh repository...")
-        !git clone $REPO_URL
-
-        # 5. Change to repository directory
-        os.chdir(REPO_PATH)
-        print(f"✅ Changed working directory to: {os.getcwd()}")
-
-        # 6. Add repository root to Python path
-        if REPO_PATH not in sys.path:
-            sys.path.insert(0, REPO_PATH)
-            print(f"✅ Added {REPO_PATH} to Python path")
-
-        # 7. Verify setup
-        print("\\nVerification:")
-        print("-------------")
-        print("Repository contents:", os.listdir('.'))
-        print("Current working directory:", os.getcwd())
-        print("Python path:", REPO_PATH)
-
-        # 8. Test import
-        try:
-            import src
-            print("✅ src module can be imported successfully")
-        except ImportError as e:
-            print(f"❌ Error importing src module: {e}")
-
-        print("\\n✅ Setup completed successfully!")
-
-    except Exception as e:
-        print(f"\\n❌ Error during setup: {e}")
-        return False
-
-    return True
-
-# Run the setup
-setup_repository()'''
-    nb.cells.append(nbf.v4.new_code_cell(setup_code))
-
-    # Mount Google Drive
-    nb.cells.append(nbf.v4.new_markdown_cell("""## Mount Google Drive
-Mount Google Drive to save checkpoints and load data if needed:"""))
-    drive_code = '''from google.colab import drive
-drive.mount('/content/drive')'''
-    nb.cells.append(nbf.v4.new_code_cell(drive_code))
-
-    # Data Validation
-    nb.cells.append(nbf.v4.new_markdown_cell("""## Validate Alpaca-format Data
-Check all JSON files in `data/processed/` for schema compliance."""))
-    validate_code = '''from src.data.validate_alpaca_schema import AlpacaSchemaValidator
+import shutil
 from pathlib import Path
 
-data_dir = Path('data/processed')
-english_tokens_path = data_dir / 'english_tokens.json'
-validator = AlpacaSchemaValidator(english_tokens_path if english_tokens_path.exists() else None)
-reports = validator.validate_dir(data_dir)
-for report in reports:
-    print(f'\\nFile: {report["file"]}')
-    if 'total' in report:
-        print(f'  Total examples: {report["total"]}')
-        print(f'  Valid: {report["valid"]}')
-        print(f'  Invalid: {report["invalid"]}')
-        if report['invalid'] > 0:
-            for err in report['errors']:
-                print(f'    Example #{err["index"]}: {err["errors"]}')
-    else:
-        print(f'  Error: {report.get("error", "Unknown error")}')'''
-    nb.cells.append(nbf.v4.new_code_cell(validate_code))
+# 2. Define repository and setup information
+REPO_URL = "https://github.com/lebsral/strawberry-r-via-spelling.git"
+REPO_NAME = "strawberry-r-via-spelling"
+BASE_DIR = "/content"
 
-    # Data Loading
-    nb.cells.append(nbf.v4.new_markdown_cell("""## Load and Inspect Training Data
-Load Alpaca-format data and print stats and a sample batch."""))
-    load_code = '''from src.data.data_loader import TemplateDataLoader, BatchConfig
+print(f"Starting in directory: {BASE_DIR}")
 
-loader = TemplateDataLoader(
-    data_dir=data_dir,
-    batch_config=BatchConfig(batch_size=4, max_length=128, shuffle=False)
+# 3. Clean up any existing repository
+repo_path = os.path.join(BASE_DIR, REPO_NAME)
+if os.path.exists(repo_path):
+    print(f"Found existing repository at {repo_path}")
+    try:
+        shutil.rmtree(repo_path)
+        print("✅ Cleaned up existing repository")
+    except Exception as e:
+        print(f"❌ Error cleaning up repository: {e}")
+        sys.exit(1)
+
+# 4. Clone fresh repository
+print("Cloning fresh repository...")
+clone_command = f"git clone {REPO_URL}"
+if os.system(clone_command) != 0:
+    print("❌ Error cloning repository")
+    sys.exit(1)
+
+# 5. Change to repository directory
+try:
+    os.chdir(repo_path)
+    print(f"✅ Changed working directory to: {repo_path}")
+except Exception as e:
+    print(f"❌ Error changing directory: {e}")
+    sys.exit(1)
+
+# 6. Add repository root to Python path
+if repo_path not in sys.path:
+    sys.path.insert(0, repo_path)
+    print(f"✅ Added {repo_path} to Python path")
+
+# 7. Verify setup
+print("\\nVerification:")
+print("-------------")
+print(f"Repository contents: {os.listdir('.')}")
+print(f"Current working directory: {os.getcwd()}")
+print(f"Python path: {repo_path}")
+
+# 8. Test src import
+try:
+    import src
+    print("✅ src module can be imported successfully")
+except ImportError as e:
+    print(f"❌ Error importing src module: {e}")
+    sys.exit(1)
+
+print("\\n✅ Setup completed successfully!")'''
+    nb.cells.append(nbf.v4.new_code_cell(repo_setup))
+
+    # GPU Setup
+    nb.cells.append(nbf.v4.new_markdown_cell("""## GPU Setup
+
+First, ensure you have selected a GPU runtime:
+1. Click 'Runtime' in the menu
+2. Select 'Change runtime type'
+3. Choose 'GPU' as the hardware accelerator
+4. Click 'Save'"""))
+
+    # Model and data loading
+    model_setup = '''from transformers import AutoModelForCausalLM, AutoTokenizer
+import torch
+from unsloth import FastLanguageModel
+
+# Load Qwen3-4B model and tokenizer
+model_name = "Qwen/Qwen1.5-4B"  # Using Qwen3-4B as specified in docs
+print("Loading model and tokenizer...")
+
+# Initialize with unsloth for faster training
+model, tokenizer = FastLanguageModel.from_pretrained(
+    model_name=model_name,
+    max_seq_length=512,
+    dtype=torch.bfloat16,
+    load_in_4bit=True,  # Quantization for memory efficiency
 )
-stats = loader.get_stats()
-print('Stats:', stats)
-for batch in loader.train_batches():
-    print('Batch:', batch)
-    break  # Show only the first batch'''
-    nb.cells.append(nbf.v4.new_code_cell(load_code))
 
-    # Training Configuration
-    nb.cells.append(nbf.v4.new_markdown_cell("""## Training Configuration
-Set up model training parameters:"""))
-    config = '''# Training configuration
-config = {
-    "model_name": "gpt2",  # Base model to fine-tune
-    "train_file": "data/processed/alpaca_examples.json",
-    "output_dir": "/content/drive/MyDrive/tokenizer_checkpoints",
-    "num_epochs": 3,
-    "batch_size": 4,
-    "gradient_accumulation_steps": 4,
-    "learning_rate": 2e-5,
-    "max_length": 512,
-}
+# Disable thinking mode as per project policy
+model.config.enable_thinking = False
 
-# Create output directory
-os.makedirs(config["output_dir"], exist_ok=True)'''
-    nb.cells.append(nbf.v4.new_code_cell(config))
+print("✅ Model and tokenizer loaded successfully")'''
+    nb.cells.append(nbf.v4.new_code_cell(model_setup))
 
-    # Training
-    nb.cells.append(nbf.v4.new_markdown_cell("""## Model Training
-Initialize and start the training process:"""))
-    train_code = '''from src.training.train import AlpacaDataset, train
+    # Data loading
+    data_loading = '''# Load and prepare training data
+from pathlib import Path
+import json
+
+data_dir = Path("data/processed")
+print("Loading training data...")
+
+# Load component tokens data
+with open(data_dir / "component_tokens.json") as f:
+    component_data = json.load(f)
+
+# Load training examples
+with open(data_dir / "train_examples.json") as f:
+    train_data = json.load(f)
+
+print("✅ Data loaded successfully")'''
+    nb.cells.append(nbf.v4.new_code_cell(data_loading))
+
+    # Training setup
+    training_setup = '''from torch.utils.data import Dataset, DataLoader
+from transformers import Trainer, TrainingArguments
+import wandb
 
 # Initialize wandb
-wandb.login()
+wandb.init(project="tokenizer-training")
 
-# Start training
-train(
-    model_name=config["model_name"],
-    train_file=config["train_file"],
-    output_dir=config["output_dir"],
-    num_epochs=config["num_epochs"],
-    batch_size=config["batch_size"],
-    gradient_accumulation_steps=config["gradient_accumulation_steps"],
-    learning_rate=config["learning_rate"],
-    max_length=config["max_length"],
-)'''
-    nb.cells.append(nbf.v4.new_code_cell(train_code))
+# Set up training arguments
+training_args = TrainingArguments(
+    output_dir="checkpoints",
+    num_train_epochs=3,
+    per_device_train_batch_size=4,
+    gradient_accumulation_steps=4,
+    learning_rate=2e-5,
+    fp16=True,
+    logging_steps=10,
+    save_steps=100,
+    evaluation_strategy="steps",
+    eval_steps=100,
+    save_total_limit=3,
+)
 
-    # Save results
-    nb.cells.append(nbf.v4.new_markdown_cell("""## Save Results
-The model checkpoints are automatically saved to Google Drive. You can also download them locally:"""))
-    save_code = '''# Download final checkpoint if needed
-!zip -r /content/model_checkpoint.zip {config["output_dir"]}
-from google.colab import files
-files.download("/content/model_checkpoint.zip")'''
-    nb.cells.append(nbf.v4.new_code_cell(save_code))
+print("✅ Training configuration ready")'''
+    nb.cells.append(nbf.v4.new_code_cell(training_setup))
 
-    # Save the notebook
-    notebook_path = Path("notebooks/train_model.ipynb")
-    notebook_path.parent.mkdir(parents=True, exist_ok=True)
-    with open(notebook_path, 'w') as f:
+    # Start training
+    training = '''# Start training
+trainer = Trainer(
+    model=model,
+    args=training_args,
+    train_dataset=train_dataset,
+    eval_dataset=eval_dataset,
+)
+
+print("Starting training...")
+trainer.train()
+print("✅ Training completed")
+
+# Save the model
+output_dir = "final_model"
+trainer.save_model(output_dir)
+print(f"✅ Model saved to {output_dir}")'''
+    nb.cells.append(nbf.v4.new_code_cell(training))
+
+    # Save notebook
+    notebook_dir = Path("notebooks")
+    notebook_dir.mkdir(exist_ok=True)
+    notebook_path = notebook_dir / "train_model.ipynb"
+
+    with open(notebook_path, "w") as f:
         nbf.write(nb, f)
+
+    print(f"Notebook created at {notebook_path}")
 
 if __name__ == "__main__":
     create_training_notebook()
