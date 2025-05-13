@@ -4,6 +4,7 @@
 
 from transformers import AutoModelForCausalLM, AutoTokenizer
 import torch
+import sys
 
 def load_qwen3_tokenizer_only():
     """
@@ -11,8 +12,20 @@ def load_qwen3_tokenizer_only():
     Use this for all non-inference workflows.
     """
     model_id = "Qwen/Qwen3-4B"
-    tokenizer = AutoTokenizer.from_pretrained(model_id)
-    return tokenizer
+    print("  - Initializing tokenizer load process...")
+    sys.stdout.flush()
+    try:
+        print("  - Attempting to load tokenizer from cache or download if needed...")
+        print("  - This may take a few minutes if downloading for the first time...")
+        sys.stdout.flush()
+        tokenizer = AutoTokenizer.from_pretrained(model_id, verbose=True)
+        print("  - Tokenizer loaded successfully!")
+        sys.stdout.flush()
+        return tokenizer
+    except Exception as e:
+        print(f"  - Error loading tokenizer: {e}")
+        sys.stdout.flush()
+        raise
 
 def load_qwen3_model_and_tokenizer():
     """

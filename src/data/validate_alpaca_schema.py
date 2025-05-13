@@ -7,12 +7,18 @@ Validates that all examples in a dataset conform to the Alpaca format and projec
 - No extra fields allowed (unless in metadata)
 - Checks for empty strings, special characters, and Qwen3-4B English-only token subset (if available)
 - Reports summary of validation results
+
+Special file types:
+- english_tokens.json: Contains {"tokens": [...]} with English-only token list
+- english_multi_tokens.json: Contains {"tokens": [...]} with multi-token English words
+- All other .json files: Expected to be in Alpaca format
 """
 
 import json
 from pathlib import Path
 from typing import List, Dict, Any, Optional
 import re
+import sys
 
 REQUIRED_FIELDS = ["instruction", "input", "output"]
 OPTIONAL_FIELDS = ["template_category", "template_style", "separator_style"]
@@ -53,27 +59,46 @@ class AlpacaSchemaValidator:
         return errors
 
     def validate_file(self, file_path: Path) -> Dict[str, Any]:
-        with open(file_path) as f:
-            data = json.load(f)
-            if isinstance(data, dict) and "examples" in data:
-                examples = data["examples"]
-            elif isinstance(data, list):
-                examples = data
-            else:
-                raise ValueError(f"Unrecognized data format in {file_path}")
+        try:
+            with open(file_path) as f:
+                data = json.load(f)
+        except json.JSONDecodeError as e:
+            return {"file": str(file_path), "error": f"Invalid JSON: {str(e)}"}
+
+        # Check if this is a token list file
+        if isinstance(data, dict) and "tokens" in data:
+            if file_path.name == "english_tokens.json":
+                validator = EnglishTokenSetValidator()
+                return validator.validate_file(file_path)
+            elif file_path.name == "english_multi_tokens.json":
+                from src.models.qwen3_loader import load_qwen3_tokenizer_only
+                tokenizer = load_qwen3_tokenizer_only()
+                validator = EnglishMultiTokenSetValidator(tokenizer)
+                return validator.validate_file(file_path)
+
+        # Handle Alpaca format files
+        if isinstance(data, dict) and "examples" in data:
+            examples = data["examples"]
+        elif isinstance(data, list):
+            examples = data
+        else:
+            return {
+                "file": str(file_path),
+                "error": "Unrecognized data format. Expected Alpaca format (list of examples or dict with 'examples' key) or token list format ({'tokens': [...]})."
+            }
+
         results = []
         for i, ex in enumerate(examples):
             errs = self.validate_example(ex)
             if errs:
                 results.append({"index": i, "errors": errs, "example": ex})
-        summary = {
+        return {
             "file": str(file_path),
             "total": len(examples),
             "invalid": len(results),
             "valid": len(examples) - len(results),
             "errors": results
         }
-        return summary
 
     def validate_dir(self, dir_path: Path) -> List[Dict[str, Any]]:
         reports = []
@@ -122,6 +147,8 @@ class EnglishMultiTokenSetValidator:
         self.tokenizer = tokenizer
 
     def validate_file(self, file_path: Path) -> Dict[str, Any]:
+        print("  - Loading multi-token word set...")
+        sys.stdout.flush()
         with open(file_path) as f:
             data = json.load(f)
         errors = []
@@ -130,7 +157,15 @@ class EnglishMultiTokenSetValidator:
             errors.append("'tokens' key must be a list")
             return {"file": str(file_path), "valid": False, "errors": errors}
         seen = set()
+        total_tokens = len(tokens)
+        print(f"  - Validating {total_tokens} words for multi-token property...")
+        sys.stdout.flush()
+
         for i, word in enumerate(tokens):
+            if i % 1000 == 0:  # Progress update every 1000 words
+                print(f"  - Progress: {i}/{total_tokens} words ({(i/total_tokens)*100:.1f}%)")
+                sys.stdout.flush()
+
             if not isinstance(word, str) or not word:
                 errors.append(f"Word #{i} is not a non-empty string")
             if word in seen:
@@ -141,6 +176,9 @@ class EnglishMultiTokenSetValidator:
                 n_tokens = len(self.tokenizer.tokenize(word))
                 if n_tokens < 2:
                     errors.append(f"Word #{i} ('{word}') is not multi-token (tokenizes to {n_tokens} tokens)")
+
+        print(f"  - Validation complete! Processed {total_tokens} words.")
+        sys.stdout.flush()
         return {
             "file": str(file_path),
             "total": len(tokens),

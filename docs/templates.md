@@ -64,17 +64,44 @@ Templates use the following variables:
 
 - `{word}`: The target word being spelled
 - `{letters}`: The separated letters of the word
+- `{components}`: The component tokens of a compound word (new)
+- `{component_count}`: The number of components in the word (new)
 
 Example:
 
 ```
 "{letters} — that spells '{word}.'"
+"The word '{word}' combines {components}."
 ```
 
 ## Template Categories
 
 - All templates must produce input and output sequences that tokenize cleanly with Qwen3-4B and use only tokens from the English-only subset (see `english_tokens.json`).
-- Template categories (e.g., `spelling_first`, `word_first`) remain the same, but all examples must be validated for token compatibility.
+- Template categories:
+  - `spelling_first`: Templates that start with the spelling
+  - `word_first`: Templates that start with the word
+  - `structured`: Templates for analyzing compound words and their components (new)
+
+### Structured Templates (New)
+
+The `structured` category focuses on compound words and their components:
+
+```json
+{
+  "structured": {
+    "simple": [
+      "The word '{word}' combines {components}.",
+      "'{word}' is made up of {components}.",
+      "Break down '{word}' into its {component_count} parts: {components}."
+    ],
+    "educational": [
+      "Let's analyze '{word}': it's built from {components}.",
+      "'{word}' is a compound word. Its components are {components}.",
+      "The {component_count} building blocks of '{word}' are {components}."
+    ]
+  }
+}
+```
 
 ## Styles
 

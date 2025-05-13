@@ -30,6 +30,11 @@ This document describes the data formats used in the project for training exampl
 ```
 data/
 ├── processed/
+│   ├── english_tokens.json
+│   ├── component_tokens.json
+│   ├── train_examples.json
+│   ├── val_examples.json
+│   ├── test_examples.json
 │   └── template_variations/
 │       ├── template_examples.json
 │       └── diverse_examples.json
@@ -523,3 +528,79 @@ All data and token sets are validated using a dedicated framework:
 - See [docs/validation.md](validation.md) for the validation/testing framework
 - See [docs/token_extraction.md](token_extraction.md) for extraction methodology
 - See [docs/analysis.md](analysis.md) for evaluation details
+
+## Component Token Format
+Located in `data/processed/component_tokens.json`:
+
+```json
+{
+  "component_tokens": [
+    {
+      "token": "over",
+      "usage_count": 1090,
+      "compound_words": ["overboard", "overflow", "overwrite"],
+      "position_stats": {
+        "prefix": 980,
+        "infix": 10,
+        "suffix": 100
+      }
+    }
+  ],
+  "metadata": {
+    "total_unique_components": 2716,
+    "total_compound_words": 362809,
+    "generation_date": "2024-03-20",
+    "top_components": ["over", "less", "out"]
+  }
+}
+```
+
+### Component Token Fields
+- `token`: The component token string
+- `usage_count`: Number of times this component appears in compound words
+- `compound_words`: List of words that use this component
+- `position_stats`: Statistics about where this component appears in words
+
+### Component Metadata Fields
+- `total_unique_components`: Total number of unique component tokens
+- `total_compound_words`: Total number of compound words analyzed
+- `generation_date`: When the analysis was performed
+- `top_components`: List of most frequently used components
+
+## Dataset Split Format
+Located in `data/processed/{train|val|test}_examples.json`:
+
+```json
+{
+  "examples": [
+    {
+      "word": "overboard",
+      "components": ["over", "board"],
+      "template": "The word '{word}' combines {components}.",
+      "category": "structured",
+      "generated_text": "The word 'overboard' combines 'over' and 'board'."
+    }
+  ],
+  "metadata": {
+    "split": "train",
+    "num_examples": 4122,
+    "num_unique_components": 1358,
+    "generation_date": "2024-03-20",
+    "template_categories": ["spelling_first", "word_first", "structured"]
+  }
+}
+```
+
+### Split Example Fields
+- `word`: The compound word being used
+- `components`: List of component tokens that make up the word
+- `template`: The template used for this example
+- `category`: The template category used
+- `generated_text`: The final formatted example
+
+### Split Metadata Fields
+- `split`: Which split this file represents (train/val/test)
+- `num_examples`: Number of examples in this split
+- `num_unique_components`: Number of unique component tokens used
+- `generation_date`: When the split was generated
+- `template_categories`: List of template categories used

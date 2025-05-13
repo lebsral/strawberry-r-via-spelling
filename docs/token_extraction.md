@@ -43,6 +43,47 @@
 - Scripts and imports must follow the `src/` layout. See `.cursor/rules/module_imports.mdc` for enforced import rules.
 - This setup is now the project standard (Task 14.1: DONE).
 
+## Component Token Extraction (New)
+
+The project now includes sophisticated handling of multi-word tokens and their component parts:
+
+### Multi-Token Word Processing
+
+1. **Initial Token Extraction**
+   - Extract all English tokens using `extract_english_tokens.py`
+   - Identify multi-word tokens (e.g., "overboard", "underestimate")
+   - Store results in `data/processed/english_tokens.json`
+
+2. **Component Token Analysis**
+   - Use `extract_component_tokens.py` to:
+     - Break down multi-word tokens into components
+     - Track usage frequency of each component
+     - Identify common prefixes/suffixes
+   - Results stored in `data/processed/component_tokens.json`
+
+3. **Dataset Generation**
+   - Generate examples based on component token frequency
+   - More examples for frequently used components
+   - Balanced distribution across template categories
+
+### Component Token Statistics
+
+- Total unique component tokens: 2,716
+- Most common components:
+  - "over" (1090 uses)
+  - "less" (921 uses)
+  - "out" (633 uses)
+
+### Example Usage
+
+```python
+# Extract component tokens and analyze usage
+python scripts/extract_component_tokens.py
+
+# Generate dataset splits using component token information
+python scripts/generate_dataset_splits.py
+```
+
 ## Overview
 
 Qwen3-4B's tokenizer supports multiple languages, but only about 50,000 tokens are English. For this project, we extract and use only the English tokens for all training and evaluation.

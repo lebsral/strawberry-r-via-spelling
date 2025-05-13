@@ -10,6 +10,7 @@ This guide explains how to set up, run, and manage cloud-based workflows for thi
   - Fine-tuning and training with Unsloth and xformers (requires CUDA GPU)
   - Large-scale data processing or evaluation that exceeds local resources
   - Any workflow that requires GPU acceleration or is not supported on Mac/Apple Silicon
+  - Running Jupyter notebooks (.ipynb files) with GPU acceleration
 - **Use local workflows for:**
   - Data preparation, token extraction, and template generation
   - Local quantized inference with Ollama
@@ -20,6 +21,7 @@ This guide explains how to set up, run, and manage cloud-based workflows for thi
 ## 2. Recommended Cloud Platforms
 
 - **Google Colab** (Pro/Pro+ recommended for longer jobs)
+  - See [Colab Setup Guide](colab.md) for detailed notebook setup instructions
 - **Lightning AI**
 - **Custom cloud VM** (AWS, GCP, Azure, etc. with CUDA-enabled GPU)
 
@@ -137,6 +139,33 @@ python scripts/token_extraction.py --model Qwen3-4B --input data/raw/words.txt -
 - [README: Environment Setup](../README.md#cloud-workflow-google-colab-lightning-etc)
 - [Apple Silicon Setup Guide](apple_silicon_setup.md)
 - [Token Extraction Guide](token_extraction.md)
+- [Hugging Face Transformers Docs](https://huggingface.co/docs/transformers/en/index)
+
+---
+
+## 11. Notebook Environments
+
+### Google Colab
+- For detailed instructions on running notebooks in Google Colab, see the [Colab Setup Guide](colab.md)
+- Key considerations:
+  - Repository setup and Python path configuration
+  - GPU runtime selection
+  - Package installation and environment setup
+  - Data persistence and management
+  - Session timeouts and reconnection
+
+### Local Jupyter
+- For local development and testing without GPU requirements
+- Follow the [Apple Silicon Setup Guide](apple_silicon_setup.md) for local environment setup
+
+---
+
+## 12. References
+
+- [README: Environment Setup](../README.md#cloud-workflow-google-colab-lightning-etc)
+- [Apple Silicon Setup Guide](apple_silicon_setup.md)
+- [Token Extraction Guide](token_extraction.md)
+- [Colab Setup Guide](colab.md)
 - [Hugging Face Transformers Docs](https://huggingface.co/docs/transformers/en/index)
 
 ---

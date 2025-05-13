@@ -4,6 +4,21 @@
 
 This project explores whether training a language model (LLM) on spelling tasks improves its ability to answer position and count questions about words. The experiment is structured using Taskmaster for rigorous, task-driven development and reproducibility.
 
+## Component Token Processing (New)
+
+The project now features sophisticated handling of multi-word tokens:
+
+- **Intelligent Token Breakdown:** Analyzes compound words (e.g., "overboard", "underestimate") to extract meaningful component tokens
+- **Usage-Based Dataset Generation:** Creates examples based on component token frequency
+- **Balanced Distribution:** Ensures even coverage across different template categories
+- **Key Statistics:**
+  - 2,716 unique component tokens identified
+  - Most common components: "over" (1090 uses), "less" (921 uses), "out" (633 uses)
+  - Training set: 4,122 examples from 1,358 component tokens
+  - Validation/Test sets: 2,716 examples each from 679 tokens
+
+For detailed information about the component token extraction process, see [docs/token_extraction.md](docs/token_extraction.md#component-token-extraction-new).
+
 ## Qwen3-4B Migration
 
 - The project uses the Qwen3-4B model exclusively, always in non-thinking mode (`enable_thinking=False`). Thinking mode is strictly prohibited and enforced in code. Any attempt to use thinking mode will raise an error.
@@ -73,6 +88,8 @@ This project explores whether training a language model (LLM) on spelling tasks 
 > **Local Quantized Inference:** For step-by-step instructions and troubleshooting for Ollama, see [docs/ollama_integration.md](docs/ollama_integration.md).
 >
 > **Cloud Training & GPU Workflows:** For a complete guide to running this project in the cloud (Colab, Lightning, custom VM), see [docs/cloud_workflow.md](docs/cloud_workflow.md).
+>
+> **Google Colab Notebooks:** For detailed instructions on running project notebooks in Google Colab, see [docs/colab.md](docs/colab.md).
 
 ### 1. Environment Setup (Mac/Apple Silicon)
 
@@ -152,6 +169,9 @@ Whenever you add new packages, always run `uv pip freeze > requirements.txt` aga
 #### a. Recommended cloud platforms
 
 - Google Colab (Pro/Pro+ recommended for longer jobs)
+  - See [Colab Setup Guide](docs/colab.md) for detailed notebook setup
+  - Includes repository setup, Python path configuration, and best practices
+  - Essential for running project notebooks with GPU acceleration
 - Lightning AI
 - Any cloud VM with CUDA-enabled GPU
 

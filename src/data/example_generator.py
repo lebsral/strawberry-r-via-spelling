@@ -378,32 +378,90 @@ class ExampleGenerator:
         }
         return words.get(n, f"{n}th")
 
-    def generate_count_letter_example(self, word: str, letter: Optional[str] = None, style: Optional[str] = None) -> Dict[str, str]:
-        """
-        Generate a count letter question example for the given word and letter.
-        Returns only Alpaca fields: instruction, input, output.
-        Adds a 'word' field for validation (not used in training).
-        """
-        template = self._get_random_template("count_letter_question", "simple")
-        if letter is None:
-            letter = word[0]
-        input_text = template.format(word=word, letter=letter)
-        output = str(word.count(letter))
-        instruction = self.CANONICAL_INSTRUCTIONS["count_letter_question"]
-        return {"instruction": instruction, "input": input_text, "output": output, "word": word}
+    def generate_count_letter_example(self, word: str) -> Dict[str, str]:
+        """Generate an example asking about the number of characters in a word."""
+        templates = [
+            "How many letters are in the word '{word}'?",
+            "What is the length of '{word}'?",
+            "Count the number of characters in '{word}'."
+        ]
+        template = random.choice(templates)
+        input_text = template.format(word=word)
+        output_text = str(len(word))
+        return {
+            "input": input_text,
+            "output": output_text,
+            "template_category": "character_count",
+            "template_style": "simple",
+            "separator_style": None
+        }
 
-    def generate_char_position_examples(self, word: str, positions: Optional[list] = None, style: Optional[str] = None) -> list:
-        """
-        Generate character position question examples for the given word and positions.
-        Returns a list of Alpaca-format dicts, each with a 'word' field for validation.
-        """
+    def generate_char_position_examples(self, word: str, positions: List[int] = None) -> List[Dict[str, str]]:
+        """Generate examples asking about character positions in a word."""
         if positions is None:
-            positions = [1]
+            positions = list(range(1, len(word) + 1))
+
+        templates = [
+            "What is the {ordinal} character in '{word}'?",
+            "Which letter is at position {position} in '{word}'?",
+            "In the word '{word}', what is the {ordinal} letter?"
+        ]
+
         examples = []
         for pos in positions:
-            template = self._get_random_template("char_position_question", "simple")
-            input_text = template.format(word=word, position=pos)
-            output = word[pos - 1] if 1 <= pos <= len(word) else ""
-            instruction = self.CANONICAL_INSTRUCTIONS["char_position_question"]
-            examples.append({"instruction": instruction, "input": input_text, "output": output, "word": word})
+            ordinal = self._get_ordinal(pos)
+            for template in templates:
+                input_text = template.format(word=word, position=pos, ordinal=ordinal)
+                output_text = word[pos-1]  # Convert to 0-based index
+                examples.append({
+                    "input": input_text,
+                    "output": output_text,
+                    "template_category": "character_position",
+                    "template_style": "simple",
+                    "separator_style": None
+                })
         return examples
+
+    def _get_ordinal(self, n: int) -> str:
+        """Convert number to ordinal string (1st, 2nd, 3rd, etc.)"""
+        if 10 <= n % 100 <= 20:
+            suffix = 'th'
+        else:
+            suffix = {1: 'st', 2: 'nd', 3: 'rd'}.get(n % 10, 'th')
+        return f"{n}{suffix}"
+
+    def generate_spelling_example(self, word: str, category: str) -> Dict[str, str]:
+        """Generate a spelling example for a word using the specified template category."""
+        if category == "spelling_first":
+            templates = [
+                "How do you spell '{word}'?",
+                "What is the correct spelling of '{word}'?",
+                "Please spell out the word '{word}'.",
+                "Write out the spelling of '{word}'."
+            ]
+        elif category == "word_first":
+            templates = [
+                "The word is '{word}'. How is it spelled?",
+                "'{word}' - what is its spelling?",
+                "Given the word '{word}', write its spelling.",
+                "For the word '{word}', provide its spelling."
+            ]
+        else:  # structured
+            templates = [
+                "Q: How do you spell '{word}'?\nA: Let me spell that for you:",
+                "Q: What is the spelling of '{word}'?\nA: The spelling is:",
+                "Q: Can you spell '{word}'?\nA: Here's the spelling:",
+                "Q: Write the spelling of '{word}'?\nA: The correct spelling is:"
+            ]
+
+        template = random.choice(templates)
+        input_text = template.format(word=word)
+        output_text = " ".join(word)  # Spell out the word with spaces between letters
+
+        return {
+            "input": input_text,
+            "output": output_text,
+            "template_category": category,
+            "template_style": "simple",
+            "separator_style": None
+        }
