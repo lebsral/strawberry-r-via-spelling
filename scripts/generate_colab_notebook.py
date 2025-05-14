@@ -20,22 +20,6 @@ This notebook trains the tokenizer model using the Alpaca format. Follow the ste
 
 ## Initial Setup"""))
 
-    # GPU Check
-    gpu_check = '''# Check if we have GPU access
-import torch
-
-def check_gpu():
-    if not torch.cuda.is_available():
-        raise RuntimeError(
-            "No GPU found! This notebook requires a GPU runtime. "
-            "Go to Runtime > Change runtime type and select GPU."
-        )
-    print("✅ GPU is available:", torch.cuda.get_device_name(0))
-    print("   CUDA Version:", torch.version.cuda)
-
-check_gpu()'''
-    nb.cells.append(nbf.v4.new_code_cell(gpu_check))
-
     # Setup cell - install dependencies
     setup_code = '''# Install required packages
 print("Installing PyTorch...")
