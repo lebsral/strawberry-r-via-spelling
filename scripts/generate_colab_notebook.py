@@ -36,122 +36,75 @@ def check_gpu():
 check_gpu()'''
     nb.cells.append(nbf.v4.new_code_cell(gpu_check))
 
-    # Setup cell - install dependencies with progress
-    setup_code = '''%%capture --no-stderr
-import sys
-from IPython.display import clear_output
+    # Setup cell - install dependencies
+    setup_code = '''# Install required packages
+print("Installing PyTorch...")
+!pip install torch==2.1.2 torchvision==0.16.2 torchaudio==2.1.2 --quiet
 
-def install_with_progress(packages):
-    from IPython.display import display, HTML
-    import subprocess
-    import sys
+print("Installing transformers and accelerate...")
+!pip install transformers==4.37.2 accelerate==0.27.2 --quiet
 
-    for package in packages:
-        print(f"Installing {package}...")
-        subprocess.check_call([sys.executable, "-m", "pip", "install", package])
-        clear_output(wait=True)
-    print("✅ All packages installed successfully!")
+print("Installing Unsloth and GPU packages...")
+!pip install unsloth xformers==0.0.23.post1 flash-attn==2.3.6 --quiet
 
-# First uninstall any existing torch and transformers
-print("Removing existing installations...")
-subprocess.check_call([sys.executable, "-m", "pip", "uninstall", "-y", "torch", "torchvision", "torchaudio", "transformers"])
+print("Installing other dependencies...")
+!pip install datasets wandb matplotlib seaborn pandas ipywidgets tqdm --quiet
 
-# Install specific versions known to work together
-base_packages = [
-    "torch==2.1.2",
-    "torchvision==0.16.2",
-    "torchaudio==2.1.2",
-    "transformers==4.37.2",
-    "accelerate==0.27.2",
-    "datasets",
-    "wandb",
-    "matplotlib",
-    "seaborn",
-    "pandas",
-    "ipywidgets",
-    "tqdm"
-]
-
-# GPU-specific packages
-gpu_packages = [
-    "unsloth",
-    "xformers==0.0.23.post1",
-    "flash-attn==2.3.6"
-]
-
-print("Installing base packages...")
-install_with_progress(base_packages)
-
-print("\\nInstalling GPU-specific packages...")
-install_with_progress(gpu_packages)'''
+print("\\nVerifying installations:")
+import torch
+import transformers
+print(f"PyTorch version: {torch.__version__}")
+print(f"CUDA available: {torch.cuda.is_available()}")
+print(f"Transformers version: {transformers.__version__}")'''
     nb.cells.append(nbf.v4.new_code_cell(setup_code))
 
     # Repository setup
-    repo_setup = '''# 1. Start in a clean state
+    repo_setup = '''# Clone and set up repository
 import os
 import sys
-import shutil
 from pathlib import Path
 
-# 2. Define repository and setup information
+# Define repository information
 REPO_URL = "https://github.com/lebsral/strawberry-r-via-spelling.git"
 REPO_NAME = "strawberry-r-via-spelling"
 BASE_DIR = "/content"
 
 print(f"Starting in directory: {BASE_DIR}")
 
-# 3. Clean up any existing repository
+# Clean up any existing repository
 repo_path = os.path.join(BASE_DIR, REPO_NAME)
 if os.path.exists(repo_path):
-    print(f"Found existing repository at {repo_path}")
-    try:
-        shutil.rmtree(repo_path)
-        print("✅ Cleaned up existing repository")
-    except Exception as e:
-        print(f"❌ Error cleaning up repository: {e}")
-        sys.exit(1)
+    print(f"Cleaning up existing repository...")
+    !rm -rf $repo_path
 
-# 4. Clone fresh repository
-print("Cloning fresh repository...")
-clone_command = f"git clone {REPO_URL}"
-if os.system(clone_command) != 0:
-    print("❌ Error cloning repository")
-    sys.exit(1)
+# Clone fresh repository
+print("Cloning repository...")
+!git clone $REPO_URL
 
-# 5. Change to repository directory
-try:
-    os.chdir(repo_path)
-    print(f"✅ Changed working directory to: {repo_path}")
-except Exception as e:
-    print(f"❌ Error changing directory: {e}")
-    sys.exit(1)
+# Change to repository directory
+%cd $repo_path
+print(f"Changed to: {os.getcwd()}")
 
-# 6. Add repository root to Python path
+# Add to Python path
 if repo_path not in sys.path:
     sys.path.insert(0, repo_path)
-    print(f"✅ Added {repo_path} to Python path")
+    print(f"Added {repo_path} to Python path")
 
-# 7. Verify setup
-print("\\nVerification:")
-print("-------------")
-print(f"Repository contents: {os.listdir('.')}")
-print(f"Current working directory: {os.getcwd()}")
-print(f"Python path: {repo_path}")
+print("\\nVerifying setup:")
+!ls -la
+print(f"Current directory: {os.getcwd()}")
 
-# 8. Test src import
 try:
     import src
-    print("✅ src module can be imported successfully")
+    print("✅ src module imported successfully")
 except ImportError as e:
     print(f"❌ Error importing src module: {e}")
-    sys.exit(1)
-
-print("\\n✅ Setup completed successfully!")'''
+    raise'''
     nb.cells.append(nbf.v4.new_code_cell(repo_setup))
 
     # Model and data loading
     model_setup = '''import torch
-from transformers import AutoTokenizer
+from transformers.models.auto import AutoTokenizer
 from unsloth import FastLanguageModel
 import warnings
 warnings.filterwarnings('ignore')
