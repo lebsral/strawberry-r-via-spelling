@@ -88,10 +88,16 @@ except ImportError as e:
 
     # Model and data loading
     model_setup = '''import torch
-from transformers.models.auto import AutoTokenizer
-from unsloth import FastLanguageModel
 import warnings
 warnings.filterwarnings('ignore')
+
+# Check for GPU availability first
+if not torch.cuda.is_available():
+    raise RuntimeError("This notebook requires a GPU runtime. Go to Runtime > Change runtime type and select GPU.")
+
+# Import unsloth first to ensure optimizations are applied
+from unsloth import FastLanguageModel
+from transformers.models.auto import AutoTokenizer
 
 # Load Qwen3-4B model and tokenizer
 model_name = "Qwen/Qwen1.5-4B"  # Using Qwen3-4B as specified in docs
@@ -129,10 +135,6 @@ try:
 
 except Exception as e:
     print(f"❌ Error loading model: {e}")
-    if "only works on NVIDIA GPUs" in str(e):
-        print("\\nThis error indicates you're not using an NVIDIA GPU.")
-        print("Please ensure you're using a GPU runtime and it's properly initialized.")
-        print("Go to Runtime > Change runtime type and select GPU.")
     raise'''
     nb.cells.append(nbf.v4.new_code_cell(model_setup))
 
