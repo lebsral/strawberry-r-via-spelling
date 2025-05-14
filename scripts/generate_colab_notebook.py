@@ -21,18 +21,18 @@ This notebook trains the tokenizer model using the Alpaca format. Follow the ste
 ## Initial Setup"""))
 
     # Setup cell - install dependencies
-    setup_code = '''# Install required packages
-print("Installing PyTorch...")
-!pip install torch==2.1.2 torchvision==0.16.2 torchaudio==2.1.2 --quiet
+    setup_code = '''%%capture
+import os
+if "COLAB_" not in "".join(os.environ.keys()):
+    !pip install unsloth
+else:
+    # Do this only in Colab notebooks! Otherwise use pip install unsloth
+    !pip install --no-deps bitsandbytes accelerate xformers==0.0.29.post3 peft trl==0.15.2 triton cut_cross_entropy unsloth_zoo
+    !pip install sentencepiece protobuf datasets huggingface_hub hf_transfer
+    !pip install --no-deps unsloth
 
-print("Installing transformers and accelerate...")
-!pip install transformers==4.37.2 accelerate==0.27.2 --quiet
-
-print("Installing Unsloth and GPU packages...")
-!pip install unsloth xformers==0.0.23.post1 flash-attn==2.3.6 --quiet
-
-print("Installing other dependencies...")
-!pip install datasets wandb matplotlib seaborn pandas ipywidgets tqdm --quiet
+# Install other dependencies
+!pip install torch==2.1.2 transformers==4.37.2 wandb matplotlib seaborn pandas ipywidgets tqdm --quiet
 
 print("\\nVerifying installations:")
 import torch
